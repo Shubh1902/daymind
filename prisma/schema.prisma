@@ -1,0 +1,65 @@
+generator client {
+  provider        = "prisma-client"
+  output          = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String        @id @default(cuid())
+  email     String        @unique
+  name      String?
+  image     String?
+  tasks     Task[]
+  contexts  UserContext[]
+  createdAt DateTime      @default(now())
+}
+
+model Task {
+  id               String    @id @default(cuid())
+  text             String
+  deadline         DateTime?
+  estimatedMinutes Int?
+  priority         String    @default("medium")
+  category         String?
+  completed        Boolean   @default(false)
+  completedAt      DateTime?
+  deferCount       Int       @default(0)
+  notes            String?
+  userId           String
+  user             User      @relation(fields: [userId], references: [id])
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model UserContext {
+  id        String   @id @default(cuid())
+  key       String
+  value     String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, key])
+}
+
+model DailySession {
+  id         String   @id @default(cuid())
+  userId     String
+  date       DateTime
+  briefing   String?
+  plan       Json?
+  userInputs Json?
+  createdAt  DateTime @default(now())
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+}

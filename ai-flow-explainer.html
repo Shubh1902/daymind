@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DayMind — AI Integration Deep Dive</title>
+<style>
+  :root {
+    --bg: #080812;
+    --surface: #0f0f1e;
+    --surface2: #161628;
+    --surface3: #1e1e35;
+    --purple: #7c3aed;
+    --purple-light: #a855f7;
+    --purple-glow: rgba(139,92,246,0.15);
+    --text: rgba(240,238,255,0.9);
+    --text-dim: rgba(240,238,255,0.5);
+    --green: #22c55e;
+    --blue: #3b82f6;
+    --orange: #f97316;
+    --pink: #ec4899;
+    --teal: #14b8a6;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(8,8,18,0.9);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(139,92,246,0.12);
+    padding: 0 24px;
+    height: 56px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  nav .logo { font-weight: 700; font-size: 16px; color: var(--purple-light); margin-right: 16px; }
+  nav button {
+    background: none; border: none; color: var(--text-dim);
+    padding: 6px 12px; border-radius: 8px; cursor: pointer;
+    font-size: 13px; transition: all 0.2s;
+  }
+  nav button.active, nav button:hover {
+    background: var(--purple-glow); color: var(--purple-light);
+  }
+
+  /* MAIN */
+  main {
+    max-width: 900px; margin: 0 auto; padding: 80px 24px 60px;
+  }
+
+  /* SECTIONS */
+  .section { display: none; animation: fadeIn 0.3s ease; }
+  .section.active { display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* HEADINGS */
+  h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+  h1 span { background: linear-gradient(135deg, #a855f7, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  h2 { font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--purple-light); }
+  h3 { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+  p { color: var(--text-dim); font-size: 14px; margin-bottom: 12px; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface2);
+    border: 1px solid rgba(139,92,246,0.12);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 600px) { .card-row { grid-template-columns: 1fr; } }
+
+  /* PILL / BADGE */
+  .pill {
+    display: inline-block; padding: 2px 10px;
+    border-radius: 99px; font-size: 11px; font-weight: 600;
+    margin-right: 6px; margin-bottom: 4px;
+  }
+  .pill-purple { background: rgba(124,58,237,0.25); color: #c084fc; border: 1px solid rgba(124,58,237,0.3); }
+  .pill-green  { background: rgba(34,197,94,0.15);  color: #86efac; border: 1px solid rgba(34,197,94,0.25); }
+  .pill-blue   { background: rgba(59,130,246,0.15); color: #93c5fd; border: 1px solid rgba(59,130,246,0.25); }
+  .pill-orange { background: rgba(249,115,22,0.15); color: #fdba74; border: 1px solid rgba(249,115,22,0.25); }
+  .pill-pink   { background: rgba(236,72,153,0.15); color: #f9a8d4; border: 1px solid rgba(236,72,153,0.25); }
+  .pill-teal   { background: rgba(20,184,166,0.15); color: #5eead4; border: 1px solid rgba(20,184,166,0.25); }
+
+  /* CODE BLOCKS */
+  pre {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(139,92,246,0.12);
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', monospace;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .kw   { color: #c084fc; }
+  .str  { color: #86efac; }
+  .fn   { color: #93c5fd; }
+  .com  { color: #6b7280; font-style: italic; }
+  .num  { color: #fdba74; }
+  .var  { color: #f9a8d4; }
+
+  /* FLOW DIAGRAM */
+  .flow {
+    display: flex; flex-direction: column; gap: 0;
+    position: relative;
+  }
+  .flow-step {
+    display: flex; align-items: flex-start; gap: 16px;
+    position: relative; cursor: pointer;
+  }
+  .flow-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 19px; top: 40px;
+    width: 2px; height: calc(100% + 0px);
+    background: rgba(139,92,246,0.25);
+  }
+  .flow-dot {
+    width: 40px; height: 40px; flex-shrink: 0;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700; z-index: 1;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+  }
+  .flow-step:hover .flow-dot {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(139,92,246,0.4);
+    border-color: var(--purple-light);
+  }
+  .flow-body { flex: 1; padding-bottom: 24px; padding-top: 8px; }
+  .flow-body h3 { font-size: 14px; color: var(--text); margin-bottom: 4px; }
+  .flow-body p { font-size: 13px; color: var(--text-dim); margin: 0; }
+  .flow-detail {
+    display: none; margin-top: 12px;
+    background: rgba(0,0,0,0.3);
+    border-left: 2px solid var(--purple);
+    border-radius: 0 8px 8px 0;
+    padding: 12px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .flow-step.open .flow-detail { display: block; }
+  .flow-step.open .flow-dot { border-color: var(--purple-light); box-shadow: 0 0 20px rgba(139,92,246,0.4); }
+
+  /* INTERACTIVE SIMULATOR */
+  .sim-box {
+    background: var(--surface2);
+    border: 1px solid rgba(139,92,246,0.2);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .sim-header {
+    background: var(--surface3);
+    padding: 12px 16px;
+    font-size: 12px; color: var(--text-dim);
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid rgba(139,92,246,0.1);
+  }
+  .sim-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .sim-body { padding: 16px; }
+  .sim-label { font-size: 11px; font-weight: 600; color: var(--text-dim); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .sim-textarea, .sim-input {
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(139,92,246,0.15);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .sim-textarea:focus, .sim-input:focus {
+    border-color: rgba(139,92,246,0.4);
+    box-shadow: 0 0 0 3px rgba(139,92,246,0.1);
+  }
+  .sim-btn {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border: none; border-radius: 8px; color: white;
+    padding: 8px 16px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .sim-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+  .sim-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .sim-output {
+    margin-top: 12px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(139,92,246,0.12);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 80px;
+    color: var(--green);
+    white-space: pre-wrap;
+    display: none;
+  }
+  .sim-output.visible { display: block; }
+
+  /* CHAT MOCK */
+  .chat-mock {
+    background: var(--surface3);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(139,92,246,0.12);
+  }
+  .chat-mock-header {
+    background: var(--surface2);
+    padding: 10px 16px;
+    font-size: 12px; font-weight: 600; color: var(--purple-light);
+    border-bottom: 1px solid rgba(139,92,246,0.1);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .chat-msgs { padding: 16px; display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto; }
+  .msg-row { display: flex; }
+  .msg-row.user { justify-content: flex-end; }
+  .msg-bubble {
+    max-width: 80%; border-radius: 16px;
+    padding: 10px 14px; font-size: 13px; line-height: 1.5;
+  }
+  .msg-bubble.user { background: linear-gradient(135deg, #7c3aed, #a855f7); color: white; }
+  .msg-bubble.ai { background: var(--surface2); color: var(--text); border: 1px solid rgba(139,92,246,0.12); }
+  .chat-input-bar {
+    border-top: 1px solid rgba(139,92,246,0.1);
+    padding: 12px 16px;
+    display: flex; gap: 8px;
+  }
+  .chat-fake-input {
+    flex: 1; background: var(--surface2);
+    border: 1px solid rgba(139,92,246,0.15);
+    border-radius: 20px; padding: 8px 14px;
+    font-size: 13px; color: var(--text); outline: none;
+  }
+  .chat-send-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .chat-send-btn svg { width: 14px; height: 14px; fill: white; }
+  .chat-quick-btn {
+    background: var(--surface3); border: 1px solid rgba(139,92,246,0.2);
+    border-radius: 20px; padding: 4px 12px; font-size: 12px;
+    color: var(--purple-light); cursor: pointer; white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .chat-quick-btn:hover { background: var(--purple-glow); }
+  .quick-btns { display: flex; gap: 6px; padding: 0 16px 12px; flex-wrap: wrap; }
+
+  /* ARCHITECTURE BOXES */
+  .arch {
+    display: grid; grid-template-columns: 1fr 40px 1fr; align-items: center; gap: 0; margin-bottom: 16px;
+  }
+  .arch-box {
+    background: var(--surface2); border-radius: 10px;
+    border: 1px solid rgba(139,92,246,0.15);
+    padding: 14px; text-align: center;
+  }
+  .arch-icon { font-size: 24px; margin-bottom: 4px; }
+  .arch-name { font-size: 12px; font-weight: 600; color: var(--text); }
+  .arch-sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .arch-arrow { text-align: center; color: var(--purple); font-size: 20px; }
+
+  /* HIGHLIGHT BOX */
+  .highlight {
+    background: rgba(124,58,237,0.08);
+    border: 1px solid rgba(124,58,237,0.2);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .highlight-title { font-size: 12px; font-weight: 700; color: var(--purple-light); margin-bottom: 6px; }
+
+  /* SPINNER */
+  .spinner {
+    width: 14px; height: 14px; border: 2px solid white;
+    border-top-color: transparent; border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* TYPING CURSOR */
+  .cursor { display: inline-block; width: 2px; height: 14px; background: var(--green); animation: blink 1s infinite; margin-left: 1px; vertical-align: text-bottom; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.3); border-radius: 2px; }
+
+  /* STATUS BAR */
+  .status-bar {
+    display: flex; gap: 8px; align-items: center;
+    padding: 8px 12px; border-radius: 8px;
+    background: rgba(0,0,0,0.3);
+    font-size: 11px; color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .status-dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .status-dot.orange { background: var(--orange); box-shadow: 0 0 6px var(--orange); }
+  .status-dot.purple { background: var(--purple-light); box-shadow: 0 0 6px var(--purple-light); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .intro-hero {
+    text-align: center; padding: 40px 0 32px;
+  }
+  .intro-hero .emoji { font-size: 56px; margin-bottom: 16px; display: block; }
+  .tech-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px;
+  }
+  @media(max-width:600px) { .tech-grid { grid-template-columns: 1fr 1fr; } }
+  .tech-card {
+    background: var(--surface2); border-radius: 10px;
+    border: 1px solid rgba(139,92,246,0.12);
+    padding: 14px; text-align: center;
+    transition: all 0.2s; cursor: default;
+  }
+  .tech-card:hover { border-color: rgba(139,92,246,0.35); transform: translateY(-2px); }
+  .tech-card .icon { font-size: 28px; margin-bottom: 6px; }
+  .tech-card .name { font-size: 12px; font-weight: 600; color: var(--text); }
+  .tech-card .ver  { font-size: 11px; color: var(--text-dim); }
+
+  .divider { height: 1px; background: rgba(139,92,246,0.1); margin: 24px 0; }
+
+  /* JSON DIFF */
+  .json-viewer { font-family: monospace; font-size: 12px; line-height: 1.8; }
+  .json-key { color: #93c5fd; }
+  .json-str { color: #86efac; }
+  .json-num { color: #fdba74; }
+  .json-bool { color: #c084fc; }
+
+  /* TABS WITHIN SECTION */
+  .inner-tabs { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid rgba(139,92,246,0.1); padding-bottom: 12px; }
+  .inner-tab { background: none; border: 1px solid rgba(139,92,246,0.15); color: var(--text-dim); padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; transition: all 0.2s; }
+  .inner-tab.active { background: var(--purple); border-color: var(--purple); color: white; }
+  .inner-pane { display: none; }
+  .inner-pane.active { display: block; animation: fadeIn 0.2s ease; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">⚡ DayMind AI</div>
+  <button class="active" onclick="showSection('overview', this)">Overview</button>
+  <button onclick="showSection('flow1', this)">Plan Generation</button>
+  <button onclick="showSection('flow2', this)">Chat Adjustments</button>
+  <button onclick="showSection('prompts', this)">Prompts</button>
+  <button onclick="showSection('simulator', this)">Simulator</button>
+</nav>
+
+<main>
+
+<!-- ==================== OVERVIEW ==================== -->
+<div id="overview" class="section active">
+  <div class="intro-hero">
+    <span class="emoji">🧠</span>
+    <h1>DayMind <span>AI Integration</span></h1>
+    <p style="font-size:15px; max-width:520px; margin:0 auto 24px;">
+      An interactive deep-dive into how Claude powers DayMind's intelligent scheduling, real-time chat adjustments, and persistent user context.
+    </p>
+  </div>
+
+  <div class="tech-grid">
+    <div class="tech-card">
+      <div class="icon">🤖</div>
+      <div class="name">Claude Sonnet 4.6</div>
+      <div class="ver">AI Model</div>
+    </div>
+    <div class="tech-card">
+      <div class="icon">⚡</div>
+      <div class="name">Vercel AI SDK</div>
+      <div class="ver">ai@6.0.116</div>
+    </div>
+    <div class="tech-card">
+      <div class="icon">🔗</div>
+      <div class="name">@ai-sdk/anthropic</div>
+      <div class="ver">v3.0.58</div>
+    </div>
+    <div class="tech-card">
+      <div class="icon">🌊</div>
+      <div class="name">Streaming Responses</div>
+      <div class="ver">streamText + useChat</div>
+    </div>
+    <div class="tech-card">
+      <div class="icon">💭</div>
+      <div class="name">Extended Thinking</div>
+      <div class="ver">adaptive mode</div>
+    </div>
+    <div class="tech-card">
+      <div class="icon">🗄️</div>
+      <div class="name">Prisma + Postgres</div>
+      <div class="ver">Plan persistence</div>
+    </div>
+  </div>
+
+  <h2>Two AI Flows</h2>
+  <div class="card-row">
+    <div class="card" style="cursor:pointer" onclick="showSection('flow1', null)">
+      <div style="font-size:28px; margin-bottom:8px;">🗓️</div>
+      <h3>Flow 1 — Plan Generation</h3>
+      <p>Claude analyses your tasks + context and returns a structured JSON schedule with a briefing and follow-up questions.</p>
+      <div style="margin-top:10px"><span class="pill pill-orange">Server Action</span><span class="pill pill-purple">Streaming</span><span class="pill pill-green">Extended Thinking</span></div>
+    </div>
+    <div class="card" style="cursor:pointer" onclick="showSection('flow2', null)">
+      <div style="font-size:28px; margin-bottom:8px;">💬</div>
+      <h3>Flow 2 — Chat Adjustments</h3>
+      <p>You type a message; Claude streams a response + a hidden JSON block that mutates the plan and tasks in real-time.</p>
+      <div style="margin-top:10px"><span class="pill pill-blue">API Route</span><span class="pill pill-purple">useChat Hook</span><span class="pill pill-pink">Plan Updates</span></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h2>Where AI Code Lives</h2>
+  <div class="card">
+    <table style="width:100%; font-size:12px; border-collapse:collapse;">
+      <thead>
+        <tr style="color:var(--text-dim); text-align:left; border-bottom:1px solid rgba(139,92,246,0.1);">
+          <th style="padding:6px 0; padding-right:16px;">File</th>
+          <th style="padding:6px 0; padding-right:16px;">Role</th>
+          <th style="padding:6px 0;">Key AI Call</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+          <td style="padding:8px 16px 8px 0; font-family:monospace; color:var(--purple-light);">app/actions/ai.ts</td>
+          <td style="padding:8px 16px 8px 0; color:var(--text-dim);">Core AI logic</td>
+          <td style="padding:8px 0;"><span class="pill pill-orange">anthropic.messages.stream()</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+          <td style="padding:8px 16px 8px 0; font-family:monospace; color:var(--purple-light);">app/api/chat/route.ts</td>
+          <td style="padding:8px 16px 8px 0; color:var(--text-dim);">Streaming chat endpoint</td>
+          <td style="padding:8px 0;"><span class="pill pill-blue">streamText()</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+          <td style="padding:8px 16px 8px 0; font-family:monospace; color:var(--purple-light);">components/ChatInput.tsx</td>
+          <td style="padding:8px 16px 8px 0; color:var(--text-dim);">Frontend chat UI</td>
+          <td style="padding:8px 0;"><span class="pill pill-purple">useChat()</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+          <td style="padding:8px 16px 8px 0; font-family:monospace; color:var(--purple-light);">app/api/cron/morning-briefing</td>
+          <td style="padding:8px 16px 8px 0; color:var(--text-dim);">Daily cron trigger</td>
+          <td style="padding:8px 0;"><span class="pill pill-green">generateDayPlan()</span></td>
+        </tr>
+        <tr>
+          <td style="padding:8px 16px 8px 0; font-family:monospace; color:var(--purple-light);">components/DayPlan.tsx</td>
+          <td style="padding:8px 16px 8px 0; color:var(--text-dim);">Schedule visualiser</td>
+          <td style="padding:8px 0;"><span class="pill pill-teal">Renders AI output</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ==================== FLOW 1 ==================== -->
+<div id="flow1" class="section">
+  <h1><span>Plan Generation</span> Flow</h1>
+  <p>How DayMind builds your daily schedule from scratch using Claude with extended thinking.</p>
+
+  <div class="status-bar">
+    <div class="status-dot purple"></div>
+    <span>Triggered on dashboard load · Cached for the day · Force-regeneratable</span>
+  </div>
+
+  <div class="flow">
+
+    <div class="flow-step" onclick="toggleStep(this)">
+      <div class="flow-dot" style="background:rgba(249,115,22,0.2); color:#fdba74;">1</div>
+      <div class="flow-body">
+        <h3>User visits /dashboard</h3>
+        <p>Next.js server component calls <code style="color:var(--purple-light)">generateDayPlan(userId)</code></p>
+        <div class="flow-detail">
+          <b style="color:var(--orange)">File:</b> <code>app/(app)/dashboard/page.tsx</code><br><br>
+          This is a <strong>Server Component</strong> — no client JS needed for this step. The function is imported from <code>app/actions/ai.ts</code> and called with <code>"user_me"</code>. If a plan already exists in <code>DailySession</code> for today, it's returned immediately without calling Claude.
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step" onclick="toggleStep(this)">
+      <div class="flow-dot" style="background:rgba(59,130,246,0.2); color:#93c5fd;">2</div>
+      <div class="flow-body">
+        <h3>Cache check in Postgres</h3>
+        <p>Query <code>DailySession</code> for today. If plan exists → return immediately (no Claude call).</p>
+        <div class="flow-detail">
+<pre><span class="com">// One DB query to check today's plan</span>
+<span class="kw">const</span> existing = <span class="kw">await</span> prisma.dailySession.<span class="fn">findFirst</span>({
+  where: { userId, date: { gte: today, lt: tomorrow } }
+})
+
+<span class="kw">if</span> (existing?.plan) {
+  <span class="kw">return</span> { id: existing.id, briefing: existing.briefing,
+             plan: existing.plan <span class="kw">as</span> PlanItem[], questions: [] }
+  <span class="com">// ✅ Claude NOT called — cached result returned</span>
+}</pre>
+          This cache means Claude is only called once per day per user, unless the user clicks "Regenerate".
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step" onclick="toggleStep(this)">
+      <div class="flow-dot" style="background:rgba(20,184,166,0.2); color:#5eead4;">3</div>
+      <div class="flow-body">
+        <h3>Fetch tasks + user context</h3>
+        <p>Parallel DB queries — incomplete tasks ordered by deadline, plus any stored context answers.</p>
+        <div class="flow-detail">
+<pre><span class="kw">const</span> [tasks, contexts] = <span class="kw">await</span> Promise.<span class="fn">all</span>([
+  prisma.task.<span class="fn">findMany</span>({
+    where: { userId, completed: <span class="kw">false</span> },
+    orderBy: [{ deadline: <span class="str">"asc"</span> }, { createdAt: <span class="str">"asc"</span> }],
+  }),
+  prisma.userContext.<span class="fn">findMany</span>({ where: { userId } }),
+])</pre>
+          <strong>UserContext</strong> stores things like "How long does writing a proposal take you?" — Claude's previous questions that you've answered. These shape the schedule.
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step" onclick="toggleStep(this)">
+      <div class="flow-dot" style="background:rgba(139,92,246,0.3); color:#c084fc;">4</div>
+      <div class="flow-body">
+        <h3>Build the user prompt</h3>
+        <p>Tasks serialised to readable text with IDs, deadlines, priorities, defer counts.</p>
+        <div class="flow-detail">
+          Each task becomes a line like:<br>
+          <code style="color:var(--green)">- ID: clx1a | "Write Q1 report" | Due: Mar 25 | Priority: high | Deferred 1x | Est: 90min</code><br><br>
+          Then wrapped with current date/time and user context, with an explicit JSON schema Claude must follow.
+<pre style="margin-top:8px"><span class="com">// The exact JSON shape Claude must return:</span>
+{
+  <span class="str">"briefing"</span>: <span class="str">"2-3 sentences about today"</span>,
+  <span class="str">"plan"</span>: [{
+    <span class="str">"taskId"</span>: <span class="str">"exact-id-from-above"</span>,
+    <span class="str">"scheduledTime"</span>: <span class="str">"9:00 AM"</span>,
+    <span class="str">"estimatedMinutes"</span>: <span class="num">30</span>,
+    <span class="str">"reason"</span>: <span class="str">"one sentence why this slot"</span>
+  }],
+  <span class="str">"questions"</span>: [<span class="str">"Context questions to ask the user"</span>]
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step" onclick="toggleStep(this)">
+      <div class="flow-dot" style="background:rgba(236,72,153,0.2); color:#f9a8d4;">5</div>
+      <div class="flow-body">
+        <h3>Call Claude with extended thinking</h3>
+        <p>Direct Anthropic SDK with <code>thinking: { type: "adaptive" }</code> and streaming.</p>
+        <div class="flow-detail">
+<pre><span class="kw">const</span> stream = anthropic.messages.<span class="fn">stream</span>({
+  model: <span class="str">"claude-sonnet-4-6"</span>,
+  max_tokens: <span class="num">4096</span>,
+  thinking: { type: <span class="str">"adaptive"</span> },  <span class="com">// 🧠 Extended thinking on!</span>
+  system: SYSTEM_PROMPT,
+  messages: [{ role: <span class="str">"user"</span>, content: userPrompt }],
+})
+
+<span class="kw">const</span> response = <span class="kw">await</span> stream.<span class="fn">finalMessage</span>()</pre>
+          <div class="highlight" style="margin-top:8px;">
+            <div class="highlight-title">💡 Why extended thinking?</div>
+            With <code>adaptive</code> thinking, Claude decides whether to reason step-by-step before answering. For scheduling, this means it can consider trade-offs (deadline urgency vs. energy levels, dependency ordering) before locking in time slots. The thinking tokens don't appear in the output — only the final schedule JSON does.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step" onclick="toggleStep(this)">
+      <div class="flow-dot" style="background:rgba(34,197,94,0.2); color:#86efac;">6</div>
+      <div class="flow-body">
+        <h3>Parse JSON + save to DB</h3>
+        <p>Extract JSON from Claude's response, validate, save <code>DailySession</code> to Postgres.</p>
+        <div class="flow-detail">
+<pre><span class="com">// Find the JSON blob in the text response</span>
+<span class="kw">const</span> rawText = response.content
+  .<span class="fn">find</span>(b => b.type === <span class="str">"text"</span>)?.text ?? <span class="str">""</span>
+<span class="kw">const</span> jsonMatch = rawText.<span class="fn">match</span>(<span class="str">/\{[\s\S]*\}/</span>)
+<span class="kw">const</span> planData = JSON.<span class="fn">parse</span>(jsonMatch[<span class="num">0</span>])
+
+<span class="com">// Upsert the DailySession</span>
+<span class="kw">const</span> session = <span class="kw">await</span> prisma.dailySession.<span class="fn">create</span>({
+  data: {
+    userId,
+    date: today,
+    briefing: planData.briefing,
+    plan: planData.plan <span class="kw">as</span> object[],
+    userInputs: [],
+  }
+})</pre>
+          The plan is stored as Postgres JSON so future requests just hit the DB, not Claude.
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step" onclick="toggleStep(this)">
+      <div class="flow-dot" style="background:rgba(249,115,22,0.2); color:#fdba74;">7</div>
+      <div class="flow-body">
+        <h3>Render on dashboard</h3>
+        <p><code>DayPlan</code> component visualises the schedule; <code>ContextQuestions</code> shows Claude's follow-up questions.</p>
+        <div class="flow-detail">
+          The returned <code>DayPlanResult</code> contains:
+          <ul style="margin-top:8px; margin-left:16px; color:var(--text-dim); font-size:12px;">
+            <li><strong style="color:var(--text)">briefing</strong> — 2-3 sentence summary shown at top of dashboard</li>
+            <li><strong style="color:var(--text)">plan[]</strong> — array of scheduled items rendered as a timeline</li>
+            <li><strong style="color:var(--text)">questions[]</strong> — shown by <code>ContextQuestions</code> component for user to answer (saved back to <code>UserContext</code> table)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="divider"></div>
+
+  <h2>What Claude Actually Receives & Returns</h2>
+  <div class="inner-tabs">
+    <button class="inner-tab active" onclick="innerTab(this,'p1-sys')">System Prompt</button>
+    <button class="inner-tab" onclick="innerTab(this,'p1-user')">User Prompt Example</button>
+    <button class="inner-tab" onclick="innerTab(this,'p1-resp')">Claude's Response</button>
+  </div>
+  <div id="p1-sys" class="inner-pane active">
+<pre><span class="str">"You are a personal chief of staff. You know everything about the user's
+tasks and context. Your job is to produce a realistic, time-aware daily
+schedule. Be direct and practical. Never pad the schedule — if something
+takes 20 minutes, say 20 minutes."</span></pre>
+    <p>Short and direct. Claude's role is narrowly defined — no open-ended assistant behaviour, just scheduling.</p>
+  </div>
+  <div id="p1-user" class="inner-pane">
+<pre>Today is Saturday, March 21, 2026 at 09:14 AM.
+
+MY TASKS:
+- ID: clx1abc | "Write Q1 investor report" | Due: Mar 25 | Priority: high | Deferred 1x | Est: 90min
+- ID: clx2def | "Review product roadmap deck" | Est: 45min
+- ID: clx3ghi | "Call Alex re: partnership" | Due: Mar 22
+- ID: clx4jkl | "Update landing page copy" | Priority: low
+
+MY CONTEXT:
+- question_1710000000: Writing reports usually takes me 2+ hours because I revise a lot
+- question_1710000001: Best focus time is morning before 12pm
+
+Produce a day plan. Return ONLY valid JSON in this exact shape:
+{
+  "briefing": "2-3 sentences: why these tasks matter today, what the deadline pressure is",
+  "plan": [ ... ],
+  "questions": [ ... ]
+}</pre>
+  </div>
+  <div id="p1-resp" class="inner-pane">
+<pre class="json-viewer">{
+  <span class="json-key">"briefing"</span>: <span class="json-str">"The Q1 investor report is your most urgent deliverable with a Tuesday deadline, and your context tells me you revise heavily — blocking morning time is non-negotiable. The partnership call with Alex must happen tomorrow, so prep matters today."</span>,
+  <span class="json-key">"plan"</span>: [
+    {
+      <span class="json-key">"taskId"</span>: <span class="json-str">"clx1abc"</span>,
+      <span class="json-key">"scheduledTime"</span>: <span class="json-str">"9:30 AM"</span>,
+      <span class="json-key">"estimatedMinutes"</span>: <span class="json-num">120</span>,
+      <span class="json-key">"reason"</span>: <span class="json-str">"Peak focus window; you've deferred this once, can't slip again."</span>
+    },
+    {
+      <span class="json-key">"taskId"</span>: <span class="json-str">"clx3ghi"</span>,
+      <span class="json-key">"scheduledTime"</span>: <span class="json-str">"12:00 PM"</span>,
+      <span class="json-key">"estimatedMinutes"</span>: <span class="json-num">30</span>,
+      <span class="json-key">"reason"</span>: <span class="json-str">"Prep notes for tomorrow's call while report is still fresh."</span>
+    },
+    {
+      <span class="json-key">"taskId"</span>: <span class="json-str">"clx2def"</span>,
+      <span class="json-key">"scheduledTime"</span>: <span class="json-str">"2:00 PM"</span>,
+      <span class="json-key">"estimatedMinutes"</span>: <span class="json-num">45</span>,
+      <span class="json-key">"reason"</span>: <span class="json-str">"Lower-stakes review fits the post-lunch energy dip."</span>
+    }
+  ],
+  <span class="json-key">"questions"</span>: [
+    <span class="json-str">"Do you have any hard stops today (meetings, pickups) that would block calendar slots?"</span>,
+    <span class="json-str">"Would you prefer the landing page copy deferred to Monday?"</span>
+  ]
+}</pre>
+  </div>
+</div>
+
+<!-- ==================== FLOW 2 ==================== -->
+<div id="flow2" class="section">
+  <h1><span>Chat Adjustment</span> Flow</h1>
+  <p>Real-time streaming chat where Claude simultaneously converses <em>and</em> mutates your task database.</p>
+
+  <div class="status-bar">
+    <div class="status-dot green"></div>
+    <span>Streaming via Vercel AI SDK · Plan updates happen in onFinish callback · Dashboard auto-refreshes</span>
+  </div>
+
+  <h2>Architecture</h2>
+  <div class="arch">
+    <div class="arch-box">
+      <div class="arch-icon">💻</div>
+      <div class="arch-name">ChatInput.tsx</div>
+      <div class="arch-sub">useChat() hook<br>DefaultChatTransport</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box">
+      <div class="arch-icon">🌐</div>
+      <div class="arch-name">POST /api/chat</div>
+      <div class="arch-sub">streamText()<br>onFinish → DB writes</div>
+    </div>
+  </div>
+  <div class="arch">
+    <div class="arch-box">
+      <div class="arch-icon">🗄️</div>
+      <div class="arch-name">Postgres</div>
+      <div class="arch-sub">DailySession updated<br>Tasks created/completed</div>
+    </div>
+    <div class="arch-arrow">←</div>
+    <div class="arch-box">
+      <div class="arch-icon">🤖</div>
+      <div class="arch-name">Claude Sonnet 4.6</div>
+      <div class="arch-sub">Streams text + hidden<br>&lt;plan_update&gt; JSON</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h2>Step-by-Step Flow</h2>
+  <div class="flow">
+
+    <div class="flow-step" onclick="toggleStep(this)">
+      <div class="flow-dot" style="background:rgba(59,130,246,0.2); color:#93c5fd;">1</div>
+      <div class="flow-body">
+        <h3>User types a message</h3>
+        <p>e.g. "Push the report to tomorrow and add a task to email Sarah"</p>
+        <div class="flow-detail">
+<pre><span class="com">// ChatInput.tsx — handleSubmit</span>
+<span class="fn">sendMessage</span>({ text })  <span class="com">// from useChat hook</span>
+
+<span class="com">// useChat is configured with:</span>
+<span class="kw">const</span> { messages, sendMessage, status } = <span class="fn">useChat</span>({
+  transport: <span class="kw">new</span> <span class="fn">DefaultChatTransport</span>({
+    api: <span class="str">"/api/chat"</span>,
+    body: { tasks, currentPlan, sessionId },
+    <span class="com">// ↑ Tasks + plan sent on EVERY request for full context</span>
+  }),
+  onFinish: () => router.<span class="fn">refresh</span>(),  <span class="com">// Refresh after stream ends</span>
+})</pre>
+          The <code>tasks</code>, <code>currentPlan</code>, and <code>sessionId</code> are injected into every request body automatically by the transport layer.
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step" onclick="toggleStep(this)">
+      <div class="flow-dot" style="background:rgba(139,92,246,0.3); color:#c084fc;">2</div>
+      <div class="flow-body">
+        <h3>API Route receives & builds context</h3>
+        <p>Serialises tasks and current plan into a rich system prompt for Claude.</p>
+        <div class="flow-detail">
+<pre><span class="com">// /api/chat/route.ts</span>
+<span class="kw">const</span> { messages, tasks, currentPlan, sessionId } =
+  <span class="kw">await</span> request.<span class="fn">json</span>()
+
+<span class="com">// Serialise tasks to readable text</span>
+<span class="kw">const</span> tasksText = tasks
+  .<span class="fn">map</span>(t => {
+    <span class="kw">let</span> line = <span class="str">`- ID: </span><span class="var">${t.id}</span><span class="str"> | "</span><span class="var">${t.text}</span><span class="str">"`</span>
+    <span class="kw">if</span> (t.deadline) line += <span class="str">` | Due: ...</span>`
+    <span class="kw">if</span> (t.priority !== <span class="str">"medium"</span>) line += <span class="str">` | Priority: </span><span class="var">${t.priority}</span>`
+    <span class="kw">if</span> (t.deferCount > <span class="num">0</span>) line += <span class="str">` | Deferred </span><span class="var">${t.deferCount}</span>x`
+    <span class="kw">return</span> line
+  })
+  .<span class="fn">join</span>(<span class="str">"\n"</span>)</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step" onclick="toggleStep(this)">
+      <div class="flow-dot" style="background:rgba(236,72,153,0.2); color:#f9a8d4;">3</div>
+      <div class="flow-body">
+        <h3>Claude streams response</h3>
+        <p>Vercel AI SDK's <code>streamText()</code> pipes Claude's tokens directly to the browser.</p>
+        <div class="flow-detail">
+<pre><span class="kw">const</span> result = <span class="fn">streamText</span>({
+  model: <span class="fn">anthropicProvider</span>(<span class="str">"claude-sonnet-4-6"</span>),
+  system: systemPrompt,
+  messages: modelMessages,
+  onFinish: <span class="kw">async</span> ({ text }) => {
+    <span class="com">// 🔑 This runs AFTER streaming completes</span>
+    <span class="kw">const</span> planMatch = text.<span class="fn">match</span>(
+      <span class="str">/&lt;plan_update&gt;\s*([\s\S]*?)\s*&lt;\/plan_update&gt;/</span>
+    )
+    <span class="com">// Parse + apply DB changes...</span>
+  }
+})
+
+<span class="kw">return</span> result.<span class="fn">toUIMessageStreamResponse</span>()
+<span class="com">// ↑ Vercel AI SDK streaming protocol (not raw SSE)</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step" onclick="toggleStep(this)">
+      <div class="flow-dot" style="background:rgba(249,115,22,0.2); color:#fdba74;">4</div>
+      <div class="flow-body">
+        <h3>Hidden JSON block extracted</h3>
+        <p>Claude always ends responses with a <code>&lt;plan_update&gt;</code> XML block. Frontend strips it from display.</p>
+        <div class="flow-detail">
+          <strong style="color:var(--text)">What Claude sends (full text):</strong>
+<pre style="margin-top:8px"><span class="com">// Visible conversational part:</span>
+Got it! I've pushed the investor report to Sunday and added
+an email task for Sarah. Your afternoon is clearer now.
+
+<span class="com">// Hidden machine-readable block:</span>
+&lt;plan_update&gt;
+{
+  "plan": [{"taskId":"clx2def","scheduledTime":"9:30 AM",...}],
+  "briefing": "Updated briefing...",
+  "newTasks": [{"text":"Email Sarah re: Q1 update","priority":"medium"}],
+  "completedTaskIds": [],
+  "deferredTaskIds": ["clx1abc"]
+}
+&lt;/plan_update&gt;</pre>
+          <div class="highlight" style="margin-top:8px">
+            <div class="highlight-title">🎭 The clever trick</div>
+            <code>stripPlanUpdate(text)</code> removes the XML block before displaying the message bubble. The user sees only the natural conversation, not the JSON machinery.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step" onclick="toggleStep(this)">
+      <div class="flow-dot" style="background:rgba(34,197,94,0.2); color:#86efac;">5</div>
+      <div class="flow-body">
+        <h3>onFinish: apply DB mutations</h3>
+        <p>After streaming completes, the route applies task creates, completions, deferrals, and plan updates.</p>
+        <div class="flow-detail">
+<pre><span class="com">// Three possible mutations, run in parallel:</span>
+
+<span class="com">// 1. Create new tasks</span>
+<span class="kw">if</span> (update.newTasks?.length) {
+  <span class="kw">await</span> Promise.<span class="fn">all</span>(
+    update.newTasks.<span class="fn">map</span>(t => prisma.task.<span class="fn">create</span>({ data: {...} }))
+  )
+}
+
+<span class="com">// 2. Mark tasks as completed</span>
+<span class="kw">if</span> (update.completedTaskIds?.length) {
+  <span class="kw">await</span> prisma.task.<span class="fn">updateMany</span>({
+    where: { id: { in: update.completedTaskIds } },
+    data: { completed: <span class="kw">true</span>, completedAt: <span class="kw">new</span> <span class="fn">Date</span>() }
+  })
+}
+
+<span class="com">// 3. Defer tasks (increment counter)</span>
+<span class="kw">for</span> (<span class="kw">const</span> id <span class="kw">of</span> update.deferredTaskIds) {
+  <span class="kw">await</span> prisma.task.<span class="fn">update</span>({
+    where: { id },
+    data: { deferCount: { increment: <span class="num">1</span> } }
+  })
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step" onclick="toggleStep(this)">
+      <div class="flow-dot" style="background:rgba(20,184,166,0.2); color:#5eead4;">6</div>
+      <div class="flow-body">
+        <h3>router.refresh() → UI updates</h3>
+        <p>The <code>onFinish</code> callback in <code>useChat</code> triggers a Next.js router refresh, reloading server components.</p>
+        <div class="flow-detail">
+          <code>router.refresh()</code> causes Next.js to re-fetch all server components for the current route without a full page reload. Since <code>DayPlan</code> and <code>ContextQuestions</code> are server components, they re-render with fresh data from Postgres — reflecting whatever Claude just changed.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="divider"></div>
+
+  <h2>Live Demo — Chat Messages</h2>
+  <p>Click an example message to see what Claude would send back and what DB changes happen.</p>
+  <div class="chat-mock">
+    <div class="chat-mock-header">
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)"></div>
+      DayMind Chat
+    </div>
+    <div class="chat-msgs" id="chatMessages">
+      <div class="msg-row">
+        <div class="msg-bubble ai">Hey! I've got your plan ready. What would you like to change?</div>
+      </div>
+    </div>
+    <div class="quick-btns">
+      <button class="chat-quick-btn" onclick="sendDemo('defer')">Defer the report to tomorrow</button>
+      <button class="chat-quick-btn" onclick="sendDemo('done')">Mark the call as done</button>
+      <button class="chat-quick-btn" onclick="sendDemo('add')">Add: email Sarah by EOD</button>
+    </div>
+    <div class="chat-input-bar">
+      <input class="chat-fake-input" id="chatDemoInput" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendDemoCustom()">
+      <button class="chat-send-btn" onclick="sendDemoCustom()">
+        <svg viewBox="0 0 24 24"><path d="M12 19V5m0 0l-7 7m7-7l7 7"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PROMPTS ==================== -->
+<div id="prompts" class="section">
+  <h1><span>Prompts</span> Deep Dive</h1>
+  <p>The exact system prompts and how they shape Claude's behaviour in each context.</p>
+
+  <h2>Plan Generation System Prompt</h2>
+  <div class="card">
+    <div style="margin-bottom:12px">
+      <span class="pill pill-orange">app/actions/ai.ts</span>
+      <span class="pill pill-green">generateDayPlan()</span>
+    </div>
+<pre><span class="str">"You are a personal chief of staff. You know everything about the
+user's tasks and context. Your job is to produce a realistic,
+time-aware daily schedule. Be direct and practical. Never pad the
+schedule — if something takes 20 minutes, say 20 minutes."</span></pre>
+    <div class="highlight">
+      <div class="highlight-title">🎯 Why this prompt works</div>
+      <p style="font-size:13px; color:var(--text-dim); margin:0">
+        Three key constraints: <strong style="color:var(--text)">role</strong> (chief of staff, not generic assistant), <strong style="color:var(--text)">context omniscience</strong> (you know everything — no hedging), and <strong style="color:var(--text)">anti-padding rule</strong> (prevents Claude from over-estimating to appear safe). The conciseness keeps the JSON tight.
+      </p>
+    </div>
+  </div>
+
+  <h2>Chat System Prompt</h2>
+  <div class="card">
+    <div style="margin-bottom:12px">
+      <span class="pill pill-blue">app/api/chat/route.ts</span>
+      <span class="pill pill-purple">POST /api/chat</span>
+    </div>
+<pre><span class="str">`You are DayMind, a personal chief of staff AI. You help the user manage their day.
+
+CURRENT TASK LIST:
+</span><span class="var">${tasksText}</span><span class="str">
+
+CURRENT DAY PLAN:
+</span><span class="var">${planText}</span><span class="str">
+
+When the user sends a message:
+- Respond conversationally in 1-3 sentences
+- If they want to add a task, ignore a task, defer a task, or change
+  priorities — acknowledge it and adjust the plan mentally
+- Always end your response with a JSON block on its own line, like this:
+&lt;plan_update&gt;
+{"plan":[...],"briefing":"...","newTasks":[...],"completedTaskIds":[],"deferredTaskIds":[]}
+&lt;/plan_update&gt;
+
+Rules for the JSON block:
+- "plan": always return the FULL updated plan array (all tasks, reshuffled if needed)
+- "briefing": short updated 1-2 sentence briefing reflecting changes
+- "newTasks": array of tasks to create (only if user is adding something new)
+- "completedTaskIds": task IDs to mark done
+- "deferredTaskIds": task IDs to defer to tomorrow
+
+Keep your conversational reply ABOVE the &lt;plan_update&gt; block. Do not explain the JSON.`</span></pre>
+    <div class="highlight">
+      <div class="highlight-title">🎭 Dual-output pattern</div>
+      <p style="font-size:13px; color:var(--text-dim); margin:0">
+        This prompt instructs Claude to produce two simultaneous outputs in one response: a human-readable reply AND a machine-parseable JSON block. The XML wrapper (<code>&lt;plan_update&gt;</code>) makes regex extraction reliable. "Do not explain the JSON" prevents Claude from narrating the data.
+      </p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h2>Prompt Engineering Patterns Used</h2>
+  <div class="card-row">
+    <div class="card">
+      <h3>📐 Strict Output Schema</h3>
+      <p>Both prompts provide an exact JSON shape Claude must return. This prevents hallucinated field names and makes parsing reliable.</p>
+    </div>
+    <div class="card">
+      <h3>🏷️ ID Anchoring</h3>
+      <p>Tasks are sent with their real DB IDs (<code>clx1abc</code>). Claude must use these exact strings — no fuzzy matching needed when writing back to the DB.</p>
+    </div>
+    <div class="card">
+      <h3>🧱 Full Context on Every Request</h3>
+      <p>The current task list AND plan are injected into every chat request, so Claude always has ground truth — no "Claude might have the wrong plan" bugs.</p>
+    </div>
+    <div class="card">
+      <h3>🚫 Negative Instructions</h3>
+      <p>"Never pad the schedule" and "Do not explain the JSON" use negation to prevent common LLM tendencies. More effective than hoping Claude avoids them.</p>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h2>Data Shapes Claude Must Follow</h2>
+  <div class="inner-tabs">
+    <button class="inner-tab active" onclick="innerTab(this,'ds-plan')">PlanItem</button>
+    <button class="inner-tab" onclick="innerTab(this,'ds-result')">DayPlanResult</button>
+    <button class="inner-tab" onclick="innerTab(this,'ds-update')">ChatPlanUpdate</button>
+  </div>
+  <div id="ds-plan" class="inner-pane active">
+<pre><span class="com">// app/actions/ai.ts</span>
+<span class="kw">export type</span> PlanItem = {
+  taskId: <span class="str">string</span>            <span class="com">// must match a real Task.id in DB</span>
+  scheduledTime: <span class="str">string</span>    <span class="com">// e.g. "9:00 AM"</span>
+  estimatedMinutes: <span class="str">number</span> <span class="com">// integer minutes</span>
+  reason: <span class="str">string</span>           <span class="com">// one sentence — shown in UI</span>
+}</pre>
+  </div>
+  <div id="ds-result" class="inner-pane">
+<pre><span class="kw">export type</span> DayPlanResult = {
+  id: <span class="str">string</span>               <span class="com">// DailySession.id</span>
+  briefing: <span class="str">string | null</span>  <span class="com">// shown at top of dashboard</span>
+  plan: PlanItem[]          <span class="com">// ordered schedule</span>
+  questions: <span class="str">string</span>[]      <span class="com">// Claude's follow-up questions</span>
+}</pre>
+  </div>
+  <div id="ds-update" class="inner-pane">
+<pre><span class="com">// What's inside &lt;plan_update&gt; in chat responses</span>
+{
+  plan?: PlanItem[]          <span class="com">// FULL updated plan (always all items)</span>
+  briefing?: <span class="str">string</span>         <span class="com">// updated 1-2 sentence briefing</span>
+  newTasks?: Array&lt;{
+    text: <span class="str">string</span>
+    deadline?: <span class="str">string</span>       <span class="com">// YYYY-MM-DD format</span>
+    priority?: <span class="str">string</span>       <span class="com">// "low" | "medium" | "high"</span>
+    estimatedMinutes?: <span class="str">number</span>
+  }&gt;
+  completedTaskIds?: <span class="str">string</span>[]
+  deferredTaskIds?: <span class="str">string</span>[]
+}</pre>
+  </div>
+</div>
+
+<!-- ==================== SIMULATOR ==================== -->
+<div id="simulator" class="section">
+  <h1><span>Prompt Simulator</span></h1>
+  <p>See how the system prompt is constructed from real task data — the same way the code does it.</p>
+
+  <div class="sim-box">
+    <div class="sim-header">
+      <div class="sim-dot" style="background:#ef4444"></div>
+      <div class="sim-dot" style="background:#f97316"></div>
+      <div class="sim-dot" style="background:#22c55e"></div>
+      <span style="margin-left:4px">Prompt Builder — app/actions/ai.ts logic</span>
+    </div>
+    <div class="sim-body">
+      <div class="sim-label">Your Tasks (one per line: "task text | due:YYYY-MM-DD | priority:high | est:30")</div>
+      <textarea class="sim-textarea" id="simTasks" rows="5" placeholder='Write Q1 report | due:2026-03-25 | priority:high | est:90
+Review product roadmap | est:45
+Call Alex re partnership | due:2026-03-22
+Update landing page copy | priority:low'></textarea>
+
+      <div class="sim-label" style="margin-top:12px">User Context (one per line: "key: value")</div>
+      <textarea class="sim-textarea" id="simContext" rows="3" placeholder="Best focus time: mornings before noon&#10;Writing reports: usually takes me 2+ hours due to revisions"></textarea>
+
+      <div style="margin-top:12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <button class="sim-btn" id="buildBtn" onclick="buildPrompt()">
+          ⚡ Build User Prompt
+        </button>
+        <span style="font-size:12px; color:var(--text-dim)">See exactly what Claude receives</span>
+      </div>
+
+      <div class="sim-output" id="simOutput"></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h2>Chat Response Decoder</h2>
+  <p>Paste a raw Claude chat response to see what the frontend strips vs. what goes to the DB.</p>
+
+  <div class="sim-box">
+    <div class="sim-header">
+      <div class="sim-dot" style="background:#ef4444"></div>
+      <div class="sim-dot" style="background:#f97316"></div>
+      <div class="sim-dot" style="background:#22c55e"></div>
+      <span style="margin-left:4px">Response Decoder — ChatInput.tsx + route.ts logic</span>
+    </div>
+    <div class="sim-body">
+      <div class="sim-label">Raw Claude Response (paste here or use the example)</div>
+      <textarea class="sim-textarea" id="decodeInput" rows="10">Got it! I've pushed the investor report to Sunday and added a quick email task for Sarah. Your morning is now yours for deep work.
+
+<plan_update>
+{"plan":[{"taskId":"clx2def","scheduledTime":"9:30 AM","estimatedMinutes":45,"reason":"Freed-up morning slot now available."},{"taskId":"clx3ghi","scheduledTime":"11:00 AM","estimatedMinutes":30,"reason":"Partnership call prep before lunch."}],"briefing":"Report deferred to Sunday — focus on roadmap review and prep today.","newTasks":[{"text":"Email Sarah re: Q1 update","priority":"medium","deadline":"2026-03-21"}],"completedTaskIds":[],"deferredTaskIds":["clx1abc"]}
+</plan_update></textarea>
+
+      <div style="margin-top:12px">
+        <button class="sim-btn" onclick="decodeResponse()">🔍 Decode Response</button>
+      </div>
+
+      <div id="decodeOutput" class="sim-output"></div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h2>Streaming Status States</h2>
+  <p>The <code>useChat</code> hook exposes a <code>status</code> field. Here's what each means in the UI:</p>
+  <div class="card-row">
+    <div class="card">
+      <div class="status-bar"><div class="status-dot green"></div><code>idle</code></div>
+      <p>No request in flight. Input is enabled, send button is active.</p>
+    </div>
+    <div class="card">
+      <div class="status-bar"><div class="status-dot orange"></div><code>submitted</code></div>
+      <p>Request sent, waiting for first token. Spinner shows, input disabled.</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="status-bar"><div class="status-dot purple"></div><code>streaming</code></div>
+    <p>Tokens arriving. Text appears incrementally in the message bubble. Input still disabled. After the last token, <code>onFinish</code> fires → DB writes → <code>router.refresh()</code> → status returns to <code>idle</code>.</p>
+  </div>
+</div>
+
+</main>
+
+<script>
+// Section nav
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  else {
+    // find button by text mapping
+    const map = { flow1: 'Plan Generation', flow2: 'Chat Adjustments' };
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Flow steps toggle
+function toggleStep(el) {
+  const wasOpen = el.classList.contains('open');
+  document.querySelectorAll('.flow-step').forEach(s => s.classList.remove('open'));
+  if (!wasOpen) el.classList.add('open');
+}
+
+// Inner tabs
+function innerTab(btn, paneId) {
+  const container = btn.closest('.section') || document;
+  container.querySelectorAll('.inner-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // find sibling panes
+  const allPanes = btn.closest('.section').querySelectorAll('.inner-pane');
+  allPanes.forEach(p => p.classList.remove('active'));
+  document.getElementById(paneId).classList.add('active');
+}
+
+// Prompt builder
+function buildPrompt() {
+  const tasksRaw = document.getElementById('simTasks').value.trim();
+  const contextRaw = document.getElementById('simContext').value.trim();
+  const output = document.getElementById('simOutput');
+
+  const now = new Date();
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const dayName = days[now.getDay()];
+  const dateStr = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+  const h = now.getHours(); const m = now.getMinutes();
+  const timeStr = `${h > 12 ? h-12 : h || 12}:${String(m).padStart(2,'0')} ${h >= 12 ? 'PM' : 'AM'}`;
+
+  let taskLines = '';
+  if (tasksRaw) {
+    taskLines = tasksRaw.split('\n').map((line, i) => {
+      const parts = line.split('|').map(p => p.trim());
+      const text = parts[0];
+      let result = `- ID: sim_task_${i+1} | "${text}"`;
+      parts.slice(1).forEach(p => {
+        if (p.startsWith('due:')) result += ` | Due: ${p.replace('due:', '')}`;
+        else if (p.startsWith('priority:') && !p.includes('medium')) result += ` | Priority: ${p.replace('priority:', '')}`;
+        else if (p.startsWith('est:')) result += ` | Est: ${p.replace('est:', '')}min`;
+      });
+      return result;
+    }).join('\n');
+  } else {
+    taskLines = '(no tasks entered)';
+  }
+
+  let contextLines = contextRaw ? contextRaw.split('\n').map(l => `- ${l.trim()}`).join('\n') : 'None recorded yet.';
+
+  const prompt = `Today is ${dayName}, ${dateStr} at ${timeStr}.
+
+MY TASKS:
+${taskLines}
+
+MY CONTEXT:
+${contextLines}
+
+Produce a day plan. Return ONLY valid JSON in this exact shape:
+{
+  "briefing": "2-3 sentences: why these tasks matter today, what the deadline pressure is",
+  "plan": [
+    {
+      "taskId": "exact task ID from the list above",
+      "scheduledTime": "9:00 AM",
+      "estimatedMinutes": 30,
+      "reason": "one sentence why this slot"
+    }
+  ],
+  "questions": ["any context you need to schedule better"]
+}`;
+
+  output.textContent = prompt;
+  output.style.color = '#86efac';
+  output.classList.add('visible');
+}
+
+// Response decoder
+function decodeResponse() {
+  const raw = document.getElementById('decodeInput').value;
+  const output = document.getElementById('decodeOutput');
+
+  const planMatch = raw.match(/<plan_update>\s*([\s\S]*?)\s*<\/plan_update>/);
+  const visibleText = raw.replace(/<plan_update>[\s\S]*?<\/plan_update>/g, '').trim();
+
+  let result = '';
+
+  result += '=== WHAT USER SEES IN CHAT ===\n';
+  result += visibleText + '\n\n';
+
+  if (planMatch) {
+    result += '=== HIDDEN <plan_update> BLOCK EXTRACTED ===\n';
+    try {
+      const parsed = JSON.parse(planMatch[1]);
+      result += JSON.stringify(parsed, null, 2) + '\n\n';
+
+      result += '=== DB OPERATIONS TRIGGERED (onFinish) ===\n';
+      if (parsed.newTasks?.length) {
+        result += `✅ CREATE ${parsed.newTasks.length} new task(s):\n`;
+        parsed.newTasks.forEach(t => result += `   prisma.task.create({ text: "${t.text}", priority: "${t.priority || 'medium'}" })\n`);
+      }
+      if (parsed.completedTaskIds?.length) {
+        result += `✅ COMPLETE ${parsed.completedTaskIds.length} task(s): ${parsed.completedTaskIds.join(', ')}\n`;
+      }
+      if (parsed.deferredTaskIds?.length) {
+        result += `✅ DEFER ${parsed.deferredTaskIds.length} task(s): ${parsed.deferredTaskIds.join(', ')}\n   (increments deferCount)\n`;
+      }
+      if (parsed.plan?.length) {
+        result += `✅ UPDATE DailySession.plan with ${parsed.plan.length} item(s)\n`;
+      }
+      if (parsed.briefing) {
+        result += `✅ UPDATE DailySession.briefing\n`;
+      }
+      result += '\n✅ router.refresh() → Next.js re-fetches server components';
+    } catch(e) {
+      result += 'ERROR: Invalid JSON in plan_update block\n' + e.message;
+    }
+  } else {
+    result += '⚠️ No <plan_update> block found — no DB changes will be made.';
+  }
+
+  output.textContent = result;
+  output.style.color = '#86efac';
+  output.classList.add('visible');
+}
+
+// Chat demo
+const demoResponses = {
+  defer: {
+    user: "Push the investor report to tomorrow",
+    ai: "Done! I've moved the report to tomorrow morning and reshuffled your afternoon. You've got more breathing room today now.",
+    update: { deferredTaskIds: ["clx1abc"], plan: 2, briefing: true }
+  },
+  done: {
+    user: "Mark the Alex call as done",
+    ai: "Nice, marked it complete! You're ahead on partnership prep. I've tightened up the remaining slots.",
+    update: { completedTaskIds: ["clx3ghi"], plan: 3, briefing: true }
+  },
+  add: {
+    user: "Add a task: email Sarah by EOD",
+    ai: "Added 'Email Sarah by EOD' to your list and slotted it at 4:30 PM so it doesn't interrupt your deep work blocks.",
+    update: { newTasks: ["Email Sarah by EOD"], plan: 4, briefing: true }
+  }
+};
+
+function sendDemo(type) {
+  const resp = demoResponses[type];
+  addChatMsg('user', resp.user);
+  setTimeout(() => {
+    addChatMsg('ai', resp.ai, true);
+    setTimeout(() => {
+      addDBNote(resp.update);
+    }, 800);
+  }, 600);
+}
+
+function sendDemoCustom() {
+  const input = document.getElementById('chatDemoInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  addChatMsg('user', text);
+  setTimeout(() => {
+    addChatMsg('ai', "Got it! I've updated your plan accordingly. The schedule has been refreshed.", true);
+    setTimeout(() => {
+      addDBNote({ plan: 3, briefing: true });
+    }, 800);
+  }, 700);
+}
+
+function addChatMsg(role, text, stream = false) {
+  const msgs = document.getElementById('chatMessages');
+  const row = document.createElement('div');
+  row.className = `msg-row ${role}`;
+  const bubble = document.createElement('div');
+  bubble.className = `msg-bubble ${role}`;
+
+  if (stream && role === 'ai') {
+    bubble.innerHTML = '<span class="cursor"></span>';
+    row.appendChild(bubble);
+    msgs.appendChild(row);
+    msgs.scrollTop = msgs.scrollHeight;
+
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i <= text.length) {
+        bubble.textContent = text.slice(0, i);
+        bubble.innerHTML += '<span class="cursor"></span>';
+        i += 3;
+        msgs.scrollTop = msgs.scrollHeight;
+      } else {
+        bubble.textContent = text;
+        clearInterval(interval);
+      }
+    }, 25);
+  } else {
+    bubble.textContent = text;
+    row.appendChild(bubble);
+    msgs.appendChild(row);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+}
+
+function addDBNote(update) {
+  const msgs = document.getElementById('chatMessages');
+  const note = document.createElement('div');
+  note.style.cssText = 'font-size:11px; color:var(--text-dim); text-align:center; padding:4px 0; font-family:monospace;';
+  let ops = [];
+  if (update.newTasks) ops.push(`+${update.newTasks.length} task created`);
+  if (update.completedTaskIds) ops.push(`✓ ${update.completedTaskIds.length} completed`);
+  if (update.deferredTaskIds) ops.push(`→ ${update.deferredTaskIds.length} deferred`);
+  if (update.plan) ops.push(`plan[${update.plan}] updated`);
+  if (update.briefing) ops.push(`briefing updated`);
+  note.textContent = `⚡ DB: ${ops.join(' · ')} · router.refresh()`;
+  msgs.appendChild(note);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+</script>
+</body>
+</html>

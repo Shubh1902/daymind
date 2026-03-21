@@ -49,14 +49,14 @@ export default function TaskFocusView({ tasks }: { tasks: Task[] }) {
       <div className="flex flex-col items-center justify-center py-24">
         <div
           className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 animate-float"
-          style={{ background: "rgba(139, 92, 246, 0.08)", border: "1px solid rgba(139, 92, 246, 0.15)" }}
+          style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.15)" }}
         >
-          <svg className="w-8 h-8" style={{ color: "rgba(139, 92, 246, 0.4)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <svg className="w-8 h-8" style={{ color: "rgba(16, 185, 129, 0.4)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <p className="text-lg font-semibold" style={{ color: "rgba(167, 139, 250, 0.5)" }}>All caught up!</p>
-        <p className="text-sm mt-1" style={{ color: "rgba(139, 92, 246, 0.3)" }}>No open tasks to focus on</p>
+        <p className="text-lg font-semibold" style={{ color: "rgba(52, 211, 153, 0.5)" }}>All caught up!</p>
+        <p className="text-sm mt-1" style={{ color: "rgba(16, 185, 129, 0.3)" }}>No open tasks to focus on</p>
       </div>
     )
   }
@@ -121,11 +121,11 @@ export default function TaskFocusView({ tasks }: { tasks: Task[] }) {
               width: i === index ? 24 : 8,
               height: 8,
               background: i === index
-                ? "linear-gradient(90deg, #7c3aed, #a855f7)"
+                ? "linear-gradient(90deg, #059669, #10b981)"
                 : i < index
-                ? "rgba(139, 92, 246, 0.35)"
-                : "rgba(139, 92, 246, 0.1)",
-              boxShadow: i === index ? "0 0 10px rgba(168, 85, 247, 0.5)" : "none",
+                ? "rgba(16, 185, 129, 0.35)"
+                : "rgba(16, 185, 129, 0.1)",
+              boxShadow: i === index ? "0 0 10px rgba(16, 185, 129, 0.5)" : "none",
             }}
           />
         ))}
@@ -147,13 +147,13 @@ export default function TaskFocusView({ tasks }: { tasks: Task[] }) {
         {index < topTasks.length - 1 && (
           <div
             className="absolute inset-x-6 top-4 bottom-0 rounded-3xl"
-            style={{ background: "var(--surface-3)", border: "1px solid rgba(139, 92, 246, 0.1)" }}
+            style={{ background: "var(--surface-3)", border: "1px solid rgba(16, 185, 129, 0.1)" }}
           />
         )}
         {index < topTasks.length - 2 && (
           <div
             className="absolute inset-x-10 top-8 bottom-0 rounded-3xl"
-            style={{ background: "var(--surface-2)", border: "1px solid rgba(139, 92, 246, 0.06)" }}
+            style={{ background: "var(--surface-2)", border: "1px solid rgba(16, 185, 129, 0.06)" }}
           />
         )}
 
@@ -162,8 +162,8 @@ export default function TaskFocusView({ tasks }: { tasks: Task[] }) {
           className="absolute inset-0 rounded-3xl p-8 flex flex-col cursor-grab active:cursor-grabbing"
           style={{
             background: "linear-gradient(145deg, var(--surface-3), var(--surface-2))",
-            border: "1px solid rgba(139, 92, 246, 0.2)",
-            boxShadow: "0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(139, 92, 246, 0.08)",
+            border: "1px solid rgba(16, 185, 129, 0.2)",
+            boxShadow: "0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(16, 185, 129, 0.08)",
             transform: `translateX(${translateX}px) rotate(${rotation}deg)`,
             opacity: flyingOut ? 0 : 1,
             transition: isDragging ? "none" : "transform 0.28s ease, opacity 0.28s ease",
@@ -182,14 +182,14 @@ export default function TaskFocusView({ tasks }: { tasks: Task[] }) {
             {task.category && (
               <span
                 className="text-xs px-2.5 py-1 rounded-full font-medium"
-                style={{ background: "rgba(139, 92, 246, 0.1)", color: "rgba(167, 139, 250, 0.7)" }}
+                style={{ background: "rgba(16, 185, 129, 0.1)", color: "rgba(52, 211, 153, 0.7)" }}
               >
                 {task.category}
               </span>
             )}
             <span
               className="ml-auto text-xs font-medium"
-              style={{ color: "rgba(139, 92, 246, 0.35)" }}
+              style={{ color: "rgba(16, 185, 129, 0.35)" }}
             >
               {index + 1} / {topTasks.length}
             </span>
@@ -198,7 +198,7 @@ export default function TaskFocusView({ tasks }: { tasks: Task[] }) {
           {/* Task text */}
           <h2
             className="text-2xl font-bold leading-snug mt-6 flex-1"
-            style={{ color: "rgba(240, 238, 255, 0.95)" }}
+            style={{ color: "rgba(236, 253, 245, 0.95)" }}
           >
             {task.text}
           </h2>
@@ -206,10 +206,10 @@ export default function TaskFocusView({ tasks }: { tasks: Task[] }) {
           {/* Meta */}
           <div
             className="flex flex-col gap-2 mt-6 pt-5"
-            style={{ borderTop: "1px solid rgba(139, 92, 246, 0.12)" }}
+            style={{ borderTop: "1px solid rgba(16, 185, 129, 0.12)" }}
           >
             {task.deadline && (
-              <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(167, 139, 250, 0.6)" }}>
+              <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(52, 211, 153, 0.6)" }}>
                 <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
@@ -223,7 +223,7 @@ export default function TaskFocusView({ tasks }: { tasks: Task[] }) {
               </div>
             )}
             {task.estimatedMinutes && (
-              <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(167, 139, 250, 0.6)" }}>
+              <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(52, 211, 153, 0.6)" }}>
                 <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -231,7 +231,7 @@ export default function TaskFocusView({ tasks }: { tasks: Task[] }) {
               </div>
             )}
             {task.notes && (
-              <p className="text-sm italic line-clamp-2" style={{ color: "rgba(139, 92, 246, 0.45)" }}>
+              <p className="text-sm italic line-clamp-2" style={{ color: "rgba(16, 185, 129, 0.45)" }}>
                 {task.notes}
               </p>
             )}
@@ -274,7 +274,7 @@ export default function TaskFocusView({ tasks }: { tasks: Task[] }) {
           style={{
             background: "var(--surface-2)",
             border: "1px solid var(--border)",
-            color: "rgba(167, 139, 250, 0.6)",
+            color: "rgba(52, 211, 153, 0.6)",
           }}
           aria-label="Previous task"
         >
@@ -282,7 +282,7 @@ export default function TaskFocusView({ tasks }: { tasks: Task[] }) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <span className="text-xs" style={{ color: "rgba(139, 92, 246, 0.3)" }}>swipe or tap arrows</span>
+        <span className="text-xs" style={{ color: "rgba(16, 185, 129, 0.3)" }}>swipe or tap arrows</span>
         <button
           onClick={() => navigate("left")}
           disabled={index === topTasks.length - 1}
@@ -290,7 +290,7 @@ export default function TaskFocusView({ tasks }: { tasks: Task[] }) {
           style={{
             background: "var(--surface-2)",
             border: "1px solid var(--border)",
-            color: "rgba(167, 139, 250, 0.6)",
+            color: "rgba(52, 211, 153, 0.6)",
           }}
           aria-label="Next task"
         >

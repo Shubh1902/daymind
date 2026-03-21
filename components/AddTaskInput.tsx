@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation"
 
 const inputStyle = {
   background: "var(--surface-2)",
-  border: "1px solid rgba(139, 92, 246, 0.15)",
-  color: "rgba(240, 238, 255, 0.9)",
+  border: "1px solid rgba(16, 185, 129, 0.15)",
+  color: "rgba(236, 253, 245, 0.9)",
   borderRadius: "0.75rem",
   padding: "0.625rem 0.75rem",
   fontSize: "0.875rem",
@@ -21,12 +21,12 @@ function DarkInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
       {...props}
       style={inputStyle}
       onFocus={(e) => {
-        e.currentTarget.style.borderColor = "rgba(139, 92, 246, 0.45)"
-        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)"
+        e.currentTarget.style.borderColor = "rgba(16, 185, 129, 0.45)"
+        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(16, 185, 129, 0.1)"
         props.onFocus?.(e)
       }}
       onBlur={(e) => {
-        e.currentTarget.style.borderColor = "rgba(139, 92, 246, 0.15)"
+        e.currentTarget.style.borderColor = "rgba(16, 185, 129, 0.15)"
         e.currentTarget.style.boxShadow = "none"
         props.onBlur?.(e)
       }}
@@ -40,12 +40,12 @@ function DarkTextarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) 
       {...props}
       style={{ ...inputStyle, resize: "none" }}
       onFocus={(e) => {
-        e.currentTarget.style.borderColor = "rgba(139, 92, 246, 0.45)"
-        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)"
+        e.currentTarget.style.borderColor = "rgba(16, 185, 129, 0.45)"
+        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(16, 185, 129, 0.1)"
         props.onFocus?.(e)
       }}
       onBlur={(e) => {
-        e.currentTarget.style.borderColor = "rgba(139, 92, 246, 0.15)"
+        e.currentTarget.style.borderColor = "rgba(16, 185, 129, 0.15)"
         e.currentTarget.style.boxShadow = "none"
         props.onBlur?.(e)
       }}
@@ -59,11 +59,11 @@ function DarkSelect(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
       {...props}
       style={{ ...inputStyle, cursor: "pointer" }}
       onFocus={(e) => {
-        e.currentTarget.style.borderColor = "rgba(139, 92, 246, 0.45)"
-        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.1)"
+        e.currentTarget.style.borderColor = "rgba(16, 185, 129, 0.45)"
+        e.currentTarget.style.boxShadow = "0 0 0 3px rgba(16, 185, 129, 0.1)"
       }}
       onBlur={(e) => {
-        e.currentTarget.style.borderColor = "rgba(139, 92, 246, 0.15)"
+        e.currentTarget.style.borderColor = "rgba(16, 185, 129, 0.15)"
         e.currentTarget.style.boxShadow = "none"
       }}
     />
@@ -121,13 +121,13 @@ export default function AddTaskInput() {
       className="flex flex-col gap-5 rounded-2xl p-6"
       style={{
         background: "var(--surface-1)",
-        border: "1px solid rgba(139, 92, 246, 0.15)",
-        boxShadow: "0 0 40px rgba(139, 92, 246, 0.05)",
+        border: "1px solid rgba(16, 185, 129, 0.15)",
+        boxShadow: "0 0 40px rgba(16, 185, 129, 0.05)",
       }}
     >
       {/* Main text */}
       <div>
-        <label className="block text-sm font-medium mb-1.5" style={{ color: "rgba(167, 139, 250, 0.8)" }}>
+        <label className="block text-sm font-medium mb-1.5" style={{ color: "rgba(52, 211, 153, 0.8)" }}>
           What needs to be done? <span style={{ color: "#fb7185" }}>*</span>
         </label>
         <DarkInput
@@ -151,7 +151,7 @@ export default function AddTaskInput() {
       <div className="grid grid-cols-2 gap-4">
         {/* Deadline */}
         <div>
-          <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(139, 92, 246, 0.55)" }}>Deadline</label>
+          <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(16, 185, 129, 0.55)" }}>Deadline</label>
           <DarkInput
             type="datetime-local"
             value={deadline}
@@ -161,7 +161,7 @@ export default function AddTaskInput() {
 
         {/* Estimate */}
         <div>
-          <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(139, 92, 246, 0.55)" }}>Est. minutes</label>
+          <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(16, 185, 129, 0.55)" }}>Est. minutes</label>
           <DarkInput
             type="number"
             value={estimatedMinutes}
@@ -173,7 +173,7 @@ export default function AddTaskInput() {
 
         {/* Priority */}
         <div>
-          <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(139, 92, 246, 0.55)" }}>Priority</label>
+          <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(16, 185, 129, 0.55)" }}>Priority</label>
           <DarkSelect value={priority} onChange={(e) => setPriority(e.target.value)}>
             <option value="high">High</option>
             <option value="medium">Medium</option>
@@ -183,7 +183,7 @@ export default function AddTaskInput() {
 
         {/* Category */}
         <div>
-          <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(139, 92, 246, 0.55)" }}>Category</label>
+          <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(16, 185, 129, 0.55)" }}>Category</label>
           <DarkInput
             type="text"
             value={category}
@@ -195,7 +195,7 @@ export default function AddTaskInput() {
 
       {/* Notes */}
       <div>
-        <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(139, 92, 246, 0.55)" }}>Notes</label>
+        <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(16, 185, 129, 0.55)" }}>Notes</label>
         <DarkTextarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}

@@ -58,14 +58,14 @@ export default function WeekStrip({ tasks }: { tasks: Task[] }) {
             style={
               isToday
                 ? {
-                    background: "linear-gradient(135deg, rgba(124, 58, 237, 0.4), rgba(168, 85, 247, 0.25))",
-                    border: "1px solid rgba(139, 92, 246, 0.4)",
-                    boxShadow: "0 0 16px rgba(139, 92, 246, 0.2)",
+                    background: "linear-gradient(135deg, rgba(5, 150, 105, 0.4), rgba(16, 185, 129, 0.25))",
+                    border: "1px solid rgba(16, 185, 129, 0.4)",
+                    boxShadow: "0 0 16px rgba(16, 185, 129, 0.2)",
                   }
                 : isPast
                 ? {
-                    background: "rgba(15, 15, 30, 0.5)",
-                    border: "1px solid rgba(139, 92, 246, 0.06)",
+                    background: "rgba(10, 21, 32, 0.5)",
+                    border: "1px solid rgba(16, 185, 129, 0.06)",
                   }
                 : {
                     background: "var(--surface-2)",
@@ -75,13 +75,13 @@ export default function WeekStrip({ tasks }: { tasks: Task[] }) {
           >
             <span
               className="font-medium"
-              style={{ color: isToday ? "#c084fc" : isPast ? "rgba(139, 92, 246, 0.25)" : "rgba(167, 139, 250, 0.6)" }}
+              style={{ color: isToday ? "#6ee7b7" : isPast ? "rgba(16, 185, 129, 0.25)" : "rgba(52, 211, 153, 0.6)" }}
             >
               {DAY_LABELS[i]}
             </span>
             <span
               className="mt-0.5 font-semibold"
-              style={{ color: isToday ? "#e9d5ff" : isPast ? "rgba(139, 92, 246, 0.2)" : "rgba(167, 139, 250, 0.8)" }}
+              style={{ color: isToday ? "#e9d5ff" : isPast ? "rgba(16, 185, 129, 0.2)" : "rgba(52, 211, 153, 0.8)" }}
             >
               {day.getDate()}
             </span>
@@ -92,7 +92,7 @@ export default function WeekStrip({ tasks }: { tasks: Task[] }) {
                   background: hasOverdue
                     ? "#f43f5e"
                     : isToday && hasDeadline
-                    ? "#c084fc"
+                    ? "#6ee7b7"
                     : "#f59e0b",
                   boxShadow: hasOverdue ? "0 0 6px rgba(244, 63, 94, 0.6)" : "none",
                 }}

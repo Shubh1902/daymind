@@ -48,10 +48,10 @@ export default function DashboardContent({
               onClick={() => setView(v)}
               className="flex-1 py-2 text-sm font-semibold rounded-xl capitalize transition-all duration-200"
               style={{
-                background: isActive ? "linear-gradient(135deg, rgba(124, 58, 237, 0.3), rgba(168, 85, 247, 0.2))" : "transparent",
-                color: isActive ? "#c084fc" : "rgba(139, 92, 246, 0.4)",
-                boxShadow: isActive ? "0 0 12px rgba(139, 92, 246, 0.15), inset 0 1px 0 rgba(255,255,255,0.05)" : "none",
-                border: isActive ? "1px solid rgba(139, 92, 246, 0.25)" : "1px solid transparent",
+                background: isActive ? "linear-gradient(135deg, rgba(5, 150, 105, 0.3), rgba(16, 185, 129, 0.2))" : "transparent",
+                color: isActive ? "#6ee7b7" : "rgba(16, 185, 129, 0.4)",
+                boxShadow: isActive ? "0 0 12px rgba(16, 185, 129, 0.15), inset 0 1px 0 rgba(255,255,255,0.05)" : "none",
+                border: isActive ? "1px solid rgba(16, 185, 129, 0.25)" : "1px solid transparent",
               }}
             >
               {v === "schedule" ? "Schedule" : "Focus"}

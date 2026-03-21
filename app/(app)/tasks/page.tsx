@@ -18,7 +18,7 @@ export default async function TasksPage() {
       <div className="flex items-center justify-between mb-8 animate-slide-up">
         <div>
           <h1 className="text-3xl font-bold text-gradient">All Tasks</h1>
-          <p className="text-xs mt-1" style={{ color: "rgba(139, 92, 246, 0.5)" }}>
+          <p className="text-xs mt-1" style={{ color: "rgba(16, 185, 129, 0.5)" }}>
             {open.length} open · {done.length} completed
           </p>
         </div>
@@ -37,14 +37,14 @@ export default async function TasksPage() {
         <div className="flex flex-col items-center justify-center py-24 animate-scale-in">
           <div
             className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
-            style={{ background: "rgba(139, 92, 246, 0.08)", border: "1px solid rgba(139, 92, 246, 0.15)" }}
+            style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.15)" }}
           >
-            <svg className="w-8 h-8" style={{ color: "rgba(139, 92, 246, 0.4)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <svg className="w-8 h-8" style={{ color: "rgba(16, 185, 129, 0.4)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
           </div>
-          <p className="text-lg font-semibold" style={{ color: "rgba(167, 139, 250, 0.6)" }}>No tasks yet</p>
-          <p className="text-sm mt-1" style={{ color: "rgba(139, 92, 246, 0.35)" }}>Add your first task to get started</p>
+          <p className="text-lg font-semibold" style={{ color: "rgba(52, 211, 153, 0.6)" }}>No tasks yet</p>
+          <p className="text-sm mt-1" style={{ color: "rgba(16, 185, 129, 0.35)" }}>Add your first task to get started</p>
         </div>
       )}
 
@@ -52,11 +52,11 @@ export default async function TasksPage() {
         <section className="mb-8 animate-slide-up delay-100">
           <h2
             className="text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2"
-            style={{ color: "rgba(139, 92, 246, 0.5)" }}
+            style={{ color: "rgba(16, 185, 129, 0.5)" }}
           >
             <span
               className="inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold"
-              style={{ background: "rgba(139, 92, 246, 0.15)", color: "#a78bfa" }}
+              style={{ background: "rgba(16, 185, 129, 0.15)", color: "#34d399" }}
             >
               {open.length}
             </span>
@@ -76,11 +76,11 @@ export default async function TasksPage() {
         <section className="animate-slide-up delay-200">
           <h2
             className="text-xs font-semibold uppercase tracking-wider mb-3 flex items-center gap-2"
-            style={{ color: "rgba(139, 92, 246, 0.35)" }}
+            style={{ color: "rgba(16, 185, 129, 0.35)" }}
           >
             <span
               className="inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold"
-              style={{ background: "rgba(139, 92, 246, 0.08)", color: "rgba(167, 139, 250, 0.5)" }}
+              style={{ background: "rgba(16, 185, 129, 0.08)", color: "rgba(52, 211, 153, 0.5)" }}
             >
               {done.length}
             </span>

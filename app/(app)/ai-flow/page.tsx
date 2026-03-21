@@ -6,7 +6,7 @@ import { useState } from "react"
 
 function Pill({ children, color = "purple" }: { children: React.ReactNode; color?: "purple" | "green" | "blue" | "orange" | "pink" | "teal" }) {
   const styles: Record<string, React.CSSProperties> = {
-    purple: { background: "rgba(124,58,237,0.2)", color: "#c084fc", border: "1px solid rgba(124,58,237,0.3)" },
+    purple: { background: "rgba(5,150,105,0.2)", color: "#6ee7b7", border: "1px solid rgba(5,150,105,0.3)" },
     green:  { background: "rgba(34,197,94,0.12)",  color: "#86efac", border: "1px solid rgba(34,197,94,0.2)" },
     blue:   { background: "rgba(59,130,246,0.12)", color: "#93c5fd", border: "1px solid rgba(59,130,246,0.2)" },
     orange: { background: "rgba(249,115,22,0.12)", color: "#fdba74", border: "1px solid rgba(249,115,22,0.2)" },
@@ -38,17 +38,17 @@ function CodeBlock({ children }: { children: React.ReactNode }) {
 
 function Highlight({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.2)", borderRadius: 8, padding: 14, marginTop: 12 }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: "#c084fc", marginBottom: 6 }}>{title}</div>
-      <p style={{ fontSize: 13, color: "rgba(240,238,255,0.6)", margin: 0 }}>{children}</p>
+    <div style={{ background: "rgba(5,150,105,0.08)", border: "1px solid rgba(5,150,105,0.2)", borderRadius: 8, padding: 14, marginTop: 12 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: "#6ee7b7", marginBottom: 6 }}>{title}</div>
+      <p style={{ fontSize: 13, color: "rgba(236,253,245,0.6)", margin: 0 }}>{children}</p>
     </div>
   )
 }
 
 function StatusBar({ dot, children }: { dot: "green" | "orange" | "purple"; children: React.ReactNode }) {
-  const dotColors = { green: "#22c55e", orange: "#f97316", purple: "#a855f7" }
+  const dotColors = { green: "#22c55e", orange: "#f97316", purple: "#10b981" }
   return (
-    <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 12px", borderRadius: 8, background: "rgba(0,0,0,0.25)", fontSize: 11, color: "rgba(240,238,255,0.5)", marginBottom: 16, fontFamily: "monospace" }}>
+    <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 12px", borderRadius: 8, background: "rgba(0,0,0,0.25)", fontSize: 11, color: "rgba(236,253,245,0.5)", marginBottom: 16, fontFamily: "monospace" }}>
       <div style={{ width: 6, height: 6, borderRadius: "50%", background: dotColors[dot], boxShadow: `0 0 6px ${dotColors[dot]}`, flexShrink: 0 }} />
       {children}
     </div>
@@ -64,26 +64,26 @@ function FlowStep({ num, color, title, summary, children }: {
   return (
     <div style={{ display: "flex", alignItems: "flex-start", gap: 16, position: "relative", cursor: "pointer" }} onClick={() => setOpen(!open)}>
       {/* Connector line */}
-      <div style={{ position: "absolute", left: 19, top: 40, width: 2, bottom: -16, background: "rgba(139,92,246,0.2)", zIndex: 0 }} />
+      <div style={{ position: "absolute", left: 19, top: 40, width: 2, bottom: -16, background: "rgba(16,185,129,0.2)", zIndex: 0 }} />
 
       <div style={{
         width: 40, height: 40, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
         background: color, fontSize: 15, fontWeight: 700, zIndex: 1, color: "white",
-        border: open ? "2px solid #a855f7" : "2px solid transparent",
-        boxShadow: open ? "0 0 20px rgba(139,92,246,0.4)" : "none",
+        border: open ? "2px solid #10b981" : "2px solid transparent",
+        boxShadow: open ? "0 0 20px rgba(16,185,129,0.4)" : "none",
         transition: "all 0.2s",
       }}>
         {num}
       </div>
 
       <div style={{ flex: 1, paddingBottom: 24, paddingTop: 6 }}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: "rgba(240,238,255,0.9)", marginBottom: 3, display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: "rgba(236,253,245,0.9)", marginBottom: 3, display: "flex", alignItems: "center", gap: 8 }}>
           {title}
-          <span style={{ fontSize: 11, color: "rgba(139,92,246,0.5)", fontWeight: 400 }}>{open ? "▲ collapse" : "▼ expand"}</span>
+          <span style={{ fontSize: 11, color: "rgba(16,185,129,0.5)", fontWeight: 400 }}>{open ? "▲ collapse" : "▼ expand"}</span>
         </div>
-        <div style={{ fontSize: 13, color: "rgba(240,238,255,0.5)" }}>{summary}</div>
+        <div style={{ fontSize: 13, color: "rgba(236,253,245,0.5)" }}>{summary}</div>
         {open && (
-          <div style={{ marginTop: 12, borderLeft: "2px solid #7c3aed", borderRadius: "0 8px 8px 0", padding: "12px 16px", background: "rgba(0,0,0,0.3)", fontSize: 12, color: "rgba(240,238,255,0.7)" }}>
+          <div style={{ marginTop: 12, borderLeft: "2px solid #059669", borderRadius: "0 8px 8px 0", padding: "12px 16px", background: "rgba(0,0,0,0.3)", fontSize: 12, color: "rgba(236,253,245,0.7)" }}>
             {children}
           </div>
         )}
@@ -104,9 +104,9 @@ function TabGroup({ tabs }: { tabs: { label: string; content: React.ReactNode }[
             key={t.label}
             onClick={() => setActive(i)}
             style={{
-              background: active === i ? "linear-gradient(135deg, #7c3aed, #a855f7)" : "none",
-              border: `1px solid ${active === i ? "transparent" : "rgba(139,92,246,0.2)"}`,
-              color: active === i ? "white" : "rgba(240,238,255,0.5)",
+              background: active === i ? "linear-gradient(135deg, #059669, #10b981)" : "none",
+              border: `1px solid ${active === i ? "transparent" : "rgba(16,185,129,0.2)"}`,
+              color: active === i ? "white" : "rgba(236,253,245,0.5)",
               padding: "6px 14px", borderRadius: 8, cursor: "pointer", fontSize: 12, fontWeight: 500, transition: "all 0.2s",
             }}
           >
@@ -128,14 +128,14 @@ function ArchRow({ left, right }: { left: { icon: string; name: string; sub: str
     <div style={{ display: "grid", gridTemplateColumns: "1fr 40px 1fr", alignItems: "center", marginBottom: 12 }}>
       <div style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 10, padding: 14, textAlign: "center" }}>
         <div style={{ fontSize: 24, marginBottom: 4 }}>{left.icon}</div>
-        <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(240,238,255,0.9)" }}>{left.name}</div>
-        <div style={{ fontSize: 11, color: "rgba(240,238,255,0.4)", marginTop: 2, whiteSpace: "pre-line" }}>{left.sub}</div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(236,253,245,0.9)" }}>{left.name}</div>
+        <div style={{ fontSize: 11, color: "rgba(236,253,245,0.4)", marginTop: 2, whiteSpace: "pre-line" }}>{left.sub}</div>
       </div>
-      <div style={{ textAlign: "center", color: "#a855f7", fontSize: 20 }}>→</div>
+      <div style={{ textAlign: "center", color: "#10b981", fontSize: 20 }}>→</div>
       <div style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 10, padding: 14, textAlign: "center" }}>
         <div style={{ fontSize: 24, marginBottom: 4 }}>{right.icon}</div>
-        <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(240,238,255,0.9)" }}>{right.name}</div>
-        <div style={{ fontSize: 11, color: "rgba(240,238,255,0.4)", marginTop: 2, whiteSpace: "pre-line" }}>{right.sub}</div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(236,253,245,0.9)" }}>{right.name}</div>
+        <div style={{ fontSize: 11, color: "rgba(236,253,245,0.4)", marginTop: 2, whiteSpace: "pre-line" }}>{right.sub}</div>
       </div>
     </div>
   )
@@ -200,7 +200,7 @@ function ChatDemo() {
   return (
     <div style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
       {/* Header */}
-      <div style={{ background: "var(--surface-3)", padding: "10px 16px", fontSize: 12, fontWeight: 600, color: "#c084fc", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
+      <div style={{ background: "var(--surface-3)", padding: "10px 16px", fontSize: 12, fontWeight: 600, color: "#6ee7b7", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
         <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#22c55e", boxShadow: "0 0 6px #22c55e" }} />
         DayMind Chat
       </div>
@@ -209,13 +209,13 @@ function ChatDemo() {
       <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10, maxHeight: 280, overflowY: "auto" }}>
         {msgs.map((m, i) => (
           m.role === "system" ? (
-            <div key={i} style={{ textAlign: "center", fontSize: 11, color: "rgba(139,92,246,0.5)", fontFamily: "monospace" }}>{m.text}</div>
+            <div key={i} style={{ textAlign: "center", fontSize: 11, color: "rgba(16,185,129,0.5)", fontFamily: "monospace" }}>{m.text}</div>
           ) : (
             <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
               <div style={{
                 maxWidth: "80%", borderRadius: 16, padding: "10px 14px", fontSize: 13, lineHeight: 1.5,
-                background: m.role === "user" ? "linear-gradient(135deg, #7c3aed, #a855f7)" : "var(--surface-3)",
-                color: "rgba(240,238,255,0.9)",
+                background: m.role === "user" ? "linear-gradient(135deg, #059669, #10b981)" : "var(--surface-3)",
+                color: "rgba(236,253,245,0.9)",
                 border: m.role === "ai" ? "1px solid var(--border)" : "none",
               }}>
                 {m.text}
@@ -235,7 +235,7 @@ function ChatDemo() {
             key={p.label}
             disabled={streaming}
             onClick={() => send(p.label, p.ai, p.db)}
-            style={{ background: "var(--surface-3)", border: "1px solid rgba(139,92,246,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, color: "#c084fc", cursor: "pointer", opacity: streaming ? 0.4 : 1 }}
+            style={{ background: "var(--surface-3)", border: "1px solid rgba(16,185,129,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 12, color: "#6ee7b7", cursor: "pointer", opacity: streaming ? 0.4 : 1 }}
           >
             {p.label}
           </button>
@@ -250,12 +250,12 @@ function ChatDemo() {
           onKeyDown={e => e.key === "Enter" && handleCustom()}
           disabled={streaming}
           placeholder="Type your own message..."
-          style={{ flex: 1, background: "var(--surface-3)", border: "1px solid rgba(139,92,246,0.15)", borderRadius: 20, padding: "8px 14px", fontSize: 13, color: "rgba(240,238,255,0.9)", outline: "none" }}
+          style={{ flex: 1, background: "var(--surface-3)", border: "1px solid rgba(16,185,129,0.15)", borderRadius: 20, padding: "8px 14px", fontSize: 13, color: "rgba(236,253,245,0.9)", outline: "none" }}
         />
         <button
           onClick={handleCustom}
           disabled={streaming || !input.trim()}
-          style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg, #7c3aed, #a855f7)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", opacity: streaming || !input.trim() ? 0.4 : 1 }}
+          style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg, #059669, #10b981)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", opacity: streaming || !input.trim() ? 0.4 : 1 }}
         >
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 19V5m0 0l-7 7m7-7l7 7" />
@@ -321,35 +321,35 @@ Produce a day plan. Return ONLY valid JSON in this exact shape:
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <div>
-        <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(240,238,255,0.4)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+        <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(236,253,245,0.4)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
           Tasks (one per line: "text | due:YYYY-MM-DD | priority:high | est:30")
         </div>
         <textarea
           value={tasks}
           onChange={e => setTasks(e.target.value)}
           rows={5}
-          style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(139,92,246,0.15)", borderRadius: 8, padding: "10px 12px", color: "rgba(240,238,255,0.85)", fontFamily: "monospace", fontSize: 12, resize: "vertical", outline: "none" }}
+          style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(16,185,129,0.15)", borderRadius: 8, padding: "10px 12px", color: "rgba(236,253,245,0.85)", fontFamily: "monospace", fontSize: 12, resize: "vertical", outline: "none" }}
         />
       </div>
       <div>
-        <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(240,238,255,0.4)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+        <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(236,253,245,0.4)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
           User Context (one per line)
         </div>
         <textarea
           value={context}
           onChange={e => setContext(e.target.value)}
           rows={3}
-          style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(139,92,246,0.15)", borderRadius: 8, padding: "10px 12px", color: "rgba(240,238,255,0.85)", fontFamily: "monospace", fontSize: 12, resize: "vertical", outline: "none" }}
+          style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(16,185,129,0.15)", borderRadius: 8, padding: "10px 12px", color: "rgba(236,253,245,0.85)", fontFamily: "monospace", fontSize: 12, resize: "vertical", outline: "none" }}
         />
       </div>
       <button
         onClick={build}
-        style={{ alignSelf: "flex-start", background: "linear-gradient(135deg, #7c3aed, #a855f7)", border: "none", borderRadius: 8, color: "white", padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+        style={{ alignSelf: "flex-start", background: "linear-gradient(135deg, #059669, #10b981)", border: "none", borderRadius: 8, color: "white", padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
       >
         ⚡ Build Prompt
       </button>
       {output && (
-        <pre style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(139,92,246,0.15)", borderRadius: 8, padding: 16, fontSize: 12, fontFamily: "monospace", overflowX: "auto", color: "#86efac", whiteSpace: "pre-wrap", lineHeight: 1.7 }}>
+        <pre style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(16,185,129,0.15)", borderRadius: 8, padding: 16, fontSize: 12, fontFamily: "monospace", overflowX: "auto", color: "#86efac", whiteSpace: "pre-wrap", lineHeight: 1.7 }}>
           {output}
         </pre>
       )}
@@ -401,23 +401,23 @@ function ResponseDecoder() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(240,238,255,0.4)", marginBottom: 2, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+      <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(236,253,245,0.4)", marginBottom: 2, textTransform: "uppercase", letterSpacing: "0.05em" }}>
         Raw Claude response
       </div>
       <textarea
         value={raw}
         onChange={e => setRaw(e.target.value)}
         rows={10}
-        style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(139,92,246,0.15)", borderRadius: 8, padding: "10px 12px", color: "rgba(240,238,255,0.85)", fontFamily: "monospace", fontSize: 12, resize: "vertical", outline: "none" }}
+        style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(16,185,129,0.15)", borderRadius: 8, padding: "10px 12px", color: "rgba(236,253,245,0.85)", fontFamily: "monospace", fontSize: 12, resize: "vertical", outline: "none" }}
       />
       <button
         onClick={decode}
-        style={{ alignSelf: "flex-start", background: "linear-gradient(135deg, #7c3aed, #a855f7)", border: "none", borderRadius: 8, color: "white", padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+        style={{ alignSelf: "flex-start", background: "linear-gradient(135deg, #059669, #10b981)", border: "none", borderRadius: 8, color: "white", padding: "8px 16px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
       >
         🔍 Decode Response
       </button>
       {result && (
-        <pre style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(139,92,246,0.15)", borderRadius: 8, padding: 16, fontSize: 12, fontFamily: "monospace", overflowX: "auto", color: "#86efac", whiteSpace: "pre-wrap", lineHeight: 1.7 }}>
+        <pre style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(16,185,129,0.15)", borderRadius: 8, padding: 16, fontSize: 12, fontFamily: "monospace", overflowX: "auto", color: "#86efac", whiteSpace: "pre-wrap", lineHeight: 1.7 }}>
           {result}
         </pre>
       )}
@@ -438,7 +438,7 @@ export default function AIFlowPage() {
       {/* Header */}
       <div className="mb-6 animate-slide-up">
         <h1 className="text-gradient" style={{ fontSize: 28, fontWeight: 800 }}>AI Integration</h1>
-        <p style={{ fontSize: 14, color: "rgba(139,92,246,0.6)", marginTop: 4 }}>
+        <p style={{ fontSize: 14, color: "rgba(16,185,129,0.6)", marginTop: 4 }}>
           How Claude powers DayMind — a deep dive for devs
         </p>
       </div>
@@ -450,12 +450,12 @@ export default function AIFlowPage() {
             key={t}
             onClick={() => setTab(t)}
             style={{
-              background: tab === t ? "linear-gradient(135deg, #7c3aed, #a855f7)" : "var(--surface-2)",
+              background: tab === t ? "linear-gradient(135deg, #059669, #10b981)" : "var(--surface-2)",
               border: `1px solid ${tab === t ? "transparent" : "var(--border)"}`,
-              color: tab === t ? "white" : "rgba(240,238,255,0.5)",
+              color: tab === t ? "white" : "rgba(236,253,245,0.5)",
               padding: "7px 16px", borderRadius: 10, cursor: "pointer",
               fontSize: 13, fontWeight: 500, transition: "all 0.2s",
-              boxShadow: tab === t ? "0 0 16px rgba(139,92,246,0.3)" : "none",
+              boxShadow: tab === t ? "0 0 16px rgba(16,185,129,0.3)" : "none",
             }}
           >
             {t}
@@ -481,19 +481,19 @@ export default function AIFlowPage() {
                 style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 10, padding: 14, textAlign: "center", transition: "all 0.2s" }}
               >
                 <div style={{ fontSize: 26, marginBottom: 6 }}>{item.icon}</div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(240,238,255,0.9)" }}>{item.name}</div>
-                <div style={{ fontSize: 11, color: "rgba(240,238,255,0.4)", marginTop: 2 }}>{item.sub}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(236,253,245,0.9)" }}>{item.name}</div>
+                <div style={{ fontSize: 11, color: "rgba(236,253,245,0.4)", marginTop: 2 }}>{item.sub}</div>
               </div>
             ))}
           </div>
 
           {/* Two flows */}
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#c084fc", marginBottom: 12 }}>Two AI Flows</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#6ee7b7", marginBottom: 12 }}>Two AI Flows</h2>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
             <Card style={{ cursor: "pointer" }} >
               <div style={{ fontSize: 28, marginBottom: 8 }}>🗓️</div>
               <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>Plan Generation</div>
-              <p style={{ fontSize: 13, color: "rgba(240,238,255,0.5)", marginBottom: 10 }}>
+              <p style={{ fontSize: 13, color: "rgba(236,253,245,0.5)", marginBottom: 10 }}>
                 Claude analyses your tasks + context with extended thinking and returns a structured JSON schedule.
               </p>
               <Pill color="orange">Server Action</Pill>
@@ -503,7 +503,7 @@ export default function AIFlowPage() {
             <Card style={{ cursor: "pointer" }}>
               <div style={{ fontSize: 28, marginBottom: 8 }}>💬</div>
               <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 6 }}>Chat Adjustments</div>
-              <p style={{ fontSize: 13, color: "rgba(240,238,255,0.5)", marginBottom: 10 }}>
+              <p style={{ fontSize: 13, color: "rgba(236,253,245,0.5)", marginBottom: 10 }}>
                 You type a message; Claude streams a reply + hidden JSON block that mutates your plan and tasks in real time.
               </p>
               <Pill color="blue">API Route</Pill>
@@ -513,11 +513,11 @@ export default function AIFlowPage() {
           </div>
 
           {/* File map */}
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#c084fc", marginBottom: 12 }}>Where AI Code Lives</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#6ee7b7", marginBottom: 12 }}>Where AI Code Lives</h2>
           <Card>
             <table style={{ width: "100%", fontSize: 12, borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ color: "rgba(240,238,255,0.4)", textAlign: "left", borderBottom: "1px solid var(--border)" }}>
+                <tr style={{ color: "rgba(236,253,245,0.4)", textAlign: "left", borderBottom: "1px solid var(--border)" }}>
                   <th style={{ padding: "6px 12px 6px 0" }}>File</th>
                   <th style={{ padding: "6px 12px 6px 0" }}>Role</th>
                   <th style={{ padding: "6px 0" }}>Key call</th>
@@ -532,8 +532,8 @@ export default function AIFlowPage() {
                   { file: "components/DayPlan.tsx", role: "Schedule visualiser", key: "Renders AI output", color: "teal" as const },
                 ].map((row, i) => (
                   <tr key={row.file} style={{ borderBottom: i < 4 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
-                    <td style={{ padding: "8px 12px 8px 0", fontFamily: "monospace", color: "#c084fc" }}>{row.file}</td>
-                    <td style={{ padding: "8px 12px 8px 0", color: "rgba(240,238,255,0.5)" }}>{row.role}</td>
+                    <td style={{ padding: "8px 12px 8px 0", fontFamily: "monospace", color: "#6ee7b7" }}>{row.file}</td>
+                    <td style={{ padding: "8px 12px 8px 0", color: "rgba(236,253,245,0.5)" }}>{row.role}</td>
                     <td style={{ padding: "8px 0" }}><Pill color={row.color}>{row.key}</Pill></td>
                   </tr>
                 ))}
@@ -576,7 +576,7 @@ if (existing?.plan) {
               </CodeBlock>
               <strong>UserContext</strong> stores answers to Claude's previous questions — like "How long does writing a proposal take you?" These shape the schedule each day.
             </FlowStep>
-            <FlowStep num={4} color="rgba(139,92,246,0.5)" title="Build the user prompt" summary='Tasks serialised with IDs, deadlines, priorities, defer counts + a strict JSON schema.'>
+            <FlowStep num={4} color="rgba(16,185,129,0.5)" title="Build the user prompt" summary='Tasks serialised with IDs, deadlines, priorities, defer counts + a strict JSON schema.'>
               Each task becomes a line like:<br />
               <code style={{ color: "#86efac", display: "block", margin: "8px 0" }}>- ID: clx1abc | "Write Q1 report" | Due: Mar 25 | Priority: high | Deferred 1x | Est: 90min</code>
               Then wrapped with the current date/time and user context, with an explicit JSON schema Claude must follow exactly.
@@ -615,7 +615,7 @@ await prisma.dailySession.create({
           </div>
 
           <div style={{ height: 1, background: "var(--border)", margin: "24px 0" }} />
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#c084fc", marginBottom: 12 }}>What Claude Receives &amp; Returns</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#6ee7b7", marginBottom: 12 }}>What Claude Receives &amp; Returns</h2>
           <TabGroup tabs={[
             {
               label: "System Prompt",
@@ -625,7 +625,7 @@ await prisma.dailySession.create({
 tasks and context. Your job is to produce a realistic, time-aware daily
 schedule. Be direct and practical. Never pad the schedule — if something
 takes 20 minutes, say 20 minutes."`}</CodeBlock>
-                  <p style={{ fontSize: 13, color: "rgba(240,238,255,0.5)" }}>Short and direct. Claude's role is narrowly defined — no open-ended assistant behaviour, just scheduling.</p>
+                  <p style={{ fontSize: 13, color: "rgba(236,253,245,0.5)" }}>Short and direct. Claude's role is narrowly defined — no open-ended assistant behaviour, just scheduling.</p>
                 </>
               ),
             },
@@ -676,7 +676,7 @@ Produce a day plan. Return ONLY valid JSON...`}</CodeBlock>
         <div className="animate-fade-in">
           <StatusBar dot="green">Streaming via Vercel AI SDK · Plan updates in onFinish callback · Dashboard auto-refreshes</StatusBar>
 
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#c084fc", marginBottom: 12 }}>Architecture</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#6ee7b7", marginBottom: 12 }}>Architecture</h2>
           <ArchRow
             left={{ icon: "💻", name: "ChatInput.tsx", sub: "useChat() hook\nDefaultChatTransport" }}
             right={{ icon: "🌐", name: "POST /api/chat", sub: "streamText()\nonFinish → DB writes" }}
@@ -687,7 +687,7 @@ Produce a day plan. Return ONLY valid JSON...`}</CodeBlock>
           />
 
           <div style={{ height: 1, background: "var(--border)", margin: "20px 0" }} />
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#c084fc", marginBottom: 12 }}>Step-by-step</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#6ee7b7", marginBottom: 12 }}>Step-by-step</h2>
 
           <FlowStep num={1} color="rgba(59,130,246,0.5)" title='User types a message' summary='"Push the report to tomorrow and add a task to email Sarah"'>
             <CodeBlock>{`// ChatInput.tsx
@@ -703,7 +703,7 @@ const { messages, sendMessage, status } = useChat({
 })`}</CodeBlock>
           </FlowStep>
 
-          <FlowStep num={2} color="rgba(139,92,246,0.5)" title="API Route builds context" summary="Serialises current tasks and plan into a rich system prompt.">
+          <FlowStep num={2} color="rgba(16,185,129,0.5)" title="API Route builds context" summary="Serialises current tasks and plan into a rich system prompt.">
             The current task list AND day plan are injected on every request — Claude always has ground truth about the current state. No "stale context" bugs.
           </FlowStep>
 
@@ -741,8 +741,8 @@ added an email task for Sarah. Your afternoon is clearer.
           </FlowStep>
 
           <div style={{ height: 1, background: "var(--border)", margin: "24px 0" }} />
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#c084fc", marginBottom: 12 }}>Live Demo</h2>
-          <p style={{ fontSize: 13, color: "rgba(240,238,255,0.5)", marginBottom: 12 }}>Click a preset or type your own message to see the streaming and DB operations.</p>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#6ee7b7", marginBottom: 12 }}>Live Demo</h2>
+          <p style={{ fontSize: 13, color: "rgba(236,253,245,0.5)", marginBottom: 12 }}>Click a preset or type your own message to see the streaming and DB operations.</p>
           <ChatDemo />
         </div>
       )}
@@ -750,7 +750,7 @@ added an email task for Sarah. Your afternoon is clearer.
       {/* ── Prompts ── */}
       {tab === "Prompts" && (
         <div className="animate-fade-in">
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#c084fc", marginBottom: 12 }}>Plan Generation System Prompt</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#6ee7b7", marginBottom: 12 }}>Plan Generation System Prompt</h2>
           <Card>
             <div style={{ marginBottom: 12 }}><Pill color="orange">app/actions/ai.ts</Pill><Pill color="green">generateDayPlan()</Pill></div>
             <CodeBlock>{`"You are a personal chief of staff. You know everything about the user's
@@ -762,7 +762,7 @@ takes 20 minutes, say 20 minutes."`}</CodeBlock>
             </Highlight>
           </Card>
 
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#c084fc", marginBottom: 12, marginTop: 8 }}>Chat System Prompt</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#6ee7b7", marginBottom: 12, marginTop: 8 }}>Chat System Prompt</h2>
           <Card>
             <div style={{ marginBottom: 12 }}><Pill color="blue">app/api/chat/route.ts</Pill><Pill color="purple">POST /api/chat</Pill></div>
             <CodeBlock>{`You are DayMind, a personal chief of staff AI.
@@ -793,7 +793,7 @@ Keep your reply ABOVE the <plan_update> block. Do not explain the JSON.`}</CodeB
           </Card>
 
           <div style={{ height: 1, background: "var(--border)", margin: "20px 0" }} />
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#c084fc", marginBottom: 12 }}>Prompt Engineering Patterns</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#6ee7b7", marginBottom: 12 }}>Prompt Engineering Patterns</h2>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             {[
               { icon: "📐", title: "Strict Output Schema", body: "Both prompts provide an exact JSON shape. This prevents hallucinated field names and makes parsing reliable — Claude's output is effectively typed." },
@@ -804,13 +804,13 @@ Keep your reply ABOVE the <plan_update> block. Do not explain the JSON.`}</CodeB
               <Card key={p.title}>
                 <div style={{ fontSize: 20, marginBottom: 8 }}>{p.icon}</div>
                 <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>{p.title}</div>
-                <p style={{ fontSize: 13, color: "rgba(240,238,255,0.5)", margin: 0 }}>{p.body}</p>
+                <p style={{ fontSize: 13, color: "rgba(236,253,245,0.5)", margin: 0 }}>{p.body}</p>
               </Card>
             ))}
           </div>
 
           <div style={{ height: 1, background: "var(--border)", margin: "20px 0" }} />
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#c084fc", marginBottom: 12 }}>TypeScript Types Claude Must Follow</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#6ee7b7", marginBottom: 12 }}>TypeScript Types Claude Must Follow</h2>
           <TabGroup tabs={[
             {
               label: "PlanItem",
@@ -853,8 +853,8 @@ Keep your reply ABOVE the <plan_update> block. Do not explain the JSON.`}</CodeB
       {/* ── Simulator ── */}
       {tab === "Simulator" && (
         <div className="animate-fade-in">
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#c084fc", marginBottom: 8 }}>Prompt Builder</h2>
-          <p style={{ fontSize: 13, color: "rgba(240,238,255,0.5)", marginBottom: 16 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#6ee7b7", marginBottom: 8 }}>Prompt Builder</h2>
+          <p style={{ fontSize: 13, color: "rgba(236,253,245,0.5)", marginBottom: 16 }}>
             See how the system constructs the user prompt from task data — the same logic as <code>generateDayPlan()</code>.
           </p>
           <Card>
@@ -862,8 +862,8 @@ Keep your reply ABOVE the <plan_update> block. Do not explain the JSON.`}</CodeB
           </Card>
 
           <div style={{ height: 1, background: "var(--border)", margin: "24px 0" }} />
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#c084fc", marginBottom: 8 }}>Response Decoder</h2>
-          <p style={{ fontSize: 13, color: "rgba(240,238,255,0.5)", marginBottom: 16 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#6ee7b7", marginBottom: 8 }}>Response Decoder</h2>
+          <p style={{ fontSize: 13, color: "rgba(236,253,245,0.5)", marginBottom: 16 }}>
             Paste a raw Claude chat response to see what the user sees vs. what triggers DB writes.
           </p>
           <Card>
@@ -871,20 +871,20 @@ Keep your reply ABOVE the <plan_update> block. Do not explain the JSON.`}</CodeB
           </Card>
 
           <div style={{ height: 1, background: "var(--border)", margin: "24px 0" }} />
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#c084fc", marginBottom: 12 }}>useChat Status States</h2>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "#6ee7b7", marginBottom: 12 }}>useChat Status States</h2>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
             <Card>
               <StatusBar dot="green"><code>idle</code></StatusBar>
-              <p style={{ fontSize: 13, color: "rgba(240,238,255,0.5)", margin: 0 }}>No request in flight. Input enabled, send button active.</p>
+              <p style={{ fontSize: 13, color: "rgba(236,253,245,0.5)", margin: 0 }}>No request in flight. Input enabled, send button active.</p>
             </Card>
             <Card>
               <StatusBar dot="orange"><code>submitted</code></StatusBar>
-              <p style={{ fontSize: 13, color: "rgba(240,238,255,0.5)", margin: 0 }}>Request sent, waiting for first token. Spinner shows, input disabled.</p>
+              <p style={{ fontSize: 13, color: "rgba(236,253,245,0.5)", margin: 0 }}>Request sent, waiting for first token. Spinner shows, input disabled.</p>
             </Card>
           </div>
           <Card>
             <StatusBar dot="purple"><code>streaming</code></StatusBar>
-            <p style={{ fontSize: 13, color: "rgba(240,238,255,0.5)", margin: 0 }}>Tokens arriving. Text appears incrementally in the message bubble. Input still disabled. After the last token, <code>onFinish</code> fires → DB writes → <code>router.refresh()</code> → status returns to <code>idle</code>.</p>
+            <p style={{ fontSize: 13, color: "rgba(236,253,245,0.5)", margin: 0 }}>Tokens arriving. Text appears incrementally in the message bubble. Input still disabled. After the last token, <code>onFinish</code> fires → DB writes → <code>router.refresh()</code> → status returns to <code>idle</code>.</p>
           </Card>
         </div>
       )}

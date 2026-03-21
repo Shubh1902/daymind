@@ -24,14 +24,14 @@ export default function DayPlan({
       <div className="flex flex-col items-center justify-center py-20">
         <div
           className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
-          style={{ background: "rgba(139, 92, 246, 0.07)", border: "1px solid rgba(139, 92, 246, 0.12)" }}
+          style={{ background: "rgba(16, 185, 129, 0.07)", border: "1px solid rgba(16, 185, 129, 0.12)" }}
         >
-          <svg className="w-7 h-7" style={{ color: "rgba(139, 92, 246, 0.35)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <svg className="w-7 h-7" style={{ color: "rgba(16, 185, 129, 0.35)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
         </div>
-        <p className="text-base font-semibold" style={{ color: "rgba(167, 139, 250, 0.5)" }}>Nothing on the plan</p>
-        <p className="text-sm mt-1" style={{ color: "rgba(139, 92, 246, 0.3)" }}>Add tasks to see them here</p>
+        <p className="text-base font-semibold" style={{ color: "rgba(52, 211, 153, 0.5)" }}>Nothing on the plan</p>
+        <p className="text-sm mt-1" style={{ color: "rgba(16, 185, 129, 0.3)" }}>Add tasks to see them here</p>
       </div>
     )
   }
@@ -51,7 +51,7 @@ export default function DayPlan({
       <div className="flex flex-col gap-2">
         <h2
           className="text-xs font-semibold uppercase tracking-wider mb-2"
-          style={{ color: "rgba(139, 92, 246, 0.45)" }}
+          style={{ color: "rgba(16, 185, 129, 0.45)" }}
         >
           Today's Schedule
         </h2>
@@ -62,11 +62,11 @@ export default function DayPlan({
             <div className="flex-shrink-0 w-14 text-right pt-3">
               <span
                 className="text-xs font-semibold block leading-tight"
-                style={{ color: "rgba(167, 139, 250, 0.6)" }}
+                style={{ color: "rgba(52, 211, 153, 0.6)" }}
               >
                 {planItem.scheduledTime}
               </span>
-              <p className="text-xs leading-tight mt-0.5" style={{ color: "rgba(139, 92, 246, 0.35)" }}>
+              <p className="text-xs leading-tight mt-0.5" style={{ color: "rgba(16, 185, 129, 0.35)" }}>
                 {planItem.estimatedMinutes}m
               </p>
             </div>
@@ -77,13 +77,13 @@ export default function DayPlan({
                 <div
                   className="w-2 h-2 rounded-full shrink-0"
                   style={{
-                    background: "linear-gradient(135deg, #7c3aed, #a855f7)",
-                    boxShadow: "0 0 8px rgba(168, 85, 247, 0.5)",
+                    background: "linear-gradient(135deg, #059669, #10b981)",
+                    boxShadow: "0 0 8px rgba(16, 185, 129, 0.5)",
                   }}
                 />
                 <div
                   className="w-px flex-1 min-h-4 mt-1"
-                  style={{ background: "rgba(139, 92, 246, 0.12)" }}
+                  style={{ background: "rgba(16, 185, 129, 0.12)" }}
                 />
               </div>
               <div className="flex-1 min-w-0">
@@ -91,7 +91,7 @@ export default function DayPlan({
                 {planItem.reason && (
                   <p
                     className="text-xs mt-1.5 ml-2 italic"
-                    style={{ color: "rgba(139, 92, 246, 0.35)" }}
+                    style={{ color: "rgba(16, 185, 129, 0.35)" }}
                   >
                     {planItem.reason}
                   </p>
@@ -105,7 +105,7 @@ export default function DayPlan({
           <div className="mt-5">
             <h2
               className="text-xs font-semibold uppercase tracking-wider mb-2"
-              style={{ color: "rgba(139, 92, 246, 0.35)" }}
+              style={{ color: "rgba(16, 185, 129, 0.35)" }}
             >
               Not Scheduled
             </h2>
@@ -132,7 +132,7 @@ export default function DayPlan({
     high:   { label: "High Priority",   color: "#fb7185" },
     medium: { label: "Medium Priority", color: "#fbbf24" },
     low:    { label: "Low Priority",    color: "#34d399" },
-    other:  { label: "Other",           color: "rgba(139, 92, 246, 0.5)" },
+    other:  { label: "Other",           color: "rgba(16, 185, 129, 0.5)" },
   }
 
   const sections = [...priorityOrder, "other"]

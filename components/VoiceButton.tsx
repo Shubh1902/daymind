@@ -172,7 +172,7 @@ export default function VoiceButton({ onTranscript, disabled }: VoiceButtonProps
           <MicIcon className="w-4 h-4 relative z-10" style={{ color: "#fb7185" }} />
         </span>
       ) : (
-        <MicIcon className="w-4 h-4" style={{ color: "rgba(139, 92, 246, 0.5)" }} />
+        <MicIcon className="w-4 h-4" style={{ color: "rgba(16, 185, 129, 0.5)" }} />
       )}
     </button>
   )

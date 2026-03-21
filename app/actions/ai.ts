@@ -60,18 +60,18 @@ export async function generateDayPlan(userId: string): Promise<DayPlanResult> {
   if (tasks.length === 0) {
     const session = existing
       ? await prisma.dailySession.update({
-          where: { id: existing.id },
-          data: { briefing: "No open tasks. Add some tasks to get a plan.", plan: [] },
-        })
+        where: { id: existing.id },
+        data: { briefing: "No open tasks. Add some tasks to get a plan.", plan: [] },
+      })
       : await prisma.dailySession.create({
-          data: {
-            userId,
-            date: today,
-            briefing: "No open tasks. Add some tasks to get a plan.",
-            plan: [],
-            userInputs: [],
-          },
-        })
+        data: {
+          userId,
+          date: today,
+          briefing: "No open tasks. Add some tasks to get a plan.",
+          plan: [],
+          userInputs: [],
+        },
+      })
     return { id: session.id, briefing: session.briefing, plan: [], questions: [] }
   }
 
@@ -152,22 +152,22 @@ Produce a day plan. Return ONLY valid JSON in this exact shape:
 
   const session = existing
     ? await prisma.dailySession.update({
-        where: { id: existing.id },
-        data: {
-          briefing: planData.briefing,
-          plan: planData.plan as object[],
-          userInputs: [],
-        },
-      })
+      where: { id: existing.id },
+      data: {
+        briefing: planData.briefing,
+        plan: planData.plan as object[],
+        userInputs: [],
+      },
+    })
     : await prisma.dailySession.create({
-        data: {
-          userId,
-          date: today,
-          briefing: planData.briefing,
-          plan: planData.plan as object[],
-          userInputs: [],
-        },
-      })
+      data: {
+        userId,
+        date: today,
+        briefing: planData.briefing,
+        plan: planData.plan as object[],
+        userInputs: [],
+      },
+    })
 
   return {
     id: session.id,

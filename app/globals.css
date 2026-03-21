@@ -175,6 +175,19 @@ body {
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
 }
 
+/* ─── Scrollbar-hide (for snap carousels) ──────── */
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ─── Overlay entrance ─────────────────────────── */
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-overlay-in { animation: overlayIn 0.25s ease both; }
+
 /* ─── Datetime / select dark ────────────────────── */
 
 input[type="datetime-local"],

@@ -22,6 +22,7 @@ export async function PATCH(
   if (body.priority !== undefined) data.priority = body.priority
   if (body.category !== undefined) data.category = body.category
   if (body.notes !== undefined) data.notes = body.notes
+  if (body.deferCount !== undefined) data.deferCount = Number(body.deferCount)
   if (body.completed !== undefined) {
     data.completed = body.completed
     data.completedAt = body.completed ? new Date() : null

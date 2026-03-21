@@ -1,6 +1,8 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
+import { createPortal } from "react-dom"
+import { useRouter } from "next/navigation"
 
 type Task = {
   id: string
@@ -11,16 +13,17 @@ type Task = {
   category: string | null
   notes: string | null
   completed: boolean
+  deferCount: number
 }
 
 const priorityScore: Record<string, number> = { high: 3, medium: 2, low: 1 }
-const priorityConfig: Record<string, { label: string; bg: string; text: string; glow: string }> = {
-  high:   { label: "High Priority",   bg: "rgba(244, 63, 94, 0.12)",  text: "#fb7185", glow: "rgba(244, 63, 94, 0.3)" },
-  medium: { label: "Medium Priority", bg: "rgba(245, 158, 11, 0.12)", text: "#fbbf24", glow: "rgba(245, 158, 11, 0.3)" },
-  low:    { label: "Low Priority",    bg: "rgba(20, 184, 166, 0.12)", text: "#34d399", glow: "rgba(20, 184, 166, 0.3)" },
+const priorityConfig: Record<string, { label: string; bg: string; text: string }> = {
+  high:   { label: "High",   bg: "rgba(244, 63, 94, 0.12)",  text: "#fb7185" },
+  medium: { label: "Medium", bg: "rgba(245, 158, 11, 0.12)", text: "#fbbf24" },
+  low:    { label: "Low",    bg: "rgba(20, 184, 166, 0.12)", text: "#34d399" },
 }
 
-function getTopTasks(tasks: Task[]): Task[] {
+function sortTasks(tasks: Task[]): Task[] {
   return [...tasks]
     .filter((t) => !t.completed)
     .sort((a, b) => {
@@ -33,272 +36,321 @@ function getTopTasks(tasks: Task[]): Task[] {
       if (b.deadline) return 1
       return 0
     })
-    .slice(0, 5)
+    .slice(0, 8)
 }
 
-export default function TaskFocusView({ tasks }: { tasks: Task[] }) {
-  const topTasks = getTopTasks(tasks)
-  const [index, setIndex] = useState(0)
-  const [dragX, setDragX] = useState(0)
-  const [isDragging, setIsDragging] = useState(false)
-  const [animDir, setAnimDir] = useState<"left" | "right" | null>(null)
-  const startXRef = useRef(0)
+export default function TaskFocusView({
+  tasks,
+  onClose,
+}: {
+  tasks: Task[]
+  onClose: () => void
+}) {
+  const router = useRouter()
+  const [mounted, setMounted] = useState(false)
+  const [localTasks, setLocalTasks] = useState(() => sortTasks(tasks))
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [completing, setCompleting] = useState<string | null>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([])
 
-  if (topTasks.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-24">
-        <div
-          className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 animate-float"
-          style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.15)" }}
-        >
-          <svg className="w-8 h-8" style={{ color: "rgba(16, 185, 129, 0.4)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-        <p className="text-lg font-semibold" style={{ color: "rgba(52, 211, 153, 0.5)" }}>All caught up!</p>
-        <p className="text-sm mt-1" style={{ color: "rgba(16, 185, 129, 0.3)" }}>No open tasks to focus on</p>
-      </div>
+  // Mount portal only on client
+  useEffect(() => setMounted(true), [])
+
+  // Update local tasks when props change
+  useEffect(() => {
+    setLocalTasks(sortTasks(tasks))
+  }, [tasks])
+
+  // Observe which card is in view
+  useEffect(() => {
+    const container = scrollRef.current
+    if (!container || localTasks.length === 0) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const idx = cardRefs.current.indexOf(entry.target as HTMLDivElement)
+            if (idx !== -1) setActiveIndex(idx)
+          }
+        }
+      },
+      { root: container, threshold: 0.6 }
     )
+
+    cardRefs.current.forEach((el) => {
+      if (el) observer.observe(el)
+    })
+
+    return () => observer.disconnect()
+  }, [localTasks])
+
+  const scrollToIndex = useCallback((idx: number) => {
+    const el = cardRefs.current[idx]
+    if (el && scrollRef.current) {
+      el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" })
+    }
+  }, [])
+
+  async function handleDone() {
+    const task = localTasks[activeIndex]
+    if (!task || completing) return
+    setCompleting(task.id)
+
+    try {
+      await fetch(`/api/tasks/${task.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ completed: true }),
+      })
+
+      const next = localTasks.filter((t) => t.id !== task.id)
+      setLocalTasks(next)
+
+      if (next.length === 0) {
+        // brief pause to show empty state before refreshing
+        setTimeout(() => router.refresh(), 300)
+      } else {
+        const newIdx = Math.min(activeIndex, next.length - 1)
+        setActiveIndex(newIdx)
+        // Scroll after DOM updates
+        requestAnimationFrame(() => scrollToIndex(newIdx))
+        router.refresh()
+      }
+    } finally {
+      setCompleting(null)
+    }
   }
 
-  const task = topTasks[index]
-  const pConfig = priorityConfig[task.priority]
-
-  function navigate(dir: "left" | "right") {
-    if (dir === "left" && index >= topTasks.length - 1) return
-    if (dir === "right" && index <= 0) return
-    setAnimDir(dir)
-    setDragX(0)
-    setTimeout(() => {
-      setIndex((i) => (dir === "left" ? i + 1 : i - 1))
-      setAnimDir(null)
-    }, 280)
+  function handlePass() {
+    if (localTasks.length === 0) return
+    const nextIdx = activeIndex < localTasks.length - 1 ? activeIndex + 1 : 0
+    scrollToIndex(nextIdx)
   }
 
-  function onTouchStart(e: React.TouchEvent) {
-    startXRef.current = e.touches[0].clientX
-    setIsDragging(true)
-  }
-  function onTouchMove(e: React.TouchEvent) {
-    setDragX(e.touches[0].clientX - startXRef.current)
-  }
-  function onTouchEnd() {
-    setIsDragging(false)
-    if (dragX < -80) navigate("left")
-    else if (dragX > 80) navigate("right")
-    else setDragX(0)
+  function handleGoDeeper() {
+    const task = localTasks[activeIndex]
+    if (!task) return
+    router.push(`/tasks/${task.id}/edit`)
   }
 
-  function onMouseDown(e: React.MouseEvent) {
-    startXRef.current = e.clientX
-    setIsDragging(true)
-  }
-  function onMouseMove(e: React.MouseEvent) {
-    if (!isDragging) return
-    setDragX(e.clientX - startXRef.current)
-  }
-  function onMouseUp() {
-    if (!isDragging) return
-    setIsDragging(false)
-    if (dragX < -80) navigate("left")
-    else if (dragX > 80) navigate("right")
-    else setDragX(0)
-  }
+  if (!mounted) return null
 
-  const translateX = animDir === "left" ? -500 : animDir === "right" ? 500 : dragX
-  const rotation = dragX * 0.04
-  const flyingOut = animDir !== null
+  const overlayContent = (
+    <div
+      className="fixed inset-0 z-50 flex flex-col animate-overlay-in"
+      style={{
+        background: "rgba(6, 13, 18, 0.95)",
+        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "blur(24px)",
+      }}
+    >
+      {/* ── Top bar ── */}
+      <div className="flex items-center justify-between px-5 pt-safe" style={{ paddingTop: "max(env(safe-area-inset-top), 16px)" }}>
+        <button
+          onClick={onClose}
+          className="w-10 h-10 rounded-full flex items-center justify-center"
+          style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.12)" }}
+          aria-label="Close focus mode"
+        >
+          <svg className="w-5 h-5" style={{ color: "rgba(52, 211, 153, 0.6)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
 
-  return (
-    <div className="flex flex-col items-center gap-8 pt-2 pb-4 select-none">
-      {/* Progress dots */}
-      <div className="flex items-center gap-2">
-        {topTasks.map((_, i) => (
-          <div
-            key={i}
-            className="rounded-full transition-all duration-300"
-            style={{
-              width: i === index ? 24 : 8,
-              height: 8,
-              background: i === index
-                ? "linear-gradient(90deg, #059669, #10b981)"
-                : i < index
-                ? "rgba(16, 185, 129, 0.35)"
-                : "rgba(16, 185, 129, 0.1)",
-              boxShadow: i === index ? "0 0 10px rgba(16, 185, 129, 0.5)" : "none",
-            }}
-          />
-        ))}
+        {/* Progress dots */}
+        {localTasks.length > 0 && (
+          <div className="flex items-center gap-1.5">
+            {localTasks.map((_, i) => (
+              <div
+                key={i}
+                className="rounded-full transition-all duration-300"
+                style={{
+                  width: i === activeIndex ? 20 : 6,
+                  height: 6,
+                  background: i === activeIndex
+                    ? "linear-gradient(90deg, #059669, #10b981)"
+                    : i < activeIndex
+                    ? "rgba(16, 185, 129, 0.35)"
+                    : "rgba(16, 185, 129, 0.1)",
+                  boxShadow: i === activeIndex ? "0 0 8px rgba(16, 185, 129, 0.5)" : "none",
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        <span className="text-xs font-medium" style={{ color: "rgba(16, 185, 129, 0.4)", minWidth: 40, textAlign: "right" }}>
+          {localTasks.length > 0 ? `${activeIndex + 1}/${localTasks.length}` : ""}
+        </span>
       </div>
 
-      {/* Card stack */}
-      <div
-        className="relative w-full max-w-sm"
-        style={{ height: 400 }}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseUp}
-      >
-        {/* Background peek cards */}
-        {index < topTasks.length - 1 && (
+      {/* ── Empty state ── */}
+      {localTasks.length === 0 ? (
+        <div className="flex-1 flex flex-col items-center justify-center px-8">
           <div
-            className="absolute inset-x-6 top-4 bottom-0 rounded-3xl"
-            style={{ background: "var(--surface-3)", border: "1px solid rgba(16, 185, 129, 0.1)" }}
-          />
-        )}
-        {index < topTasks.length - 2 && (
-          <div
-            className="absolute inset-x-10 top-8 bottom-0 rounded-3xl"
-            style={{ background: "var(--surface-2)", border: "1px solid rgba(16, 185, 129, 0.06)" }}
-          />
-        )}
-
-        {/* Main card */}
-        <div
-          className="absolute inset-0 rounded-3xl p-8 flex flex-col cursor-grab active:cursor-grabbing"
-          style={{
-            background: "linear-gradient(145deg, var(--surface-3), var(--surface-2))",
-            border: "1px solid rgba(16, 185, 129, 0.2)",
-            boxShadow: "0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(16, 185, 129, 0.08)",
-            transform: `translateX(${translateX}px) rotate(${rotation}deg)`,
-            opacity: flyingOut ? 0 : 1,
-            transition: isDragging ? "none" : "transform 0.28s ease, opacity 0.28s ease",
-          }}
-        >
-          {/* Header row */}
-          <div className="flex items-center gap-2 mb-auto">
-            {pConfig && (
-              <span
-                className="text-xs px-2.5 py-1 rounded-full font-semibold"
-                style={{ background: pConfig.bg, color: pConfig.text }}
-              >
-                {pConfig.label}
-              </span>
-            )}
-            {task.category && (
-              <span
-                className="text-xs px-2.5 py-1 rounded-full font-medium"
-                style={{ background: "rgba(16, 185, 129, 0.1)", color: "rgba(52, 211, 153, 0.7)" }}
-              >
-                {task.category}
-              </span>
-            )}
-            <span
-              className="ml-auto text-xs font-medium"
-              style={{ color: "rgba(16, 185, 129, 0.35)" }}
-            >
-              {index + 1} / {topTasks.length}
-            </span>
-          </div>
-
-          {/* Task text */}
-          <h2
-            className="text-2xl font-bold leading-snug mt-6 flex-1"
-            style={{ color: "rgba(236, 253, 245, 0.95)" }}
+            className="w-20 h-20 rounded-3xl flex items-center justify-center mb-5 animate-float"
+            style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.15)" }}
           >
-            {task.text}
-          </h2>
-
-          {/* Meta */}
-          <div
-            className="flex flex-col gap-2 mt-6 pt-5"
-            style={{ borderTop: "1px solid rgba(16, 185, 129, 0.12)" }}
-          >
-            {task.deadline && (
-              <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(52, 211, 153, 0.6)" }}>
-                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span>
-                  Due{" "}
-                  {new Date(task.deadline).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                  })}
-                </span>
-              </div>
-            )}
-            {task.estimatedMinutes && (
-              <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(52, 211, 153, 0.6)" }}>
-                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>~{task.estimatedMinutes} min</span>
-              </div>
-            )}
-            {task.notes && (
-              <p className="text-sm italic line-clamp-2" style={{ color: "rgba(16, 185, 129, 0.45)" }}>
-                {task.notes}
-              </p>
-            )}
+            <svg className="w-10 h-10" style={{ color: "#34d399" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
           </div>
-
-          {/* Swipe overlays */}
-          {dragX > 40 && (
-            <div
-              className="absolute top-8 left-8 rounded-xl px-3 py-1"
-              style={{
-                border: "2px solid #34d399",
-                transform: "rotate(-12deg)",
-                opacity: Math.min(dragX / 120, 1),
-              }}
-            >
-              <span className="font-bold text-sm tracking-wide" style={{ color: "#34d399" }}>PREV</span>
-            </div>
-          )}
-          {dragX < -40 && (
-            <div
-              className="absolute top-8 right-8 rounded-xl px-3 py-1"
-              style={{
-                border: "2px solid #fb7185",
-                transform: "rotate(12deg)",
-                opacity: Math.min(-dragX / 120, 1),
-              }}
-            >
-              <span className="font-bold text-sm tracking-wide" style={{ color: "#fb7185" }}>NEXT</span>
-            </div>
-          )}
+          <p className="text-2xl font-bold" style={{ color: "rgba(52, 211, 153, 0.7)" }}>All caught up!</p>
+          <p className="text-sm mt-2" style={{ color: "rgba(16, 185, 129, 0.4)" }}>No open tasks to focus on</p>
+          <button
+            onClick={onClose}
+            className="mt-8 px-6 py-3 rounded-xl text-sm font-semibold"
+            style={{ background: "rgba(16, 185, 129, 0.1)", color: "#34d399", border: "1px solid rgba(16, 185, 129, 0.2)" }}
+          >
+            Back to schedule
+          </button>
         </div>
-      </div>
+      ) : (
+        <>
+          {/* ── Carousel ── */}
+          <div
+            ref={scrollRef}
+            className="flex-1 flex overflow-x-auto snap-x snap-mandatory scrollbar-hide px-4 py-6 gap-4 items-center"
+            style={{ scrollPaddingInline: "16px" }}
+          >
+            {localTasks.map((task, i) => {
+              const pConfig = priorityConfig[task.priority]
+              const isCompleting = completing === task.id
+              return (
+                <div
+                  key={task.id}
+                  ref={(el) => { cardRefs.current[i] = el }}
+                  className="snap-center shrink-0 flex flex-col rounded-3xl p-7"
+                  style={{
+                    width: "calc(100vw - 48px)",
+                    maxWidth: 380,
+                    minHeight: 360,
+                    background: "linear-gradient(155deg, var(--surface-3), var(--surface-2))",
+                    border: "1px solid rgba(16, 185, 129, 0.18)",
+                    boxShadow: "0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(16, 185, 129, 0.06)",
+                    opacity: isCompleting ? 0.4 : 1,
+                    transition: "opacity 0.3s ease",
+                  }}
+                >
+                  {/* Priority + category */}
+                  <div className="flex items-center gap-2 mb-5">
+                    {pConfig && (
+                      <span
+                        className="text-xs px-2.5 py-1 rounded-full font-semibold"
+                        style={{ background: pConfig.bg, color: pConfig.text }}
+                      >
+                        {pConfig.label}
+                      </span>
+                    )}
+                    {task.category && (
+                      <span
+                        className="text-xs px-2.5 py-1 rounded-full font-medium"
+                        style={{ background: "rgba(16, 185, 129, 0.08)", color: "rgba(52, 211, 153, 0.7)" }}
+                      >
+                        {task.category}
+                      </span>
+                    )}
+                  </div>
 
-      {/* Nav buttons */}
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => navigate("right")}
-          disabled={index === 0}
-          className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 disabled:opacity-20"
-          style={{
-            background: "var(--surface-2)",
-            border: "1px solid var(--border)",
-            color: "rgba(52, 211, 153, 0.6)",
-          }}
-          aria-label="Previous task"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <span className="text-xs" style={{ color: "rgba(16, 185, 129, 0.3)" }}>swipe or tap arrows</span>
-        <button
-          onClick={() => navigate("left")}
-          disabled={index === topTasks.length - 1}
-          className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 disabled:opacity-20"
-          style={{
-            background: "var(--surface-2)",
-            border: "1px solid var(--border)",
-            color: "rgba(52, 211, 153, 0.6)",
-          }}
-          aria-label="Next task"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      </div>
+                  {/* Task text */}
+                  <h2
+                    className="text-2xl font-bold leading-snug flex-1"
+                    style={{ color: "rgba(236, 253, 245, 0.95)" }}
+                  >
+                    {task.text}
+                  </h2>
+
+                  {/* Meta info */}
+                  <div
+                    className="flex flex-col gap-2 mt-5 pt-4"
+                    style={{ borderTop: "1px solid rgba(16, 185, 129, 0.1)" }}
+                  >
+                    {task.deadline && (
+                      <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(52, 211, 153, 0.6)" }}>
+                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>Due {new Date(task.deadline).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                      </div>
+                    )}
+                    {task.estimatedMinutes && (
+                      <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(52, 211, 153, 0.6)" }}>
+                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>~{task.estimatedMinutes} min</span>
+                      </div>
+                    )}
+                    {task.notes && (
+                      <p className="text-sm italic line-clamp-2" style={{ color: "rgba(16, 185, 129, 0.4)" }}>
+                        {task.notes}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Go Deeper link */}
+                  <button
+                    onClick={handleGoDeeper}
+                    className="mt-4 flex items-center gap-2 text-sm font-medium self-start transition-opacity duration-200"
+                    style={{ color: "rgba(52, 211, 153, 0.6)" }}
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Go Deeper
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* ── Action buttons ── */}
+          <div
+            className="flex flex-col gap-3 px-6 pb-safe"
+            style={{ paddingBottom: "max(env(safe-area-inset-bottom), 24px)" }}
+          >
+            {/* Done — big CTA */}
+            <button
+              onClick={handleDone}
+              disabled={completing !== null}
+              className="w-full py-4 rounded-2xl text-lg font-bold text-white transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-3"
+              style={{
+                background: "linear-gradient(135deg, #059669, #10b981)",
+                boxShadow: "0 4px 24px rgba(16, 185, 129, 0.35)",
+              }}
+            >
+              {completing ? (
+                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Done
+                </>
+              )}
+            </button>
+
+            {/* Pass — secondary */}
+            <button
+              onClick={handlePass}
+              disabled={completing !== null}
+              className="w-full py-3 rounded-2xl text-base font-semibold transition-all duration-200 disabled:opacity-40"
+              style={{
+                background: "transparent",
+                color: "rgba(52, 211, 153, 0.7)",
+                border: "1px solid rgba(16, 185, 129, 0.2)",
+              }}
+            >
+              Pass
+            </button>
+          </div>
+        </>
+      )}
     </div>
   )
+
+  return createPortal(overlayContent, document.body)
 }

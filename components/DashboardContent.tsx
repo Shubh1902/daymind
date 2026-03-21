@@ -15,6 +15,7 @@ type Task = {
   category: string | null
   completed: boolean
   notes: string | null
+  deferCount: number
 }
 
 type View = "schedule" | "focus"
@@ -60,16 +61,16 @@ export default function DashboardContent({
         })}
       </div>
 
-      <div className="animate-fade-in" key={view}>
-        {view === "schedule" ? (
-          <>
-            <WeekStrip tasks={allTasks} />
-            <DayPlan plan={plan} tasks={openTasks} />
-          </>
-        ) : (
-          <TaskFocusView tasks={openTasks} />
-        )}
-      </div>
+      {view === "schedule" && (
+        <div className="animate-fade-in">
+          <WeekStrip tasks={allTasks} />
+          <DayPlan plan={plan} tasks={openTasks} />
+        </div>
+      )}
+
+      {view === "focus" && (
+        <TaskFocusView tasks={openTasks} onClose={() => setView("schedule")} />
+      )}
     </>
   )
 }

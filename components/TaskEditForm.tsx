@@ -85,7 +85,8 @@ export default function TaskEditForm({ task }: { task: TaskProp }) {
   }
 
   function handleVoiceForText(transcript: string) {
-    setText((prev) => (prev ? prev + " " + transcript : transcript))
+    // Voice REPLACES the task text (not append) — user is re-dictating the task
+    setText(transcript)
   }
 
   function handleVoiceForNotes(transcript: string) {

@@ -30,7 +30,8 @@ export default function TaskCard({ task }: { task: Task }) {
   const [loading, setLoading] = useState(false)
   const pConfig = priorityConfig[task.priority]
 
-  async function toggleComplete() {
+  async function toggleComplete(e: React.MouseEvent) {
+    e.stopPropagation()
     setLoading(true)
     await fetch(`/api/tasks/${task.id}`, {
       method: "PATCH",
@@ -41,7 +42,8 @@ export default function TaskCard({ task }: { task: Task }) {
     setLoading(false)
   }
 
-  async function deleteTask() {
+  async function deleteTask(e: React.MouseEvent) {
+    e.stopPropagation()
     if (!confirm("Delete this task?")) return
     setLoading(true)
     await fetch(`/api/tasks/${task.id}`, { method: "DELETE" })
@@ -49,9 +51,14 @@ export default function TaskCard({ task }: { task: Task }) {
     setLoading(false)
   }
 
+  function handleCardClick() {
+    if (!loading) router.push(`/tasks/${task.id}/edit`)
+  }
+
   return (
     <div
-      className="card-hover flex items-start gap-3 px-4 py-3 rounded-xl"
+      onClick={handleCardClick}
+      className="card-hover flex items-start gap-3 px-4 py-3 rounded-xl cursor-pointer"
       style={{
         background: "var(--surface-2)",
         border: "1px solid var(--border)",
@@ -127,6 +134,13 @@ export default function TaskCard({ task }: { task: Task }) {
             {task.notes}
           </p>
         )}
+      </div>
+
+      {/* Edit icon hint */}
+      <div className="shrink-0 mt-0.5 p-1" style={{ color: "rgba(16, 185, 129, 0.15)" }}>
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
       </div>
 
       {/* Delete */}

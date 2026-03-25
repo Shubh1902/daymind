@@ -22,6 +22,7 @@ model Task {
   text             String
   deadline         DateTime?
   estimatedMinutes Int?
+  actualMinutes    Int?
   priority         String    @default("medium")
   category         String?
   completed        Boolean   @default(false)

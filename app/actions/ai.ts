@@ -49,12 +49,25 @@ export async function generateDayPlan(userId: string): Promise<DayPlanResult> {
     }
   }
 
-  const [tasks, contexts] = await Promise.all([
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+  const [tasks, contexts, completedWithTime] = await Promise.all([
     prisma.task.findMany({
       where: { userId, completed: false },
       orderBy: [{ deadline: "asc" }, { createdAt: "asc" }],
     }),
     prisma.userContext.findMany({ where: { userId } }),
+    prisma.task.findMany({
+      where: {
+        userId,
+        completed: true,
+        estimatedMinutes: { not: null },
+        actualMinutes: { not: null },
+        completedAt: { gte: thirtyDaysAgo },
+      },
+      select: { category: true, estimatedMinutes: true, actualMinutes: true },
+    }),
   ])
 
   if (tasks.length === 0) {
@@ -105,13 +118,36 @@ export async function generateDayPlan(userId: string): Promise<DayPlanResult> {
       ? contexts.map((c) => `- ${c.key}: ${c.value}`).join("\n")
       : "None recorded yet."
 
+  // Compute time accuracy per category
+  let timeAccuracyText = ""
+  if (completedWithTime.length >= 3) {
+    const byCategory = new Map<string, { est: number; act: number; count: number }>()
+    for (const t of completedWithTime) {
+      const cat = t.category ?? "uncategorized"
+      const entry = byCategory.get(cat) ?? { est: 0, act: 0, count: 0 }
+      entry.est += t.estimatedMinutes!
+      entry.act += t.actualMinutes!
+      entry.count++
+      byCategory.set(cat, entry)
+    }
+    const lines: string[] = []
+    for (const [cat, { est, act, count }] of byCategory) {
+      if (count < 2) continue
+      const ratio = (act / est).toFixed(1)
+      lines.push(`- "${cat}" tasks (${count} samples): actual time = ${ratio}x estimated`)
+    }
+    if (lines.length > 0) {
+      timeAccuracyText = `\n\nTIME ACCURACY (last 30 days):\n${lines.join("\n")}\nUse this data to adjust your estimatedMinutes in the plan. If a category consistently takes longer, increase the estimate.`
+    }
+  }
+
   const userPrompt = `Today is ${dayName}, ${dateStr} at ${timeStr}.
 
 MY TASKS:
 ${tasksText}
 
 MY CONTEXT:
-${contextText}
+${contextText}${timeAccuracyText}
 
 Produce a day plan. Return ONLY valid JSON in this exact shape:
 {
@@ -261,4 +297,100 @@ export async function applyPlanUpdate(
   }
 
   revalidatePath("/dashboard")
+}
+
+export type WeeklyStats = {
+  completedCount: number
+  createdCount: number
+  totalFocusMinutes: number
+  completionRate: number
+  avgAccuracy: number | null
+  byCategory: { category: string; count: number; minutes: number }[]
+  byPriority: { priority: string; count: number }[]
+  mostDeferred: { id: string; text: string; deferCount: number }[]
+  insight: string
+}
+
+export async function generateWeeklyDigest(userId: string): Promise<WeeklyStats> {
+  const weekStart = new Date()
+  weekStart.setDate(weekStart.getDate() - 7)
+  weekStart.setHours(0, 0, 0, 0)
+
+  const [completed, created, deferred] = await Promise.all([
+    prisma.task.findMany({
+      where: { userId, completed: true, completedAt: { gte: weekStart } },
+    }),
+    prisma.task.findMany({
+      where: { userId, createdAt: { gte: weekStart } },
+    }),
+    prisma.task.findMany({
+      where: { userId, deferCount: { gt: 0 } },
+      orderBy: { deferCount: "desc" },
+      take: 5,
+    }),
+  ])
+
+  const completedCount = completed.length
+  const createdCount = created.length
+  const completionRate = createdCount > 0 ? Math.round((completedCount / createdCount) * 100) : 0
+
+  const totalFocusMinutes = completed.reduce((sum, t) => sum + (t.actualMinutes ?? t.estimatedMinutes ?? 0), 0)
+
+  const withBoth = completed.filter((t) => t.estimatedMinutes && t.actualMinutes)
+  const avgAccuracy = withBoth.length >= 2
+    ? Math.round(
+        (withBoth.reduce((sum, t) => {
+          const ratio = Math.min(t.actualMinutes!, t.estimatedMinutes!) / Math.max(t.actualMinutes!, t.estimatedMinutes!)
+          return sum + ratio
+        }, 0) / withBoth.length) * 100
+      )
+    : null
+
+  const catMap = new Map<string, { count: number; minutes: number }>()
+  for (const t of completed) {
+    const cat = t.category ?? "Uncategorized"
+    const entry = catMap.get(cat) ?? { count: 0, minutes: 0 }
+    entry.count++
+    entry.minutes += t.actualMinutes ?? t.estimatedMinutes ?? 0
+    catMap.set(cat, entry)
+  }
+  const byCategory = [...catMap.entries()]
+    .map(([category, v]) => ({ category, ...v }))
+    .sort((a, b) => b.count - a.count)
+
+  const priMap = new Map<string, number>()
+  for (const t of completed) {
+    priMap.set(t.priority, (priMap.get(t.priority) ?? 0) + 1)
+  }
+  const byPriority = [...priMap.entries()].map(([priority, count]) => ({ priority, count }))
+
+  const mostDeferred = deferred.map((t) => ({ id: t.id, text: t.text, deferCount: t.deferCount }))
+
+  let insight = ""
+  try {
+    const summaryText = `This week: ${completedCount} tasks completed out of ${createdCount} created (${completionRate}% rate). ${totalFocusMinutes} minutes of focus time.${avgAccuracy ? ` Time estimate accuracy: ${avgAccuracy}%.` : ""} Most deferred: ${mostDeferred.slice(0, 3).map((t) => `"${t.text}" (${t.deferCount}x)`).join(", ") || "none"}. Categories: ${byCategory.map((c) => `${c.category} (${c.count})`).join(", ") || "none"}.`
+
+    const response = await anthropic.messages.create({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 256,
+      system: "You are a productivity coach. Given weekly stats, provide 2-3 sentences of friendly, actionable insight. Be specific and encouraging. No fluff.",
+      messages: [{ role: "user", content: summaryText }],
+    })
+
+    insight = response.content.find((b): b is Anthropic.TextBlock => b.type === "text")?.text ?? ""
+  } catch {
+    insight = "Keep up the good work! Review your most-deferred tasks to see if they need to be broken down or reprioritized."
+  }
+
+  return {
+    completedCount,
+    createdCount,
+    totalFocusMinutes,
+    completionRate,
+    avgAccuracy,
+    byCategory,
+    byPriority,
+    mostDeferred,
+    insight,
+  }
 }

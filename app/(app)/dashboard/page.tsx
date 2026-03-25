@@ -8,6 +8,7 @@ import ChatInput from "@/components/ChatInput"
 import MobileVoicePanel from "@/components/MobileVoicePanel"
 import BriefingCard from "@/components/BriefingCard"
 import ContextQuestions from "@/components/ContextQuestions"
+import RescheduleNudge from "@/components/RescheduleNudge"
 
 const USER_ID = "user_me"
 
@@ -48,6 +49,9 @@ export default async function DashboardPage() {
           <ContextQuestions questions={aiSession.questions} userId={USER_ID} />
         </div>
       )}
+
+      {/* Proactive reschedule nudge */}
+      <RescheduleNudge plan={aiSession.plan as PlanItem[]} tasks={allTasks} />
 
       {/* Schedule / Focus toggle + content */}
       <div className="animate-slide-up delay-200">

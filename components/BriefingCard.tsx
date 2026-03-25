@@ -1,78 +1,38 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
+import { speak, stopSpeaking, initVoices } from "@/lib/tts"
 
-type PlayState = "idle" | "playing" | "paused"
+type PlayState = "idle" | "playing"
 
 export default function BriefingCard({ briefing }: { briefing: string }) {
   const [playState, setPlayState] = useState<PlayState>("idle")
   const [supported, setSupported] = useState(true)
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
 
   useEffect(() => {
     if (typeof window === "undefined" || !window.speechSynthesis) {
       setSupported(false)
       return
     }
-    // Pre-load voices (they load async on Chrome/Android)
-    window.speechSynthesis.getVoices()
+    initVoices()
     const handleVoices = () => window.speechSynthesis.getVoices()
     window.speechSynthesis.addEventListener("voiceschanged", handleVoices)
     return () => {
       window.speechSynthesis.removeEventListener("voiceschanged", handleVoices)
-      window.speechSynthesis?.cancel()
+      stopSpeaking()
     }
-  }, [])
-
-  const stop = useCallback(() => {
-    window.speechSynthesis.cancel()
-    utteranceRef.current = null
-    setPlayState("idle")
   }, [])
 
   const play = useCallback(() => {
     if (playState === "playing") {
-      stop()
+      stopSpeaking()
+      setPlayState("idle")
       return
     }
 
-    window.speechSynthesis.cancel()
-
-    const utterance = new SpeechSynthesisUtterance(briefing)
-    utterance.rate = 1.05
-    utterance.pitch = 1.15
-    utterance.lang = "en-US"
-
-    // Pick a natural-sounding voice — prefer premium/enhanced voices
-    const voices = window.speechSynthesis.getVoices()
-    const preferred = [
-      "Samantha", // macOS / iOS — warm, natural female
-      "Karen",    // macOS — friendly Australian
-      "Zoe",      // macOS — natural
-      "Google UK English Female",
-      "Google US English",
-      "Microsoft Aria",  // Windows — natural
-      "Microsoft Jenny", // Windows — friendly
-    ]
-    const match =
-      voices.find((v) => preferred.some((p) => v.name.includes(p))) ??
-      voices.find((v) => v.lang.startsWith("en") && v.name.toLowerCase().includes("female")) ??
-      voices.find((v) => v.lang.startsWith("en") && !v.name.toLowerCase().includes("whisper"))
-    if (match) utterance.voice = match
-
-    utterance.onend = () => {
-      setPlayState("idle")
-      utteranceRef.current = null
-    }
-    utterance.onerror = () => {
-      setPlayState("idle")
-      utteranceRef.current = null
-    }
-
-    utteranceRef.current = utterance
     setPlayState("playing")
-    window.speechSynthesis.speak(utterance)
-  }, [briefing, playState, stop])
+    speak(briefing).then(() => setPlayState("idle"))
+  }, [briefing, playState])
 
   return (
     <div
@@ -96,7 +56,6 @@ export default function BriefingCard({ briefing }: { briefing: string }) {
           Today&apos;s Briefing
         </p>
 
-        {/* Read aloud button */}
         {supported && (
           <button
             type="button"

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react"
 import { createPortal } from "react-dom"
 import { useRouter } from "next/navigation"
+import FocusTimer from "./FocusTimer"
 
 type Task = {
   id: string
@@ -51,18 +52,16 @@ export default function TaskFocusView({
   const [localTasks, setLocalTasks] = useState(() => sortTasks(tasks))
   const [activeIndex, setActiveIndex] = useState(0)
   const [completing, setCompleting] = useState<string | null>(null)
+  const [timerTaskId, setTimerTaskId] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const cardRefs = useRef<(HTMLDivElement | null)[]>([])
 
-  // Mount portal only on client
   useEffect(() => setMounted(true), [])
 
-  // Update local tasks when props change
   useEffect(() => {
     setLocalTasks(sortTasks(tasks))
   }, [tasks])
 
-  // Observe which card is in view
   useEffect(() => {
     const container = scrollRef.current
     if (!container || localTasks.length === 0) return
@@ -93,28 +92,28 @@ export default function TaskFocusView({
     }
   }, [])
 
-  async function handleDone() {
-    const task = localTasks[activeIndex]
+  async function handleDone(taskId?: string, actualMinutes?: number) {
+    const id = taskId ?? localTasks[activeIndex]?.id
+    const task = localTasks.find((t) => t.id === id)
     if (!task || completing) return
     setCompleting(task.id)
+    setTimerTaskId(null)
 
     try {
       await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ completed: true }),
+        body: JSON.stringify({ completed: true, ...(actualMinutes && { actualMinutes }) }),
       })
 
       const next = localTasks.filter((t) => t.id !== task.id)
       setLocalTasks(next)
 
       if (next.length === 0) {
-        // brief pause to show empty state before refreshing
         setTimeout(() => router.refresh(), 300)
       } else {
         const newIdx = Math.min(activeIndex, next.length - 1)
         setActiveIndex(newIdx)
-        // Scroll after DOM updates
         requestAnimationFrame(() => scrollToIndex(newIdx))
         router.refresh()
       }
@@ -135,7 +134,25 @@ export default function TaskFocusView({
     router.push(`/tasks/${task.id}/edit`)
   }
 
+  function handleStartTimer(taskId: string) {
+    setTimerTaskId(taskId)
+  }
+
+  function handleTimerMoreTime() {
+    // Restart timer on same task (component remounts with new key)
+    const id = timerTaskId
+    setTimerTaskId(null)
+    requestAnimationFrame(() => setTimerTaskId(id))
+  }
+
+  function handleTimerSkip() {
+    setTimerTaskId(null)
+    handlePass()
+  }
+
   if (!mounted) return null
+
+  const timerTask = timerTaskId ? localTasks.find((t) => t.id === timerTaskId) : null
 
   const overlayContent = (
     <div
@@ -146,7 +163,7 @@ export default function TaskFocusView({
         WebkitBackdropFilter: "blur(24px)",
       }}
     >
-      {/* ── Top bar ── */}
+      {/* Top bar */}
       <div className="flex items-center justify-between px-5 pt-safe" style={{ paddingTop: "max(env(safe-area-inset-top), 16px)" }}>
         <button
           onClick={onClose}
@@ -159,7 +176,6 @@ export default function TaskFocusView({
           </svg>
         </button>
 
-        {/* Progress dots */}
         {localTasks.length > 0 && (
           <div className="flex items-center gap-1.5">
             {localTasks.map((_, i) => (
@@ -186,7 +202,7 @@ export default function TaskFocusView({
         </span>
       </div>
 
-      {/* ── Empty state ── */}
+      {/* Empty state */}
       {localTasks.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center px-8">
           <div
@@ -209,7 +225,7 @@ export default function TaskFocusView({
         </div>
       ) : (
         <>
-          {/* ── Carousel ── */}
+          {/* Carousel */}
           <div
             ref={scrollRef}
             className="flex-1 flex overflow-x-auto snap-x snap-mandatory scrollbar-hide px-4 py-6 gap-4 items-center"
@@ -290,30 +306,41 @@ export default function TaskFocusView({
                     )}
                   </div>
 
-                  {/* Go Deeper link */}
-                  <button
-                    onClick={handleGoDeeper}
-                    className="mt-4 flex items-center gap-2 text-sm font-medium self-start transition-opacity duration-200"
-                    style={{ color: "rgba(52, 211, 153, 0.6)" }}
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                    Go Deeper
-                  </button>
+                  {/* Action links */}
+                  <div className="flex items-center gap-4 mt-4">
+                    <button
+                      onClick={() => handleStartTimer(task.id)}
+                      className="flex items-center gap-2 text-sm font-medium transition-opacity duration-200"
+                      style={{ color: "#6ee7b7" }}
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Start Timer
+                    </button>
+                    <button
+                      onClick={handleGoDeeper}
+                      className="flex items-center gap-2 text-sm font-medium transition-opacity duration-200"
+                      style={{ color: "rgba(52, 211, 153, 0.6)" }}
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Go Deeper
+                    </button>
+                  </div>
                 </div>
               )
             })}
           </div>
 
-          {/* ── Action buttons ── */}
+          {/* Action buttons */}
           <div
             className="flex flex-col gap-3 px-6 pb-safe"
             style={{ paddingBottom: "max(env(safe-area-inset-bottom), 24px)" }}
           >
-            {/* Done — big CTA */}
             <button
-              onClick={handleDone}
+              onClick={() => handleDone()}
               disabled={completing !== null}
               className="w-full py-4 rounded-2xl text-lg font-bold text-white transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-3"
               style={{
@@ -333,7 +360,6 @@ export default function TaskFocusView({
               )}
             </button>
 
-            {/* Pass — secondary */}
             <button
               onClick={handlePass}
               disabled={completing !== null}
@@ -348,6 +374,18 @@ export default function TaskFocusView({
             </button>
           </div>
         </>
+      )}
+
+      {/* Focus Timer overlay — renders on top of focus view */}
+      {timerTask && (
+        <FocusTimer
+          key={timerTaskId}
+          task={timerTask}
+          onDone={(mins) => handleDone(timerTask.id, mins)}
+          onMoreTime={handleTimerMoreTime}
+          onSkip={handleTimerSkip}
+          onCancel={() => setTimerTaskId(null)}
+        />
       )}
     </div>
   )

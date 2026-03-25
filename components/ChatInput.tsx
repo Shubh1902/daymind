@@ -73,7 +73,7 @@ export default function ChatInput({
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-10"
+      className="fixed bottom-0 left-0 right-0 z-10 hidden md:block"
       style={{
         background: "rgba(6, 13, 18, 0.85)",
         backdropFilter: "blur(20px)",

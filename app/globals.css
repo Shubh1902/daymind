@@ -188,6 +188,87 @@ body {
 }
 .animate-overlay-in { animation: overlayIn 0.25s ease both; }
 
+/* ─── Voice Orb ────────────────────────────────── */
+
+.voice-orb-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.voice-orb-transcript {
+  background: var(--surface-3);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 16px;
+  padding: 10px 16px;
+  margin-bottom: 12px;
+  max-width: 280px;
+  text-align: center;
+}
+
+.voice-orb-button {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: linear-gradient(135deg, #059669, #10b981);
+  box-shadow: 0 0 24px rgba(16, 185, 129, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.voice-orb-button:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 0 36px rgba(16, 185, 129, 0.55), 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.voice-orb-button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.voice-orb-button:disabled {
+  opacity: 0.4;
+}
+
+.voice-orb-button[data-state="listening"] {
+  background: linear-gradient(135deg, #e11d48, #f43f5e);
+  box-shadow: 0 0 28px rgba(244, 63, 94, 0.5), 0 4px 16px rgba(0, 0, 0, 0.3);
+  animation: orb-glow-listening 1.5s ease-in-out infinite;
+}
+
+.voice-orb-button[data-state="processing"] {
+  opacity: 0.7;
+}
+
+.voice-orb-ring {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 2px solid rgba(244, 63, 94, 0.3);
+}
+
+.voice-orb-ring-1 {
+  animation: orb-ring-pulse 1.5s ease-out infinite;
+}
+
+.voice-orb-ring-2 {
+  animation: orb-ring-pulse 1.5s ease-out 0.5s infinite;
+}
+
+@keyframes orb-glow-listening {
+  0%, 100% { box-shadow: 0 0 28px rgba(244, 63, 94, 0.5), 0 4px 16px rgba(0, 0, 0, 0.3); }
+  50%       { box-shadow: 0 0 44px rgba(244, 63, 94, 0.7), 0 4px 24px rgba(0, 0, 0, 0.3); }
+}
+
+@keyframes orb-ring-pulse {
+  0%   { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
 /* ─── Datetime / select dark ────────────────────── */
 
 input[type="datetime-local"],

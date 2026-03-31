@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation"
 import { getProductDisplayFilter } from "@/lib/imageEnhance"
 import { enhanceClothingImage } from "@/lib/imageEnhance"
 import EditItemSheet from "./EditItemSheet"
+import FullscreenPreview from "./FullscreenPreview"
+import TryOnPreview from "./TryOnPreview"
 
 type ClothingItem = {
   id: string
@@ -42,6 +44,8 @@ export default function ItemDetailSheet({ item, onClose }: Props) {
   const [activeIndex, setActiveIndex] = useState(0) // 0 = main image
   const [uploading, setUploading] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
+  const [showFullscreen, setShowFullscreen] = useState(false)
+  const [showTryOn, setShowTryOn] = useState(false)
 
   // All images: main + extras
   const allImages = [
@@ -111,13 +115,24 @@ export default function ItemDetailSheet({ item, onClose }: Props) {
         </div>
 
         {/* Main image viewer */}
-        <div className="aspect-square relative mx-4 rounded-xl overflow-hidden mb-3" style={{ background: "#FAFAFA" }}>
+        <div
+          className="aspect-square relative mx-4 rounded-xl overflow-hidden mb-3 cursor-pointer"
+          style={{ background: "#FAFAFA" }}
+          onClick={() => setShowFullscreen(true)}
+        >
           <img
             src={allImages[activeIndex]?.imageData}
             alt={item.name ?? item.category}
             className="w-full h-full object-contain"
             style={{ filter: getProductDisplayFilter() }}
           />
+
+          {/* Fullscreen hint */}
+          <div className="absolute bottom-2 right-2 p-1.5 rounded-lg" style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}>
+            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+            </svg>
+          </div>
 
           {/* Delete extra image button */}
           {activeIndex > 0 && (
@@ -262,16 +277,48 @@ export default function ItemDetailSheet({ item, onClose }: Props) {
             </div>
           </div>
 
+          {/* Try-On button */}
+          {(item.category === "tops" || item.category === "bottoms" || item.category === "dresses") && (
+            <button
+              onClick={() => setShowTryOn(true)}
+              className="w-full py-2.5 rounded-xl text-sm font-semibold mb-2 flex items-center justify-center gap-2"
+              style={{
+                background: "linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(249, 115, 22, 0.08))",
+                color: "#7c3aed",
+                border: "1px solid rgba(168, 85, 247, 0.2)",
+              }}
+            >
+              <span>👗</span>
+              Try On with AI Model
+            </button>
+          )}
+
           <button
             onClick={onClose}
             className="w-full py-2.5 rounded-xl text-sm font-semibold"
-            style={{ background: "var(--surface-2)", color: "rgba(249, 115, 22, 0.6)", border: "1px solid var(--border)" }}
+            style={{ background: "var(--surface-2)", color: "#9a3412", border: "1px solid var(--border)" }}
           >
             Close
           </button>
         </div>
 
         {showEdit && <EditItemSheet item={item} onClose={() => { setShowEdit(false); router.refresh() }} />}
+
+        {showFullscreen && (
+          <FullscreenPreview
+            images={allImages.map((img) => ({ id: img.id, imageData: img.imageData, label: img.label ?? undefined }))}
+            initialIndex={activeIndex}
+            itemName={item.name ?? item.subcategory ?? item.category}
+            onClose={() => setShowFullscreen(false)}
+          />
+        )}
+
+        {showTryOn && (
+          <TryOnPreview
+            items={[{ id: item.id, imageData: item.imageData, category: item.category, name: item.name }]}
+            onClose={() => setShowTryOn(false)}
+          />
+        )}
       </div>
     </div>
   )

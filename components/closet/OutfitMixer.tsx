@@ -3,6 +3,7 @@
 import { useState, useRef } from "react"
 import { getProductDisplayFilter } from "@/lib/imageEnhance"
 import FlatLayPreview from "./FlatLayPreview"
+import TryOnPreview from "./TryOnPreview"
 
 type ClothingItem = {
   id: string
@@ -41,6 +42,7 @@ export default function OutfitMixer({ items }: { items: ClothingItem[] }) {
   const [expandedSlot, setExpandedSlot] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<"grid" | "flatlay">("grid")
   const [sharing, setSharing] = useState(false)
+  const [showTryOn, setShowTryOn] = useState(false)
   const flatLayRef = useRef<HTMLDivElement>(null)
 
   const selectedItems = Object.values(selected).filter(Boolean) as ClothingItem[]
@@ -286,6 +288,17 @@ export default function OutfitMixer({ items }: { items: ClothingItem[] }) {
               )}
               Share
             </button>
+            <button
+              onClick={() => setShowTryOn(true)}
+              className="text-sm font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all duration-200"
+              style={{
+                background: "rgba(168, 85, 247, 0.08)",
+                color: "#7c3aed",
+                border: "1px solid rgba(168, 85, 247, 0.2)",
+              }}
+            >
+              👗 Try On
+            </button>
           </div>
         )}
       </div>
@@ -441,6 +454,14 @@ export default function OutfitMixer({ items }: { items: ClothingItem[] }) {
           </div>
         )
       })}
+
+      {/* Try-On Modal */}
+      {showTryOn && selectedItems.length > 0 && (
+        <TryOnPreview
+          items={selectedItems}
+          onClose={() => setShowTryOn(false)}
+        />
+      )}
     </div>
   )
 }

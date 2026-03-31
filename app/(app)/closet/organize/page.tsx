@@ -16,8 +16,15 @@ export default async function OrganizePage() {
       category: true,
       subcategory: true,
       color: true,
+      colorHex: true,
+      pattern: true,
+      season: true,
       name: true,
+      vibes: true,
       favorite: true,
+      wearCount: true,
+      lastWornAt: true,
+      createdAt: true,
     },
   })
 
@@ -25,8 +32,8 @@ export default async function OrganizePage() {
     <div className="animate-fade-in pb-24">
       <div className="mb-4 animate-slide-up">
         <h1 className="text-3xl font-bold text-gradient">My Wardrobe</h1>
-        <p className="text-xs mt-1" style={{ color: "rgba(249, 115, 22, 0.5)" }}>
-          Your closet, organized like a real wardrobe
+        <p className="text-xs mt-1" style={{ color: "#9ca3af" }}>
+          Your closet, beautifully organized by category
         </p>
       </div>
       <ClosetSubNav />

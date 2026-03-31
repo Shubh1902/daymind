@@ -60,17 +60,22 @@ export default function WishlistView() {
   }
 
   async function togglePurchased(id: string, purchased: boolean) {
-    await fetch(`/api/closet/wishlist/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ purchased: !purchased }),
-    })
-    await fetchItems()
+    try {
+      await fetch(`/api/closet/wishlist/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ purchased: !purchased }),
+      })
+      await fetchItems()
+    } catch { /* ignore */ }
   }
 
   async function deleteItem(id: string) {
-    await fetch(`/api/closet/wishlist/${id}`, { method: "DELETE" })
-    await fetchItems()
+    if (!confirm("Remove this item from your wishlist?")) return
+    try {
+      await fetch(`/api/closet/wishlist/${id}`, { method: "DELETE" })
+      await fetchItems()
+    } catch { /* ignore */ }
   }
 
   async function addFromGapAnalysis() {

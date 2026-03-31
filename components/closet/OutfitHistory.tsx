@@ -15,13 +15,23 @@ type HistoryData = {
 export default function OutfitHistory() {
   const [data, setData] = useState<HistoryData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  async function fetchHistory() {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch("/api/closet/history")
+      if (!res.ok) throw new Error("Failed to load outfit history")
+      setData(await res.json())
+    } catch {
+      setError("Could not load outfit history. Please try again.")
+    }
+    setLoading(false)
+  }
 
   useEffect(() => {
-    fetch("/api/closet/history")
-      .then((r) => r.json())
-      .then(setData)
-      .catch(() => {})
-      .finally(() => setLoading(false))
+    fetchHistory()
   }, [])
 
   if (loading) {
@@ -32,7 +42,51 @@ export default function OutfitHistory() {
     )
   }
 
+  if (error) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-sm mb-3" style={{ color: "#fb7185" }}>{error}</p>
+        <button
+          onClick={fetchHistory}
+          className="text-sm px-4 py-2 rounded-xl font-medium"
+          style={{ background: "rgba(249, 115, 22, 0.08)", color: "#ea580c" }}
+        >
+          Retry
+        </button>
+      </div>
+    )
+  }
+
   if (!data) return null
+
+  const allSectionsEmpty =
+    data.mostWornItems.length === 0 &&
+    data.repeatedOutfits.length === 0 &&
+    data.neglected.length === 0 &&
+    data.recentEntries.length === 0
+
+  if (allSectionsEmpty) {
+    return (
+      <div className="space-y-6">
+        {/* Stats overview */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-xl p-4" style={{ background: "rgba(249, 115, 22, 0.04)", border: "1px solid rgba(249, 115, 22, 0.12)" }}>
+            <p className="text-2xl font-bold" style={{ color: "#431407" }}>{data.totalWears}</p>
+            <p className="text-xs" style={{ color: "rgba(249, 115, 22, 0.5)" }}>Outfits logged (90d)</p>
+          </div>
+          <div className="rounded-xl p-4" style={{ background: "rgba(168, 85, 247, 0.04)", border: "1px solid rgba(168, 85, 247, 0.12)" }}>
+            <p className="text-2xl font-bold" style={{ color: "#431407" }}>{data.totalOutfits}</p>
+            <p className="text-xs" style={{ color: "rgba(168, 85, 247, 0.5)" }}>Unique combinations</p>
+          </div>
+        </div>
+        <div className="text-center py-8">
+          <p className="text-3xl mb-2">📊</p>
+          <p className="text-sm font-semibold" style={{ color: "rgba(234, 88, 12, 0.6)" }}>No history yet</p>
+          <p className="text-xs mt-1" style={{ color: "rgba(249, 115, 22, 0.4)" }}>Start logging outfits to see your wear patterns</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">

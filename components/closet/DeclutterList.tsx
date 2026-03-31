@@ -18,29 +18,42 @@ export default function DeclutterList() {
   const router = useRouter()
   const [items, setItems] = useState<DeclutterItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [removingIds, setRemovingIds] = useState<Set<string>>(new Set())
 
-  useEffect(() => {
-    async function fetchDeclutter() {
-      try {
-        const res = await fetch("/api/closet/declutter")
-        if (res.ok) setItems(await res.json())
-      } catch { /* ignore */ }
-      setLoading(false)
+  async function fetchDeclutter() {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch("/api/closet/declutter")
+      if (res.ok) setItems(await res.json())
+      else throw new Error()
+    } catch {
+      setError("Could not load declutter suggestions. Please try again.")
     }
+    setLoading(false)
+  }
+
+  useEffect(() => {
     fetchDeclutter()
   }, [])
 
   async function removeItem(id: string) {
+    if (!confirm("Donate this item? This will permanently remove it from your closet.")) return
     setRemovingIds((prev) => new Set([...prev, id]))
-    await fetch(`/api/closet/items/${id}`, { method: "DELETE" })
-    setItems((prev) => prev.filter((i) => i.id !== id))
+    try {
+      const res = await fetch(`/api/closet/items/${id}`, { method: "DELETE" })
+      if (!res.ok) throw new Error()
+      setItems((prev) => prev.filter((i) => i.id !== id))
+      router.refresh()
+    } catch {
+      // Keep item in list if delete failed
+    }
     setRemovingIds((prev) => {
       const next = new Set(prev)
       next.delete(id)
       return next
     })
-    router.refresh()
   }
 
   function keepItem(id: string) {
@@ -51,6 +64,21 @@ export default function DeclutterList() {
     return (
       <div className="flex justify-center py-12">
         <div className="w-6 h-6 border-2 border-orange-300 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-sm mb-3" style={{ color: "#fb7185" }}>{error}</p>
+        <button
+          onClick={fetchDeclutter}
+          className="text-sm px-4 py-2 rounded-xl font-medium"
+          style={{ background: "rgba(249, 115, 22, 0.08)", color: "#ea580c" }}
+        >
+          Retry
+        </button>
       </div>
     )
   }

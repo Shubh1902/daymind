@@ -9,6 +9,7 @@ type Props = {
 
 // Group hex colors into named color families by hue
 function getColorFamily(hex: string): string {
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return "neutral"
   const r = parseInt(hex.slice(1, 3), 16)
   const g = parseInt(hex.slice(3, 5), 16)
   const b = parseInt(hex.slice(5, 7), 16)
@@ -104,7 +105,7 @@ export default function ColorPaletteFilter({ colors, activeColors, onToggle, onC
               className="flex items-center gap-1.5 px-2 py-1 rounded-lg transition-all duration-200"
               style={{
                 background: isActive ? "rgba(249, 115, 22, 0.12)" : "var(--surface-2)",
-                border: isActive ? "2px solid rgba(249, 115, 22, 0.4)" : "1px solid var(--border)",
+                border: isActive ? "2px solid rgba(249, 115, 22, 0.4)" : "2px solid var(--border)",
               }}
               title={family.name}
             >

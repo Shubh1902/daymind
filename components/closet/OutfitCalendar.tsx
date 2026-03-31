@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { getProductDisplayFilter } from "@/lib/imageEnhance"
 
 type CalendarEntry = {
@@ -16,7 +15,6 @@ type CalendarEntry = {
 }
 
 export default function OutfitCalendar() {
-  const router = useRouter()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [entries, setEntries] = useState<CalendarEntry[]>([])
   const [loading, setLoading] = useState(true)
@@ -42,7 +40,7 @@ export default function OutfitCalendar() {
 
   const entryMap = new Map<number, CalendarEntry>()
   for (const entry of entries) {
-    const day = new Date(entry.date).getDate()
+    const day = new Date(entry.date + "T12:00:00").getDate()
     entryMap.set(day, entry)
   }
 
@@ -57,9 +55,15 @@ export default function OutfitCalendar() {
   }
 
   async function deleteEntry(id: string) {
-    await fetch(`/api/closet/calendar/${id}`, { method: "DELETE" })
-    setEntries((prev) => prev.filter((e) => e.id !== id))
-    setSelectedDay(null)
+    if (!confirm("Remove this outfit entry?")) return
+    try {
+      const res = await fetch(`/api/closet/calendar/${id}`, { method: "DELETE" })
+      if (!res.ok) throw new Error()
+      setEntries((prev) => prev.filter((e) => e.id !== id))
+      setSelectedDay(null)
+    } catch {
+      // Keep entry if delete failed
+    }
   }
 
   const selectedEntry = selectedDay ? entryMap.get(selectedDay) : null

@@ -29,7 +29,7 @@ export default function FlatLayPreview({ items, size = 400 }: Props) {
 
   useEffect(() => {
     renderFlatLay()
-  }, [items])
+  }, [items, size])
 
   async function renderFlatLay() {
     const canvas = canvasRef.current
@@ -112,7 +112,7 @@ export default function FlatLayPreview({ items, size = 400 }: Props) {
   }
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+    <div className="relative rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
       <canvas
         ref={canvasRef}
         width={size}

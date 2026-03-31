@@ -47,6 +47,18 @@ export default function ItemDetailSheet({ item, onClose }: Props) {
   const [showFullscreen, setShowFullscreen] = useState(false)
   const [showTryOn, setShowTryOn] = useState(false)
 
+  useEffect(() => {
+    document.body.style.overflow = "hidden"
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose()
+    }
+    window.addEventListener("keydown", handleKey)
+    return () => {
+      document.body.style.overflow = ""
+      window.removeEventListener("keydown", handleKey)
+    }
+  }, [onClose])
+
   // All images: main + extras
   const allImages = [
     { id: "main", imageData: item.imageData, label: "Main" },
@@ -102,7 +114,7 @@ export default function ItemDetailSheet({ item, onClose }: Props) {
     : null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true" onClick={onClose}>
       <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }} />
       <div
         className="relative w-full max-w-lg rounded-t-2xl max-h-[90vh] overflow-y-auto animate-slide-up"

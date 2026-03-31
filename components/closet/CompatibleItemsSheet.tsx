@@ -32,6 +32,18 @@ export default function CompatibleItemsSheet({ targetItem, onClose }: Props) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    document.body.style.overflow = "hidden"
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose()
+    }
+    window.addEventListener("keydown", handleKey)
+    return () => {
+      document.body.style.overflow = ""
+      window.removeEventListener("keydown", handleKey)
+    }
+  }, [onClose])
+
+  useEffect(() => {
     async function fetchCompatible() {
       try {
         const res = await fetch("/api/closet/compatible", {
@@ -63,6 +75,8 @@ export default function CompatibleItemsSheet({ targetItem, onClose }: Props) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-end md:items-center justify-center animate-overlay-in"
+      role="dialog"
+      aria-modal="true"
       style={{ background: "rgba(67, 20, 7, 0.5)", backdropFilter: "blur(8px)" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >

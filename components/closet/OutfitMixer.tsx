@@ -73,7 +73,9 @@ export default function OutfitMixer({ items }: { items: ClothingItem[] }) {
       if (res.ok) {
         setFeedback(await res.json())
       }
-    } catch { /* ignore */ }
+    } catch {
+      setFeedback({ colorHarmony: 0, styleMatch: 0, overallScore: 0, occasions: [], feedback: "Failed to get feedback. Please try again.", suggestedSwaps: [] })
+    }
     setLoadingFeedback(false)
   }
 
@@ -92,7 +94,9 @@ export default function OutfitMixer({ items }: { items: ClothingItem[] }) {
         }),
       })
       setSaved(true)
-    } catch { /* ignore */ }
+    } catch {
+      alert("Failed to save outfit. Please try again.")
+    }
     setSaving(false)
   }
 
@@ -184,7 +188,7 @@ export default function OutfitMixer({ items }: { items: ClothingItem[] }) {
 
         {/* Action buttons */}
         {selectedItems.length >= 2 && (
-          <div className="flex gap-2 mt-4 justify-center">
+          <div className="flex gap-2 mt-4 justify-center flex-wrap">
             <button
               onClick={getFeedback}
               disabled={loadingFeedback}
@@ -237,7 +241,7 @@ export default function OutfitMixer({ items }: { items: ClothingItem[] }) {
                     const pos = positions[item.category] ?? positions.accessories
                     const img = new Image()
                     img.src = item.imageData
-                    await new Promise(r => { img.onload = r })
+                    await new Promise<void>((resolve, reject) => { img.onload = () => resolve(); img.onerror = () => reject(new Error("Failed to load image")) })
                     const scale = Math.min(pos.w / img.width, pos.h / img.height)
                     const iw = img.width * scale, ih = img.height * scale
                     ctx.drawImage(img, pos.x + (pos.w - iw) / 2, pos.y + (pos.h - ih) / 2, iw, ih)
@@ -249,25 +253,24 @@ export default function OutfitMixer({ items }: { items: ClothingItem[] }) {
                   ctx.textAlign = "right"
                   ctx.fillText("DayMind Closet", 790, 790)
 
-                  tempCanvas.toBlob(async (blob) => {
-                    if (!blob) return
-                    const file = new File([blob], "outfit.png", { type: "image/png" })
-                    if (navigator.share && navigator.canShare?.({ files: [file] })) {
-                      await navigator.share({
-                        title: "My Outfit",
-                        text: "Check out my outfit!",
-                        files: [file],
-                      })
-                    } else {
-                      // Fallback: download
-                      const url = URL.createObjectURL(blob)
-                      const a = document.createElement("a")
-                      a.href = url
-                      a.download = "outfit.png"
-                      a.click()
-                      URL.revokeObjectURL(url)
-                    }
-                  }, "image/png")
+                  const blob = await new Promise<Blob | null>((resolve) => tempCanvas.toBlob(resolve, "image/png"))
+                  if (!blob) { setSharing(false); return }
+                  const file = new File([blob], "outfit.png", { type: "image/png" })
+                  if (navigator.share && navigator.canShare?.({ files: [file] })) {
+                    await navigator.share({
+                      title: "My Outfit",
+                      text: "Check out my outfit!",
+                      files: [file],
+                    })
+                  } else {
+                    // Fallback: download
+                    const url = URL.createObjectURL(blob)
+                    const a = document.createElement("a")
+                    a.href = url
+                    a.download = "outfit.png"
+                    a.click()
+                    URL.revokeObjectURL(url)
+                  }
                 } catch { /* ignore */ }
                 setSharing(false)
               }}

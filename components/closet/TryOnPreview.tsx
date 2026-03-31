@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 type ClothingItem = {
   id: string
@@ -19,6 +19,18 @@ export default function TryOnPreview({ items, onClose }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeItem, setActiveItem] = useState(0)
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden"
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose()
+    }
+    window.addEventListener("keydown", handleKey)
+    return () => {
+      document.body.style.overflow = ""
+      window.removeEventListener("keydown", handleKey)
+    }
+  }, [onClose])
 
   async function generateTryOn(garmentIndex?: number) {
     const idx = garmentIndex ?? activeItem
@@ -44,13 +56,13 @@ export default function TryOnPreview({ items, onClose }: Props) {
       if (data.error) throw new Error(data.error)
       setTryOnImage(data.tryOnImage)
     } catch {
-      setError("Could not generate try-on. Make sure REPLICATE_API_TOKEN is set.")
+      setError("Could not generate try-on. Please try again later.")
     }
     setLoading(false)
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-[55] flex items-center justify-center" role="dialog" aria-modal="true" onClick={onClose}>
       <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }} />
       <div
         className="relative w-full max-w-md mx-4 rounded-2xl overflow-hidden animate-scale-in"

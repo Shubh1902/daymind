@@ -151,7 +151,7 @@ export default function OutfitSuggestions() {
                 background: "var(--surface-2)",
                 border: savedOutfits.has(i)
                   ? "2px solid rgba(249, 115, 22, 0.4)"
-                  : "1px solid var(--border)",
+                  : "2px solid var(--border)",
                 animationDelay: `${i * 100}ms`,
               }}
             >

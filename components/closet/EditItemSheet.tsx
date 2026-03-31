@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { getProductDisplayFilter } from "@/lib/imageEnhance"
 
@@ -41,6 +41,18 @@ export default function EditItemSheet({ item, onClose }: Props) {
   const [season, setSeason] = useState(item.season ?? "all")
   const [vibes, setVibes] = useState<string[]>(item.vibes ?? [])
 
+  useEffect(() => {
+    document.body.style.overflow = "hidden"
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose()
+    }
+    window.addEventListener("keydown", handleKey)
+    return () => {
+      document.body.style.overflow = ""
+      window.removeEventListener("keydown", handleKey)
+    }
+  }, [onClose])
+
   function toggleVibe(v: string) {
     setVibes((prev) => prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v])
   }
@@ -72,7 +84,7 @@ export default function EditItemSheet({ item, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-[55] flex items-end justify-center" role="dialog" aria-modal="true" onClick={onClose}>
       <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }} />
       <div
         className="relative w-full max-w-lg rounded-t-2xl max-h-[85vh] overflow-y-auto animate-slide-up"

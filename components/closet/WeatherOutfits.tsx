@@ -268,6 +268,15 @@ export default function WeatherOutfits() {
             <p className="text-sm" style={{ color: "#431407" }}>💡 {result.weatherAdvice}</p>
           </div>
 
+          {/* Empty outfits state */}
+          {result.outfits.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-3xl mb-2">👔</p>
+              <p className="text-sm font-semibold" style={{ color: "rgba(234, 88, 12, 0.6)" }}>No outfit suggestions</p>
+              <p className="text-xs mt-1" style={{ color: "rgba(249, 115, 22, 0.4)" }}>Add more items to your closet for weather-based suggestions</p>
+            </div>
+          )}
+
           {/* Outfit suggestions */}
           {result.outfits.map((outfit, i) => (
             <div

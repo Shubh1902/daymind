@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { getProductDisplayFilter } from "@/lib/imageEnhance"
 
 type ImageItem = {
@@ -20,6 +20,7 @@ export default function FullscreenPreview({ images, initialIndex = 0, itemName, 
   const [activeIndex, setActiveIndex] = useState(initialIndex)
   const [zoomed, setZoomed] = useState(false)
   const [touchStart, setTouchStart] = useState<number | null>(null)
+  const swipedRef = useRef(false)
 
   const goNext = useCallback(() => {
     if (activeIndex < images.length - 1) setActiveIndex((i) => i + 1)
@@ -53,8 +54,11 @@ export default function FullscreenPreview({ images, initialIndex = 0, itemName, 
   function handleTouchEnd(e: React.TouchEvent) {
     if (touchStart === null) return
     const diff = e.changedTouches[0].clientX - touchStart
-    if (diff > 60) goPrev()
-    else if (diff < -60) goNext()
+    if (Math.abs(diff) > 60) {
+      swipedRef.current = true
+      if (diff > 60) goPrev()
+      else goNext()
+    }
     setTouchStart(null)
   }
 
@@ -64,6 +68,8 @@ export default function FullscreenPreview({ images, initialIndex = 0, itemName, 
   return (
     <div
       className="fixed inset-0 z-[60] flex flex-col animate-fade-in"
+      role="dialog"
+      aria-modal="true"
       style={{ background: "#000" }}
     >
       {/* Top bar */}
@@ -95,7 +101,13 @@ export default function FullscreenPreview({ images, initialIndex = 0, itemName, 
         className="flex-1 flex items-center justify-center relative overflow-hidden"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        onClick={() => setZoomed(!zoomed)}
+        onClick={() => {
+          if (swipedRef.current) {
+            swipedRef.current = false
+            return
+          }
+          setZoomed(!zoomed)
+        }}
       >
         <img
           src={currentImage.imageData}

@@ -73,7 +73,7 @@ export default function GalleryUpload({ onAllSaved }: GalleryUploadProps) {
           setPhotos((prev) =>
             prev.map((p) =>
               p.id === id
-                ? { ...p, categorizing: false, error: "Failed to process" }
+                ? { ...p, categorizing: false, refining: false, error: "Failed to process" }
                 : p
             )
           )

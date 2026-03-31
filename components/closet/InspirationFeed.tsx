@@ -17,17 +17,23 @@ export default function InspirationFeed() {
   const [looks, setLooks] = useState<Look[]>([])
   const [loading, setLoading] = useState(false)
   const [loaded, setLoaded] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   async function generate() {
     setLoading(true)
+    setError(null)
     try {
       const res = await fetch("/api/closet/inspiration", { method: "POST" })
       if (res.ok) {
         const data = await res.json()
         setLooks(data.looks ?? [])
         setLoaded(true)
+      } else {
+        setError("Could not generate inspiration. Please try again.")
       }
-    } catch { /* ignore */ }
+    } catch {
+      setError("Could not generate inspiration. Please try again.")
+    }
     setLoading(false)
   }
 
@@ -51,6 +57,9 @@ export default function InspirationFeed() {
         <p className="text-sm mb-6 max-w-xs mx-auto" style={{ color: "rgba(249, 115, 22, 0.5)" }}>
           AI analyzes your wardrobe and matches it to current fashion trends
         </p>
+        {error && (
+          <p className="text-sm mb-4" style={{ color: "#fb7185" }}>{error}</p>
+        )}
         <button
           onClick={generate}
           disabled={loading}
@@ -61,7 +70,25 @@ export default function InspirationFeed() {
           ) : (
             <span>🔮</span>
           )}
-          Generate Inspiration
+          {error ? "Retry" : "Generate Inspiration"}
+        </button>
+      </div>
+    )
+  }
+
+  if (looks.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-3xl mb-2">🔮</p>
+        <p className="text-sm font-semibold" style={{ color: "rgba(234, 88, 12, 0.6)" }}>No looks found</p>
+        <p className="text-xs mt-1 mb-4" style={{ color: "rgba(249, 115, 22, 0.4)" }}>Add more items to your closet for better inspiration</p>
+        <button
+          onClick={generate}
+          disabled={loading}
+          className="text-sm px-4 py-2 rounded-xl font-medium disabled:opacity-50"
+          style={{ background: "rgba(249, 115, 22, 0.08)", color: "#ea580c" }}
+        >
+          {loading ? "Refreshing..." : "Try Again"}
         </button>
       </div>
     )

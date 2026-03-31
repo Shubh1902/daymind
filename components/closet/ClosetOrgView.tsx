@@ -34,6 +34,16 @@ export default function ClosetOrgView({ items }: Props) {
     grouped.set(item.category, list)
   }
 
+  if (items.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-3xl mb-2">🏠</p>
+        <p className="text-sm font-semibold" style={{ color: "rgba(234, 88, 12, 0.6)" }}>Your closet is empty</p>
+        <p className="text-xs mt-1" style={{ color: "rgba(249, 115, 22, 0.4)" }}>Add some clothing items to see your wardrobe view</p>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4">
       {/* Closet frame */}
@@ -172,6 +182,7 @@ export default function ClosetOrgView({ items }: Props) {
                     background: "rgba(255,255,255,0.5)",
                     border: "1px solid rgba(139, 115, 85, 0.25)",
                     maxHeight: isOpen ? "200px" : "32px",
+                  overflowY: isOpen ? "auto" : "hidden",
                   }}
                 >
                   {/* Drawer handle */}

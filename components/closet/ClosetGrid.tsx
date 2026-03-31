@@ -114,10 +114,18 @@ export default function ClosetGrid({ initialItems }: ClosetGridProps) {
   const existingVibes = new Set(items.flatMap((i) => i.vibes ?? []))
   const availableVibes = VIBES.filter((v) => existingVibes.has(v.value))
 
-  const hasActiveFilters = activeVibes.length > 0 || activeColors.length > 0 || showFavoritesOnly
+  const hasActiveFilters = activeCategory !== "all" || activeVibes.length > 0 || activeColors.length > 0 || showFavoritesOnly
 
   // Use search results if searching, otherwise use filtered
-  const displayItems = searchResults ?? filtered
+  // Apply the same filters to search results
+  const filteredSearchResults = searchResults?.filter((item) => {
+    if (activeCategory !== "all" && item.category !== activeCategory) return false
+    if (showFavoritesOnly && !item.favorite) return false
+    if (activeVibes.length > 0 && !activeVibes.some((v) => item.vibes?.includes(v))) return false
+    if (activeColors.length > 0 && (!item.colorHex || !activeColors.includes(item.colorHex))) return false
+    return true
+  })
+  const displayItems = filteredSearchResults ?? filtered
 
   return (
     <div>
@@ -138,6 +146,7 @@ export default function ClosetGrid({ initialItems }: ClosetGridProps) {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search by name, color, vibe, pattern..."
+          aria-label="Search your closet"
           className="w-full pl-9 pr-8 py-2.5 rounded-xl text-sm"
           style={{
             background: "var(--surface-2)",
@@ -146,18 +155,19 @@ export default function ClosetGrid({ initialItems }: ClosetGridProps) {
           }}
         />
         {searchQuery && (
-          <button
-            onClick={() => setSearchQuery("")}
-            className="absolute right-3 top-1/2 -translate-y-1/2"
-            style={{ color: "rgba(249, 115, 22, 0.4)" }}
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        )}
-        {searching && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
+          searching ? (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2"
+              style={{ color: "rgba(249, 115, 22, 0.4)" }}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )
         )}
       </div>
 
@@ -297,12 +307,14 @@ export default function ClosetGrid({ initialItems }: ClosetGridProps) {
             <span className="text-2xl">👗</span>
           </div>
           <p className="text-lg font-semibold" style={{ color: "rgba(234, 88, 12, 0.6)" }}>
-            {hasActiveFilters ? "No matches" : "No items yet"}
+            {searchResults ? `No results for "${searchQuery}"` : hasActiveFilters ? "No matches" : "No items yet"}
           </p>
           <p className="text-sm mt-1" style={{ color: "rgba(249, 115, 22, 0.35)" }}>
-            {hasActiveFilters
-              ? "Try adjusting your filters"
-              : "Take photos of your clothes to start building your closet"}
+            {searchResults
+              ? "Try a different search term or adjust your filters"
+              : hasActiveFilters
+                ? "Try adjusting your filters"
+                : "Take photos of your clothes to start building your closet"}
           </p>
         </div>
       ) : (

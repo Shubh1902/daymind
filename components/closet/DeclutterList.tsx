@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { getProductDisplayFilter } from "@/lib/imageEnhance"
 
 type DeclutterItem = {
   id: string
@@ -94,7 +95,8 @@ export default function DeclutterList() {
             <img
               src={item.imageData}
               alt={item.name ?? item.category}
-              className="w-16 h-16 rounded-lg object-cover shrink-0"
+              className="w-16 h-16 rounded-lg object-contain shrink-0"
+              style={{ background: "#FAFAFA", filter: getProductDisplayFilter() }}
             />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate" style={{ color: "#431407" }}>

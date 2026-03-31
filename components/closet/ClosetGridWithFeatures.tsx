@@ -3,6 +3,7 @@
 import { useState } from "react"
 import dynamic from "next/dynamic"
 import ClosetGrid from "./ClosetGrid"
+import { getProductDisplayFilter } from "@/lib/imageEnhance"
 
 const CompatibleItemsSheet = dynamic(() => import("./CompatibleItemsSheet"), { ssr: false })
 
@@ -129,7 +130,7 @@ export default function ClosetGridWithFeatures({ initialItems }: Props) {
                         className="shrink-0 w-20 rounded-lg overflow-hidden"
                         style={{ border: "2px solid rgba(249, 115, 22, 0.25)" }}
                       >
-                        <img src={item.imageData} alt={item.name ?? item.category} className="w-full aspect-square object-cover" />
+                        <img src={item.imageData} alt={item.name ?? item.category} className="w-full aspect-square object-contain" style={{ background: "#FAFAFA", filter: getProductDisplayFilter() }} />
                         <div className="px-1 py-0.5">
                           <p className="text-xs truncate" style={{ color: "#431407" }}>{item.name ?? item.category}</p>
                         </div>

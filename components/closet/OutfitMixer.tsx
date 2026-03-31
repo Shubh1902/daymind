@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { getProductDisplayFilter } from "@/lib/imageEnhance"
 
 type ClothingItem = {
   id: string
@@ -123,7 +124,8 @@ export default function OutfitMixer({ items }: { items: ClothingItem[] }) {
                 <img
                   src={item.imageData}
                   alt={item.name ?? item.category}
-                  className="w-full aspect-square object-cover"
+                  className="w-full aspect-square object-contain"
+                  style={{ background: "#FAFAFA", filter: getProductDisplayFilter() }}
                 />
                 <button
                   onClick={() => toggleItem(item.category, item)}
@@ -312,7 +314,8 @@ export default function OutfitMixer({ items }: { items: ClothingItem[] }) {
                       <img
                         src={item.imageData}
                         alt={item.name ?? item.category}
-                        className="w-full aspect-square object-cover"
+                        className="w-full aspect-square object-contain"
+                        style={{ background: "#FAFAFA", filter: getProductDisplayFilter() }}
                       />
                       <div className="px-1 py-1">
                         <p className="text-xs truncate" style={{ color: "#431407" }}>

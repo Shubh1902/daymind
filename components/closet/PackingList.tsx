@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { getProductDisplayFilter } from "@/lib/imageEnhance"
 
 type ClothingItem = {
   id: string
@@ -208,7 +209,7 @@ export default function PackingList() {
             <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
               {plan.packingListItems.map((item) => (
                 <div key={item.id} className="rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
-                  <img src={item.imageData} alt={item.name ?? item.category} className="w-full aspect-square object-cover" />
+                  <img src={item.imageData} alt={item.name ?? item.category} className="w-full aspect-square object-contain" style={{ background: "#FAFAFA", filter: getProductDisplayFilter() }} />
                   <div className="px-2 py-1.5">
                     <p className="text-xs font-medium truncate" style={{ color: "#431407" }}>{item.name ?? item.category}</p>
                   </div>
@@ -230,7 +231,7 @@ export default function PackingList() {
                   <div className="flex gap-2 overflow-x-auto scrollbar-hide mb-1.5">
                     {(day.items ?? []).map((item) => (
                       <div key={item.id} className="shrink-0 w-14 rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
-                        <img src={item.imageData} alt={item.name ?? ""} className="w-full aspect-square object-cover" />
+                        <img src={item.imageData} alt={item.name ?? ""} className="w-full aspect-square object-contain" style={{ background: "#FAFAFA", filter: getProductDisplayFilter() }} />
                       </div>
                     ))}
                   </div>

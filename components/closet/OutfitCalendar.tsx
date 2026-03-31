@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { getProductDisplayFilter } from "@/lib/imageEnhance"
 
 type CalendarEntry = {
   id: string
@@ -186,7 +187,7 @@ export default function OutfitCalendar() {
               <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                 {selectedEntry.outfit.items.map((oi) => (
                   <div key={oi.clothingItem.id} className="shrink-0 w-16 rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
-                    <img src={oi.clothingItem.imageData} alt={oi.clothingItem.name ?? ""} className="w-full aspect-square object-cover" />
+                    <img src={oi.clothingItem.imageData} alt={oi.clothingItem.name ?? ""} className="w-full aspect-square object-contain" style={{ background: "#FAFAFA", filter: getProductDisplayFilter() }} />
                   </div>
                 ))}
               </div>

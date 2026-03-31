@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, useState, useCallback, useEffect } from "react"
+import { enhanceClothingImage } from "@/lib/imageEnhance"
 
 type CapturedPhoto = {
   id: string
@@ -62,7 +63,7 @@ export default function CameraCapture({ onAllSaved }: CameraCaptureProps) {
     }
   }, [facingMode]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  function capturePhoto() {
+  async function capturePhoto() {
     const video = videoRef.current
     const canvas = canvasRef.current
     if (!video || !canvas) return
@@ -73,14 +74,23 @@ export default function CameraCapture({ onAllSaved }: CameraCaptureProps) {
     if (!ctx) return
 
     ctx.drawImage(video, 0, 0)
-    const dataUri = canvas.toDataURL("image/jpeg", 0.8)
+    const rawDataUri = canvas.toDataURL("image/jpeg", 0.85)
     const id = crypto.randomUUID()
 
-    const photo: CapturedPhoto = { id, dataUri, categorizing: true }
+    // Show raw photo immediately with "enhancing" state
+    const photo: CapturedPhoto = { id, dataUri: rawDataUri, categorizing: true }
     setPhotos((prev) => [photo, ...prev])
 
-    // Auto-categorize in background
-    categorizePhoto(id, dataUri)
+    // Enhance image to look like a product shot (clean bg, bright, sharp)
+    const enhancedDataUri = await enhanceClothingImage(rawDataUri)
+
+    // Update with enhanced version
+    setPhotos((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, dataUri: enhancedDataUri } : p))
+    )
+
+    // Auto-categorize with the enhanced image
+    categorizePhoto(id, enhancedDataUri)
   }
 
   async function categorizePhoto(id: string, dataUri: string) {

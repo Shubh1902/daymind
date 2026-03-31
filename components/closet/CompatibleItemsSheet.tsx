@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { getProductDisplayFilter } from "@/lib/imageEnhance"
 
 type ClothingItem = {
   id: string
@@ -79,8 +80,8 @@ export default function CompatibleItemsSheet({ targetItem, onClose }: Props) {
           <img
             src={targetItem.imageData}
             alt={targetItem.name ?? targetItem.category}
-            className="w-12 h-12 rounded-lg object-cover"
-            style={{ border: "2px solid rgba(168, 85, 247, 0.3)" }}
+            className="w-12 h-12 rounded-lg object-contain"
+            style={{ background: "#FAFAFA", border: "2px solid rgba(168, 85, 247, 0.3)", filter: getProductDisplayFilter() }}
           />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold" style={{ color: "#431407" }}>
@@ -134,8 +135,8 @@ export default function CompatibleItemsSheet({ targetItem, onClose }: Props) {
               <img
                 src={result.item.imageData}
                 alt={result.item.name ?? result.item.category}
-                className="w-16 h-16 rounded-lg object-cover shrink-0"
-                style={{ border: "1px solid var(--border)" }}
+                className="w-16 h-16 rounded-lg object-contain shrink-0"
+                style={{ background: "#FAFAFA", border: "1px solid var(--border)", filter: getProductDisplayFilter() }}
               />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate" style={{ color: "#431407" }}>

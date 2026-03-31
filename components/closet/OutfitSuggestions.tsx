@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { getProductDisplayFilter } from "@/lib/imageEnhance"
 
 type ClothingItem = {
   id: string
@@ -195,7 +196,8 @@ export default function OutfitSuggestions() {
                     <img
                       src={item.imageData}
                       alt={item.name ?? item.category}
-                      className="w-full aspect-square object-cover"
+                      className="w-full aspect-square object-contain"
+                      style={{ background: "#FAFAFA", filter: getProductDisplayFilter() }}
                     />
                     <div className="px-2 py-1">
                       <p className="text-xs truncate" style={{ color: "#431407" }}>

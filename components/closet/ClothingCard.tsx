@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { getProductDisplayFilter } from "@/lib/imageEnhance"
 
 type ClothingItem = {
   id: string
@@ -77,14 +78,17 @@ export default function ClothingCard({ item, compact, onWhatGoesWith }: Props) {
     return (
       <div
         className="rounded-lg overflow-hidden"
-        style={{ border: "1px solid var(--border)", opacity: loading ? 0.5 : 1 }}
+        style={{ border: "1px solid var(--border)", opacity: loading ? 0.5 : 1, background: "#FAFAFA" }}
       >
-        <img
-          src={item.imageData}
-          alt={item.name ?? item.category}
-          className="w-full aspect-square object-cover"
-        />
-        <div className="px-2 py-1.5">
+        <div className="aspect-square overflow-hidden flex items-center justify-center" style={{ background: "#FAFAFA" }}>
+          <img
+            src={item.imageData}
+            alt={item.name ?? item.category}
+            className="w-full h-full object-contain"
+            style={{ filter: getProductDisplayFilter() }}
+          />
+        </div>
+        <div className="px-2 py-1.5" style={{ background: "white" }}>
           <p className="text-xs font-medium truncate" style={{ color: "#431407" }}>
             {item.name ?? item.subcategory ?? item.category}
           </p>
@@ -97,17 +101,21 @@ export default function ClothingCard({ item, compact, onWhatGoesWith }: Props) {
     <div
       className="card-hover rounded-xl overflow-hidden relative group"
       style={{
-        background: "var(--surface-2)",
+        background: "#FAFAFA",
         border: "1px solid var(--border)",
         opacity: loading ? 0.5 : 1,
       }}
     >
-      {/* Image */}
-      <div className="aspect-square relative overflow-hidden">
+      {/* Image — product shot style: contained on clean background */}
+      <div
+        className="aspect-square relative overflow-hidden flex items-center justify-center"
+        style={{ background: "#FAFAFA" }}
+      >
         <img
           src={item.imageData}
           alt={item.name ?? `${item.category} item`}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+          style={{ filter: getProductDisplayFilter() }}
         />
 
         {/* Hover overlay */}

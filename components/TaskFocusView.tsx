@@ -158,7 +158,7 @@ export default function TaskFocusView({
     <div
       className="fixed inset-0 z-50 flex flex-col animate-overlay-in"
       style={{
-        background: "rgba(6, 13, 18, 0.95)",
+        background: "rgba(255, 247, 237, 0.97)",
         backdropFilter: "blur(24px)",
         WebkitBackdropFilter: "blur(24px)",
       }}
@@ -168,10 +168,10 @@ export default function TaskFocusView({
         <button
           onClick={onClose}
           className="w-10 h-10 rounded-full flex items-center justify-center"
-          style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.12)" }}
+          style={{ background: "rgba(249, 115, 22, 0.08)", border: "1px solid rgba(249, 115, 22, 0.12)" }}
           aria-label="Close focus mode"
         >
-          <svg className="w-5 h-5" style={{ color: "rgba(52, 211, 153, 0.6)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-5 h-5" style={{ color: "rgba(234, 88, 12, 0.6)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -186,18 +186,18 @@ export default function TaskFocusView({
                   width: i === activeIndex ? 20 : 6,
                   height: 6,
                   background: i === activeIndex
-                    ? "linear-gradient(90deg, #059669, #10b981)"
+                    ? "linear-gradient(90deg, #ea580c, #f97316)"
                     : i < activeIndex
-                    ? "rgba(16, 185, 129, 0.35)"
-                    : "rgba(16, 185, 129, 0.1)",
-                  boxShadow: i === activeIndex ? "0 0 8px rgba(16, 185, 129, 0.5)" : "none",
+                    ? "rgba(249, 115, 22, 0.35)"
+                    : "rgba(249, 115, 22, 0.12)",
+                  boxShadow: i === activeIndex ? "0 0 8px rgba(249, 115, 22, 0.4)" : "none",
                 }}
               />
             ))}
           </div>
         )}
 
-        <span className="text-xs font-medium" style={{ color: "rgba(16, 185, 129, 0.4)", minWidth: 40, textAlign: "right" }}>
+        <span className="text-xs font-medium" style={{ color: "rgba(249, 115, 22, 0.4)", minWidth: 40, textAlign: "right" }}>
           {localTasks.length > 0 ? `${activeIndex + 1}/${localTasks.length}` : ""}
         </span>
       </div>
@@ -207,18 +207,18 @@ export default function TaskFocusView({
         <div className="flex-1 flex flex-col items-center justify-center px-8">
           <div
             className="w-20 h-20 rounded-3xl flex items-center justify-center mb-5 animate-float"
-            style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.15)" }}
+            style={{ background: "rgba(249, 115, 22, 0.08)", border: "1px solid rgba(249, 115, 22, 0.15)" }}
           >
-            <svg className="w-10 h-10" style={{ color: "#34d399" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <svg className="w-10 h-10" style={{ color: "#fb923c" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <p className="text-2xl font-bold" style={{ color: "rgba(52, 211, 153, 0.7)" }}>All caught up!</p>
-          <p className="text-sm mt-2" style={{ color: "rgba(16, 185, 129, 0.4)" }}>No open tasks to focus on</p>
+          <p className="text-2xl font-bold" style={{ color: "rgba(234, 88, 12, 0.7)" }}>All caught up!</p>
+          <p className="text-sm mt-2" style={{ color: "rgba(249, 115, 22, 0.4)" }}>No open tasks to focus on</p>
           <button
             onClick={onClose}
             className="mt-8 px-6 py-3 rounded-xl text-sm font-semibold"
-            style={{ background: "rgba(16, 185, 129, 0.1)", color: "#34d399", border: "1px solid rgba(16, 185, 129, 0.2)" }}
+            style={{ background: "rgba(249, 115, 22, 0.1)", color: "#ea580c", border: "1px solid rgba(249, 115, 22, 0.2)" }}
           >
             Back to schedule
           </button>
@@ -244,8 +244,8 @@ export default function TaskFocusView({
                     maxWidth: 380,
                     minHeight: 360,
                     background: "linear-gradient(155deg, var(--surface-3), var(--surface-2))",
-                    border: "1px solid rgba(16, 185, 129, 0.18)",
-                    boxShadow: "0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(16, 185, 129, 0.06)",
+                    border: "1px solid rgba(249, 115, 22, 0.18)",
+                    boxShadow: "0 20px 60px rgba(67, 20, 7, 0.08), 0 0 40px rgba(249, 115, 22, 0.06)",
                     opacity: isCompleting ? 0.4 : 1,
                     transition: "opacity 0.3s ease",
                   }}
@@ -263,7 +263,7 @@ export default function TaskFocusView({
                     {task.category && (
                       <span
                         className="text-xs px-2.5 py-1 rounded-full font-medium"
-                        style={{ background: "rgba(16, 185, 129, 0.08)", color: "rgba(52, 211, 153, 0.7)" }}
+                        style={{ background: "rgba(249, 115, 22, 0.08)", color: "rgba(234, 88, 12, 0.7)" }}
                       >
                         {task.category}
                       </span>
@@ -273,7 +273,7 @@ export default function TaskFocusView({
                   {/* Task text */}
                   <h2
                     className="text-2xl font-bold leading-snug flex-1"
-                    style={{ color: "rgba(236, 253, 245, 0.95)" }}
+                    style={{ color: "#431407" }}
                   >
                     {task.text}
                   </h2>
@@ -281,10 +281,10 @@ export default function TaskFocusView({
                   {/* Meta info */}
                   <div
                     className="flex flex-col gap-2 mt-5 pt-4"
-                    style={{ borderTop: "1px solid rgba(16, 185, 129, 0.1)" }}
+                    style={{ borderTop: "1px solid rgba(249, 115, 22, 0.1)" }}
                   >
                     {task.deadline && (
-                      <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(52, 211, 153, 0.6)" }}>
+                      <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(234, 88, 12, 0.6)" }}>
                         <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
@@ -292,7 +292,7 @@ export default function TaskFocusView({
                       </div>
                     )}
                     {task.estimatedMinutes && (
-                      <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(52, 211, 153, 0.6)" }}>
+                      <div className="flex items-center gap-2 text-sm" style={{ color: "rgba(234, 88, 12, 0.6)" }}>
                         <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -300,7 +300,7 @@ export default function TaskFocusView({
                       </div>
                     )}
                     {task.notes && (
-                      <p className="text-sm italic line-clamp-2" style={{ color: "rgba(16, 185, 129, 0.4)" }}>
+                      <p className="text-sm italic line-clamp-2" style={{ color: "rgba(249, 115, 22, 0.4)" }}>
                         {task.notes}
                       </p>
                     )}
@@ -311,7 +311,7 @@ export default function TaskFocusView({
                     <button
                       onClick={() => handleStartTimer(task.id)}
                       className="flex items-center gap-2 text-sm font-medium transition-opacity duration-200"
-                      style={{ color: "#6ee7b7" }}
+                      style={{ color: "#ea580c" }}
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -321,7 +321,7 @@ export default function TaskFocusView({
                     <button
                       onClick={handleGoDeeper}
                       className="flex items-center gap-2 text-sm font-medium transition-opacity duration-200"
-                      style={{ color: "rgba(52, 211, 153, 0.6)" }}
+                      style={{ color: "rgba(234, 88, 12, 0.5)" }}
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -344,8 +344,8 @@ export default function TaskFocusView({
               disabled={completing !== null}
               className="w-full py-4 rounded-2xl text-lg font-bold text-white transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-3"
               style={{
-                background: "linear-gradient(135deg, #059669, #10b981)",
-                boxShadow: "0 4px 24px rgba(16, 185, 129, 0.35)",
+                background: "linear-gradient(135deg, #ea580c, #f97316)",
+                boxShadow: "0 4px 24px rgba(249, 115, 22, 0.35)",
               }}
             >
               {completing ? (
@@ -366,8 +366,8 @@ export default function TaskFocusView({
               className="w-full py-3 rounded-2xl text-base font-semibold transition-all duration-200 disabled:opacity-40"
               style={{
                 background: "transparent",
-                color: "rgba(52, 211, 153, 0.7)",
-                border: "1px solid rgba(16, 185, 129, 0.2)",
+                color: "rgba(249, 115, 22, 0.6)",
+                border: "1px solid rgba(249, 115, 22, 0.2)",
               }}
             >
               Pass

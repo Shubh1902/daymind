@@ -29,7 +29,7 @@ export default async function DashboardPage() {
       {/* Header */}
       <div className="mb-6 animate-slide-up">
         <h1 className="text-3xl font-bold text-gradient">{greeting}</h1>
-        <p className="text-sm mt-1" style={{ color: "rgba(16, 185, 129, 0.5)" }}>
+        <p className="text-sm mt-1" style={{ color: "rgba(249, 115, 22, 0.5)" }}>
           {new Date().toLocaleDateString("en-US", {
             weekday: "long",
             month: "long",

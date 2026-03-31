@@ -41,36 +41,36 @@ export default function ContextQuestions({
     <div
       className="rounded-2xl p-4 mb-6 animate-scale-in"
       style={{
-        background: "linear-gradient(135deg, rgba(5, 150, 105, 0.07), rgba(16, 185, 129, 0.04))",
-        border: "1px solid rgba(16, 185, 129, 0.18)",
+        background: "linear-gradient(135deg, rgba(249, 115, 22, 0.06), rgba(249, 115, 22, 0.03))",
+        border: "1px solid rgba(249, 115, 22, 0.18)",
       }}
     >
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2">
           <div
             className="w-5 h-5 rounded-md flex items-center justify-center"
-            style={{ background: "rgba(16, 185, 129, 0.15)" }}
+            style={{ background: "rgba(249, 115, 22, 0.12)" }}
           >
-            <svg className="w-3 h-3" style={{ color: "#34d399" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-3 h-3" style={{ color: "#f97316" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#34d399" }}>
+          <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#f97316" }}>
             Quick question {questions.length > 1 ? `${currentIndex + 1}/${questions.length}` : ""}
           </p>
         </div>
         <button
           onClick={() => setDismissed(true)}
           className="text-xs transition-colors px-2 py-0.5 rounded-md"
-          style={{ color: "rgba(16, 185, 129, 0.4)" }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(52, 211, 153, 0.7)"; e.currentTarget.style.background = "rgba(16, 185, 129, 0.08)" }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(16, 185, 129, 0.4)"; e.currentTarget.style.background = "transparent" }}
+          style={{ color: "rgba(249, 115, 22, 0.4)" }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(234, 88, 12, 0.7)"; e.currentTarget.style.background = "rgba(249, 115, 22, 0.08)" }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(249, 115, 22, 0.4)"; e.currentTarget.style.background = "transparent" }}
         >
           skip
         </button>
       </div>
 
-      <p className="text-sm mb-3 leading-relaxed" style={{ color: "rgba(236, 253, 245, 0.85)" }}>
+      <p className="text-sm mb-3 leading-relaxed" style={{ color: "#431407" }}>
         {question}
       </p>
 
@@ -82,16 +82,16 @@ export default function ContextQuestions({
           placeholder="Your answer…"
           className="flex-1 text-sm rounded-xl px-3 py-2 outline-none transition-all duration-200"
           style={{
-            background: "rgba(22, 42, 61, 0.8)",
-            border: "1px solid rgba(16, 185, 129, 0.15)",
-            color: "rgba(236, 253, 245, 0.9)",
+            background: "var(--surface-2)",
+            border: "1px solid rgba(249, 115, 22, 0.15)",
+            color: "#431407",
           }}
           onFocus={(e) => {
-            e.currentTarget.style.borderColor = "rgba(16, 185, 129, 0.4)"
-            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(16, 185, 129, 0.1)"
+            e.currentTarget.style.borderColor = "rgba(249, 115, 22, 0.4)"
+            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(249, 115, 22, 0.1)"
           }}
           onBlur={(e) => {
-            e.currentTarget.style.borderColor = "rgba(16, 185, 129, 0.15)"
+            e.currentTarget.style.borderColor = "rgba(249, 115, 22, 0.15)"
             e.currentTarget.style.boxShadow = "none"
           }}
           autoFocus
@@ -101,8 +101,8 @@ export default function ContextQuestions({
           disabled={saving || !answer.trim()}
           className="text-sm font-semibold text-white px-4 py-2 rounded-xl disabled:opacity-40 transition-all duration-200"
           style={{
-            background: "linear-gradient(135deg, #059669, #10b981)",
-            boxShadow: "0 0 12px rgba(16, 185, 129, 0.3)",
+            background: "linear-gradient(135deg, #ea580c, #f97316)",
+            boxShadow: "0 0 12px rgba(249, 115, 22, 0.3)",
           }}
         >
           {saving ? (

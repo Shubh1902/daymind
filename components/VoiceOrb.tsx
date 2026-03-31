@@ -150,7 +150,7 @@ export default function VoiceOrb({
       {/* Interim transcript bubble */}
       {interim && (
         <div className="voice-orb-transcript animate-fade-in">
-          <p className="text-sm leading-relaxed" style={{ color: "rgba(236, 253, 245, 0.9)" }}>
+          <p className="text-sm leading-relaxed" style={{ color: "#431407" }}>
             {interim}
           </p>
         </div>
@@ -160,7 +160,7 @@ export default function VoiceOrb({
       {state === "listening" && !interim && (
         <p
           className="text-xs text-center mb-3 animate-fade-in"
-          style={{ color: "rgba(16, 185, 129, 0.6)" }}
+          style={{ color: "rgba(249, 115, 22, 0.6)" }}
         >
           Listening...
         </p>
@@ -208,7 +208,7 @@ export default function VoiceOrb({
       {state === "idle" && (
         <p
           className="text-xs text-center mt-2 animate-fade-in"
-          style={{ color: "rgba(16, 185, 129, 0.45)" }}
+          style={{ color: "rgba(249, 115, 22, 0.45)" }}
         >
           Tap to speak
         </p>

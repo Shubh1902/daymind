@@ -116,7 +116,7 @@ export default function RescheduleNudge({
           <p className="text-sm font-semibold mb-1" style={{ color: "#fbbf24" }}>
             Running ~{behindText} behind
           </p>
-          <p className="text-xs leading-relaxed mb-3" style={{ color: "rgba(236, 253, 245, 0.6)" }}>
+          <p className="text-xs leading-relaxed mb-3" style={{ color: "#78716c" }}>
             Your plan has shifted. Want me to reschedule the rest of your day from now?
           </p>
           <div className="flex gap-2">

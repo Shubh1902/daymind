@@ -52,10 +52,10 @@ export default function DashboardContent({
                 onClick={() => setView(v)}
                 className="flex-1 py-2 text-sm font-semibold rounded-xl capitalize transition-all duration-200"
                 style={{
-                  background: isActive ? "linear-gradient(135deg, rgba(5, 150, 105, 0.3), rgba(16, 185, 129, 0.2))" : "transparent",
-                  color: isActive ? "#6ee7b7" : "rgba(16, 185, 129, 0.4)",
-                  boxShadow: isActive ? "0 0 12px rgba(16, 185, 129, 0.15), inset 0 1px 0 rgba(255,255,255,0.05)" : "none",
-                  border: isActive ? "1px solid rgba(16, 185, 129, 0.25)" : "1px solid transparent",
+                  background: isActive ? "linear-gradient(135deg, rgba(234, 88, 12, 0.12), rgba(249, 115, 22, 0.08))" : "transparent",
+                  color: isActive ? "#ea580c" : "rgba(249, 115, 22, 0.4)",
+                  boxShadow: isActive ? "0 0 12px rgba(249, 115, 22, 0.1)" : "none",
+                  border: isActive ? "1px solid rgba(249, 115, 22, 0.25)" : "1px solid transparent",
                 }}
               >
                 {v === "schedule" ? "Schedule" : "Focus"}
@@ -71,7 +71,7 @@ export default function DashboardContent({
           style={{
             background: "var(--surface-2)",
             border: "1px solid var(--border)",
-            color: "rgba(16, 185, 129, 0.5)",
+            color: "rgba(249, 115, 22, 0.5)",
           }}
           aria-label="Start evening review"
         >

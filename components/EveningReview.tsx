@@ -193,7 +193,7 @@ export default function EveningReview({
     <div
       className="fixed inset-0 z-50 flex flex-col animate-overlay-in"
       style={{
-        background: "rgba(6, 13, 18, 0.95)",
+        background: "rgba(255, 247, 237, 0.97)",
         backdropFilter: "blur(24px)",
         WebkitBackdropFilter: "blur(24px)",
       }}
@@ -203,10 +203,10 @@ export default function EveningReview({
         <button
           onClick={handleClose}
           className="w-10 h-10 rounded-full flex items-center justify-center"
-          style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.12)" }}
+          style={{ background: "rgba(249, 115, 22, 0.08)", border: "1px solid rgba(249, 115, 22, 0.12)" }}
           aria-label="Close evening review"
         >
-          <svg className="w-5 h-5" style={{ color: "rgba(52, 211, 153, 0.6)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-5 h-5" style={{ color: "rgba(234, 88, 12, 0.6)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -222,18 +222,18 @@ export default function EveningReview({
                   width: i === currentIndex ? 20 : 6,
                   height: 6,
                   background: i === currentIndex
-                    ? "linear-gradient(90deg, #059669, #10b981)"
+                    ? "linear-gradient(90deg, #ea580c, #f97316)"
                     : i < currentIndex
-                    ? "rgba(16, 185, 129, 0.35)"
-                    : "rgba(16, 185, 129, 0.1)",
-                  boxShadow: i === currentIndex ? "0 0 8px rgba(16, 185, 129, 0.5)" : "none",
+                    ? "rgba(249, 115, 22, 0.35)"
+                    : "rgba(249, 115, 22, 0.1)",
+                  boxShadow: i === currentIndex ? "0 0 8px rgba(249, 115, 22, 0.5)" : "none",
                 }}
               />
             ))}
           </div>
         )}
 
-        <span className="text-xs font-medium" style={{ color: "rgba(16, 185, 129, 0.4)", minWidth: 40, textAlign: "right" }}>
+        <span className="text-xs font-medium" style={{ color: "rgba(249, 115, 22, 0.4)", minWidth: 40, textAlign: "right" }}>
           {step === "reviewing" && openTasks.length > 0 ? `${currentIndex + 1}/${openTasks.length}` : ""}
         </span>
       </div>
@@ -245,14 +245,14 @@ export default function EveningReview({
           <div className="text-center animate-fade-in">
             <div
               className="w-20 h-20 rounded-3xl flex items-center justify-center mb-5 mx-auto animate-float"
-              style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.15)" }}
+              style={{ background: "rgba(249, 115, 22, 0.08)", border: "1px solid rgba(249, 115, 22, 0.15)" }}
             >
-              <svg className="w-10 h-10" style={{ color: "#34d399" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <svg className="w-10 h-10" style={{ color: "#fb923c" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
               </svg>
             </div>
-            <p className="text-2xl font-bold" style={{ color: "rgba(52, 211, 153, 0.7)" }}>Evening Review</p>
-            <p className="text-sm mt-2" style={{ color: "rgba(16, 185, 129, 0.4)" }}>Getting ready...</p>
+            <p className="text-2xl font-bold" style={{ color: "rgba(234, 88, 12, 0.7)" }}>Evening Review</p>
+            <p className="text-sm mt-2" style={{ color: "rgba(249, 115, 22, 0.4)" }}>Getting ready...</p>
           </div>
         )}
 
@@ -263,8 +263,8 @@ export default function EveningReview({
               className="rounded-3xl p-7"
               style={{
                 background: "linear-gradient(155deg, var(--surface-3), var(--surface-2))",
-                border: "1px solid rgba(16, 185, 129, 0.18)",
-                boxShadow: "0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(16, 185, 129, 0.06)",
+                border: "1px solid rgba(249, 115, 22, 0.18)",
+                boxShadow: "0 20px 60px rgba(67, 20, 7, 0.1), 0 0 40px rgba(249, 115, 22, 0.06)",
                 opacity: processing ? 0.5 : 1,
                 transition: "opacity 0.3s ease",
               }}
@@ -282,7 +282,7 @@ export default function EveningReview({
                 {currentTask.category && (
                   <span
                     className="text-xs px-2.5 py-1 rounded-full font-medium"
-                    style={{ background: "rgba(16, 185, 129, 0.08)", color: "rgba(52, 211, 153, 0.7)" }}
+                    style={{ background: "rgba(249, 115, 22, 0.08)", color: "rgba(234, 88, 12, 0.7)" }}
                   >
                     {currentTask.category}
                   </span>
@@ -292,14 +292,14 @@ export default function EveningReview({
               {/* Task text */}
               <h2
                 className="text-xl font-bold leading-snug"
-                style={{ color: "rgba(236, 253, 245, 0.95)" }}
+                style={{ color: "#431407" }}
               >
                 {currentTask.text}
               </h2>
 
               {/* Hint */}
               {waitingForVoice && (
-                <p className="text-xs mt-4 animate-fade-in" style={{ color: "rgba(16, 185, 129, 0.4)" }}>
+                <p className="text-xs mt-4 animate-fade-in" style={{ color: "rgba(249, 115, 22, 0.4)" }}>
                   Say &quot;done&quot;, &quot;carry over&quot;, or &quot;drop&quot;
                 </p>
               )}
@@ -312,32 +312,32 @@ export default function EveningReview({
           <div className="text-center animate-fade-in w-full max-w-sm">
             <div
               className="w-20 h-20 rounded-3xl flex items-center justify-center mb-5 mx-auto"
-              style={{ background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.15)" }}
+              style={{ background: "rgba(249, 115, 22, 0.08)", border: "1px solid rgba(249, 115, 22, 0.15)" }}
             >
-              <svg className="w-10 h-10" style={{ color: "#34d399" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <svg className="w-10 h-10" style={{ color: "#fb923c" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <p className="text-2xl font-bold mb-4" style={{ color: "rgba(52, 211, 153, 0.7)" }}>Day Reviewed</p>
+            <p className="text-2xl font-bold mb-4" style={{ color: "rgba(234, 88, 12, 0.7)" }}>Day Reviewed</p>
 
             {/* Stats */}
             <div className="flex justify-center gap-6 mb-6">
               {doneCount > 0 && (
                 <div className="text-center">
-                  <p className="text-2xl font-bold" style={{ color: "#34d399" }}>{doneCount}</p>
-                  <p className="text-xs" style={{ color: "rgba(16, 185, 129, 0.5)" }}>Completed</p>
+                  <p className="text-2xl font-bold" style={{ color: "#f97316" }}>{doneCount}</p>
+                  <p className="text-xs" style={{ color: "rgba(249, 115, 22, 0.5)" }}>Completed</p>
                 </div>
               )}
               {deferCount > 0 && (
                 <div className="text-center">
                   <p className="text-2xl font-bold" style={{ color: "#fbbf24" }}>{deferCount}</p>
-                  <p className="text-xs" style={{ color: "rgba(16, 185, 129, 0.5)" }}>Carried over</p>
+                  <p className="text-xs" style={{ color: "rgba(249, 115, 22, 0.5)" }}>Carried over</p>
                 </div>
               )}
               {dropCount > 0 && (
                 <div className="text-center">
-                  <p className="text-2xl font-bold" style={{ color: "rgba(16, 185, 129, 0.4)" }}>{dropCount}</p>
-                  <p className="text-xs" style={{ color: "rgba(16, 185, 129, 0.5)" }}>Dropped</p>
+                  <p className="text-2xl font-bold" style={{ color: "rgba(249, 115, 22, 0.4)" }}>{dropCount}</p>
+                  <p className="text-xs" style={{ color: "rgba(249, 115, 22, 0.5)" }}>Dropped</p>
                 </div>
               )}
             </div>
@@ -347,8 +347,8 @@ export default function EveningReview({
                 onClick={handleClose}
                 className="px-8 py-3.5 rounded-2xl text-base font-bold text-white transition-all duration-200"
                 style={{
-                  background: "linear-gradient(135deg, #059669, #10b981)",
-                  boxShadow: "0 4px 24px rgba(16, 185, 129, 0.35)",
+                  background: "linear-gradient(135deg, #ea580c, #f97316)",
+                  boxShadow: "0 4px 24px rgba(249, 115, 22, 0.35)",
                 }}
               >
                 Close
@@ -378,8 +378,8 @@ export default function EveningReview({
               disabled={processing || !waitingForVoice}
               className="flex-1 py-3.5 rounded-2xl text-sm font-bold text-white transition-all duration-200 disabled:opacity-40"
               style={{
-                background: "linear-gradient(135deg, #059669, #10b981)",
-                boxShadow: "0 4px 16px rgba(16, 185, 129, 0.3)",
+                background: "linear-gradient(135deg, #ea580c, #f97316)",
+                boxShadow: "0 4px 16px rgba(249, 115, 22, 0.3)",
               }}
             >
               Done
@@ -402,8 +402,8 @@ export default function EveningReview({
               className="flex-1 py-3.5 rounded-2xl text-sm font-semibold transition-all duration-200 disabled:opacity-40"
               style={{
                 background: "transparent",
-                color: "rgba(16, 185, 129, 0.4)",
-                border: "1px solid rgba(16, 185, 129, 0.15)",
+                color: "rgba(249, 115, 22, 0.4)",
+                border: "1px solid rgba(249, 115, 22, 0.15)",
               }}
             >
               Drop

@@ -75,10 +75,10 @@ export default function ChatInput({
     <div
       className="fixed bottom-0 left-0 right-0 z-10 hidden md:block"
       style={{
-        background: "rgba(6, 13, 18, 0.85)",
+        background: "rgba(255, 247, 237, 0.92)",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
-        borderTop: "1px solid rgba(16, 185, 129, 0.12)",
+        borderTop: "1px solid rgba(249, 115, 22, 0.12)",
       }}
     >
       <div className="max-w-lg mx-auto px-4 py-3">
@@ -102,14 +102,14 @@ export default function ChatInput({
                     style={
                       m.role === "user"
                         ? {
-                            background: "linear-gradient(135deg, #059669, #10b981)",
+                            background: "linear-gradient(135deg, #ea580c, #f97316)",
                             color: "white",
-                            boxShadow: "0 4px 16px rgba(16, 185, 129, 0.3)",
+                            boxShadow: "0 4px 16px rgba(249, 115, 22, 0.3)",
                           }
                         : {
                             background: "var(--surface-3)",
-                            color: "rgba(236, 253, 245, 0.85)",
-                            border: "1px solid rgba(16, 185, 129, 0.12)",
+                            color: "#431407",
+                            border: "1px solid rgba(249, 115, 22, 0.12)",
                           }
                     }
                   >
@@ -133,15 +133,15 @@ export default function ChatInput({
             className="flex-1 rounded-full px-4 py-2.5 text-sm outline-none transition-all duration-200"
             style={{
               background: "var(--surface-2)",
-              border: "1px solid rgba(16, 185, 129, 0.15)",
-              color: "rgba(236, 253, 245, 0.9)",
+              border: "1px solid rgba(249, 115, 22, 0.15)",
+              color: "#431407",
             }}
             onFocus={(e) => {
-              e.currentTarget.style.borderColor = "rgba(16, 185, 129, 0.4)"
-              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(16, 185, 129, 0.1)"
+              e.currentTarget.style.borderColor = "rgba(249, 115, 22, 0.4)"
+              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(249, 115, 22, 0.1)"
             }}
             onBlur={(e) => {
-              e.currentTarget.style.borderColor = "rgba(16, 185, 129, 0.15)"
+              e.currentTarget.style.borderColor = "rgba(249, 115, 22, 0.15)"
               e.currentTarget.style.boxShadow = "none"
             }}
             disabled={isLoading}
@@ -151,8 +151,8 @@ export default function ChatInput({
             disabled={isLoading || !input.trim()}
             className="w-10 h-10 flex-shrink-0 rounded-full flex items-center justify-center transition-all duration-200 disabled:opacity-40"
             style={{
-              background: "linear-gradient(135deg, #059669, #10b981)",
-              boxShadow: "0 0 16px rgba(16, 185, 129, 0.3)",
+              background: "linear-gradient(135deg, #ea580c, #f97316)",
+              boxShadow: "0 0 16px rgba(249, 115, 22, 0.3)",
             }}
           >
             {isLoading ? (

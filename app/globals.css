@@ -1,22 +1,22 @@
 @import "tailwindcss";
 
 :root {
-  --background: #060d12;
-  --foreground: #ecfdf5;
+  --background: #fff7ed;
+  --foreground: #431407;
 
   /* Surface layers */
-  --surface-1: #0a1520;
-  --surface-2: #0f1f2e;
-  --surface-3: #162a3d;
+  --surface-1: #ffffff;
+  --surface-2: #ffffff;
+  --surface-3: #fff7ed;
 
   /* Accent */
-  --accent: #10b981;
-  --accent-bright: #34d399;
-  --accent-dim: #065f46;
+  --accent: #f97316;
+  --accent-bright: #fb923c;
+  --accent-dim: #fdba74;
 
   /* Borders */
-  --border: rgba(16, 185, 129, 0.15);
-  --border-bright: rgba(16, 185, 129, 0.35);
+  --border: #fed7aa;
+  --border-bright: #ffe4c4;
 }
 
 @theme inline {
@@ -45,11 +45,11 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(16, 185, 129, 0.25);
+  background: rgba(249, 115, 22, 0.25);
   border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(16, 185, 129, 0.45);
+  background: rgba(249, 115, 22, 0.45);
 }
 
 /* ─── Keyframes ─────────────────────────────────── */
@@ -85,8 +85,8 @@ body {
 }
 
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 12px rgba(16, 185, 129, 0.3); }
-  50%       { box-shadow: 0 0 24px rgba(16, 185, 129, 0.6), 0 0 48px rgba(16, 185, 129, 0.2); }
+  0%, 100% { box-shadow: 0 0 12px rgba(249, 115, 22, 0.3); }
+  50%       { box-shadow: 0 0 24px rgba(249, 115, 22, 0.6), 0 0 48px rgba(249, 115, 22, 0.2); }
 }
 
 @keyframes ping-soft {
@@ -117,7 +117,7 @@ body {
 /* ─── Gradient text ─────────────────────────────── */
 
 .text-gradient {
-  background: linear-gradient(135deg, #10b981 0%, #34d399 50%, #06b6d4 100%);
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 50%, #fb923c 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -126,21 +126,21 @@ body {
 /* ─── Glass card ────────────────────────────────── */
 
 .glass {
-  background: rgba(10, 21, 32, 0.7);
+  background: rgba(255, 247, 237, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(16, 185, 129, 0.15);
+  border: 1px solid #fed7aa;
 }
 
 /* ─── Glow button ───────────────────────────────── */
 
 .btn-primary {
-  background: linear-gradient(135deg, #059669, #10b981);
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.35);
+  background: linear-gradient(135deg, #ea580c, #f97316);
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.35);
   transition: box-shadow 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
 }
 .btn-primary:hover:not(:disabled) {
-  box-shadow: 0 0 32px rgba(16, 185, 129, 0.55);
+  box-shadow: 0 0 32px rgba(249, 115, 22, 0.55);
   transform: translateY(-1px);
 }
 .btn-primary:active:not(:disabled) {
@@ -154,8 +154,8 @@ body {
 }
 .card-hover:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 32px rgba(16, 185, 129, 0.12);
-  border-color: rgba(16, 185, 129, 0.3);
+  box-shadow: 0 8px 32px rgba(249, 115, 22, 0.12);
+  border-color: rgba(249, 115, 22, 0.3);
 }
 
 /* ─── Input focus glow ──────────────────────────── */
@@ -167,12 +167,12 @@ body {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .input-dark::placeholder {
-  color: rgba(16, 185, 129, 0.35);
+  color: rgba(249, 115, 22, 0.35);
 }
 .input-dark:focus {
   outline: none;
-  border-color: rgba(16, 185, 129, 0.5);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+  border-color: rgba(249, 115, 22, 0.5);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
 }
 
 /* ─── Scrollbar-hide (for snap carousels) ──────── */
@@ -198,7 +198,7 @@ body {
 
 .voice-orb-transcript {
   background: var(--surface-3);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(249, 115, 22, 0.2);
   border-radius: 16px;
   padding: 10px 16px;
   margin-bottom: 12px;
@@ -217,13 +217,13 @@ body {
   justify-content: center;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  background: linear-gradient(135deg, #059669, #10b981);
-  box-shadow: 0 0 24px rgba(16, 185, 129, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, #ea580c, #f97316);
+  box-shadow: 0 0 24px rgba(249, 115, 22, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .voice-orb-button:hover:not(:disabled) {
   transform: scale(1.05);
-  box-shadow: 0 0 36px rgba(16, 185, 129, 0.55), 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 36px rgba(249, 115, 22, 0.55), 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .voice-orb-button:active:not(:disabled) {
@@ -269,10 +269,10 @@ body {
   100% { transform: scale(1.8); opacity: 0; }
 }
 
-/* ─── Datetime / select dark ────────────────────── */
+/* ─── Datetime / select light ────────────────────── */
 
 input[type="datetime-local"],
 input[type="number"],
 select {
-  color-scheme: dark;
+  color-scheme: light;
 }

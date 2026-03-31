@@ -12,7 +12,7 @@ export default async function DigestPage() {
     <div className="pb-24 animate-fade-in">
       <div className="mb-6 animate-slide-up">
         <h1 className="text-3xl font-bold text-gradient">Weekly Digest</h1>
-        <p className="text-sm mt-1" style={{ color: "rgba(16, 185, 129, 0.5)" }}>
+        <p className="text-sm mt-1" style={{ color: "rgba(249, 115, 22, 0.5)" }}>
           Last 7 days
         </p>
       </div>

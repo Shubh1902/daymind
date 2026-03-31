@@ -141,7 +141,7 @@ export default function FocusTimer({
     <div
       className="fixed inset-0 z-[55] flex flex-col items-center justify-center animate-overlay-in"
       style={{
-        background: "rgba(6, 13, 18, 0.97)",
+        background: "rgba(255, 247, 237, 0.97)",
         backdropFilter: "blur(24px)",
         WebkitBackdropFilter: "blur(24px)",
       }}
@@ -150,10 +150,10 @@ export default function FocusTimer({
       <button
         onClick={() => { stopSpeaking(); onCancel() }}
         className="absolute top-0 left-5 w-10 h-10 rounded-full flex items-center justify-center"
-        style={{ top: "max(env(safe-area-inset-top), 16px)", background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.12)" }}
+        style={{ top: "max(env(safe-area-inset-top), 16px)", background: "rgba(249, 115, 22, 0.08)", border: "1px solid rgba(249, 115, 22, 0.12)" }}
         aria-label="Cancel timer"
       >
-        <svg className="w-5 h-5" style={{ color: "rgba(52, 211, 153, 0.6)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <svg className="w-5 h-5" style={{ color: "rgba(234, 88, 12, 0.6)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
@@ -167,7 +167,7 @@ export default function FocusTimer({
             cy="130"
             r={CIRCLE_RADIUS}
             fill="none"
-            stroke="rgba(16, 185, 129, 0.08)"
+            stroke="rgba(249, 115, 22, 0.08)"
             strokeWidth="6"
           />
           {/* Progress circle */}
@@ -176,7 +176,7 @@ export default function FocusTimer({
             cy="130"
             r={CIRCLE_RADIUS}
             fill="none"
-            stroke={timerState === "prompting" ? "#34d399" : timerState === "paused" ? "#fbbf24" : "url(#timerGradient)"}
+            stroke={timerState === "prompting" ? "#fb923c" : timerState === "paused" ? "#fbbf24" : "url(#timerGradient)"}
             strokeWidth="6"
             strokeLinecap="round"
             strokeDasharray={CIRCLE_CIRCUMFERENCE}
@@ -185,8 +185,8 @@ export default function FocusTimer({
           />
           <defs>
             <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#059669" />
-              <stop offset="100%" stopColor="#10b981" />
+              <stop offset="0%" stopColor="#ea580c" />
+              <stop offset="100%" stopColor="#f97316" />
             </linearGradient>
           </defs>
         </svg>
@@ -195,7 +195,7 @@ export default function FocusTimer({
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <p
             className="text-5xl font-bold tabular-nums"
-            style={{ color: timerState === "prompting" ? "#34d399" : "rgba(236, 253, 245, 0.95)" }}
+            style={{ color: timerState === "prompting" ? "#f97316" : "#431407" }}
           >
             {formatTime(remaining)}
           </p>
@@ -203,13 +203,13 @@ export default function FocusTimer({
             <p className="text-xs mt-1 animate-fade-in" style={{ color: "#fbbf24" }}>Paused</p>
           )}
           {timerState === "prompting" && (
-            <p className="text-xs mt-1 animate-fade-in" style={{ color: "#34d399" }}>Time&apos;s up!</p>
+            <p className="text-xs mt-1 animate-fade-in" style={{ color: "#f97316" }}>Time&apos;s up!</p>
           )}
         </div>
       </div>
 
       {/* Task name */}
-      <p className="text-lg font-semibold text-center px-8 mb-8" style={{ color: "rgba(236, 253, 245, 0.8)" }}>
+      <p className="text-lg font-semibold text-center px-8 mb-8" style={{ color: "#431407" }}>
         {task.text}
       </p>
 
@@ -221,10 +221,10 @@ export default function FocusTimer({
             className="w-16 h-16 rounded-full flex items-center justify-center transition-all duration-200"
             style={{
               background: timerState === "paused"
-                ? "linear-gradient(135deg, #059669, #10b981)"
-                : "rgba(16, 185, 129, 0.1)",
-              border: "1px solid rgba(16, 185, 129, 0.25)",
-              boxShadow: timerState === "paused" ? "0 0 20px rgba(16, 185, 129, 0.35)" : "none",
+                ? "linear-gradient(135deg, #ea580c, #f97316)"
+                : "rgba(249, 115, 22, 0.1)",
+              border: "1px solid rgba(249, 115, 22, 0.25)",
+              boxShadow: timerState === "paused" ? "0 0 20px rgba(249, 115, 22, 0.35)" : "none",
             }}
             aria-label={timerState === "paused" ? "Resume" : "Pause"}
           >
@@ -233,7 +233,7 @@ export default function FocusTimer({
                 <path d="M8 5v14l11-7z" />
               </svg>
             ) : (
-              <svg className="w-6 h-6" style={{ color: "#6ee7b7" }} fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" style={{ color: "#ea580c" }} fill="currentColor" viewBox="0 0 24 24">
                 <path d="M6 4h4v16H6zM14 4h4v16h-4z" />
               </svg>
             )}
@@ -252,8 +252,8 @@ export default function FocusTimer({
               onClick={() => onDone(getElapsedMinutes())}
               className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all"
               style={{
-                background: "linear-gradient(135deg, #059669, #10b981)",
-                boxShadow: "0 4px 16px rgba(16, 185, 129, 0.3)",
+                background: "linear-gradient(135deg, #ea580c, #f97316)",
+                boxShadow: "0 4px 16px rgba(249, 115, 22, 0.3)",
               }}
             >
               Done
@@ -268,7 +268,7 @@ export default function FocusTimer({
             <button
               onClick={onSkip}
               className="px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
-              style={{ color: "rgba(16, 185, 129, 0.4)", border: "1px solid rgba(16, 185, 129, 0.15)" }}
+              style={{ color: "rgba(249, 115, 22, 0.4)", border: "1px solid rgba(249, 115, 22, 0.15)" }}
             >
               Skip
             </button>

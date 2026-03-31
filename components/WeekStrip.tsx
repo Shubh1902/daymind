@@ -58,14 +58,14 @@ export default function WeekStrip({ tasks }: { tasks: Task[] }) {
             style={
               isToday
                 ? {
-                    background: "linear-gradient(135deg, rgba(5, 150, 105, 0.4), rgba(16, 185, 129, 0.25))",
-                    border: "1px solid rgba(16, 185, 129, 0.4)",
-                    boxShadow: "0 0 16px rgba(16, 185, 129, 0.2)",
+                    background: "linear-gradient(135deg, rgba(234, 88, 12, 0.15), rgba(249, 115, 22, 0.08))",
+                    border: "1px solid rgba(249, 115, 22, 0.4)",
+                    boxShadow: "0 0 16px rgba(249, 115, 22, 0.15)",
                   }
                 : isPast
                 ? {
-                    background: "rgba(10, 21, 32, 0.5)",
-                    border: "1px solid rgba(16, 185, 129, 0.06)",
+                    background: "rgba(254, 215, 170, 0.3)",
+                    border: "1px solid rgba(249, 115, 22, 0.08)",
                   }
                 : {
                     background: "var(--surface-2)",
@@ -75,13 +75,13 @@ export default function WeekStrip({ tasks }: { tasks: Task[] }) {
           >
             <span
               className="font-medium"
-              style={{ color: isToday ? "#6ee7b7" : isPast ? "rgba(16, 185, 129, 0.25)" : "rgba(52, 211, 153, 0.6)" }}
+              style={{ color: isToday ? "#ea580c" : isPast ? "rgba(249, 115, 22, 0.3)" : "#78716c" }}
             >
               {DAY_LABELS[i]}
             </span>
             <span
               className="mt-0.5 font-semibold"
-              style={{ color: isToday ? "#e9d5ff" : isPast ? "rgba(16, 185, 129, 0.2)" : "rgba(52, 211, 153, 0.8)" }}
+              style={{ color: isToday ? "#ea580c" : isPast ? "rgba(249, 115, 22, 0.25)" : "#431407" }}
             >
               {day.getDate()}
             </span>
@@ -92,7 +92,7 @@ export default function WeekStrip({ tasks }: { tasks: Task[] }) {
                   background: hasOverdue
                     ? "#f43f5e"
                     : isToday && hasDeadline
-                    ? "#6ee7b7"
+                    ? "#f97316"
                     : "#f59e0b",
                   boxShadow: hasOverdue ? "0 0 6px rgba(244, 63, 94, 0.6)" : "none",
                 }}

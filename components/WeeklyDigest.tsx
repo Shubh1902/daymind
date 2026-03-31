@@ -54,29 +54,29 @@ export default function WeeklyDigest({ stats }: { stats: WeeklyStats }) {
         <div
           className="rounded-2xl p-4 animate-slide-up delay-100"
           style={{
-            background: "linear-gradient(135deg, rgba(5, 150, 105, 0.08), rgba(16, 185, 129, 0.05))",
-            border: "1px solid rgba(16, 185, 129, 0.2)",
+            background: "linear-gradient(135deg, rgba(249, 115, 22, 0.08), rgba(249, 115, 22, 0.05))",
+            border: "1px solid rgba(249, 115, 22, 0.2)",
           }}
         >
           <div className="flex items-center gap-2 mb-2">
             <div
               className="w-5 h-5 rounded-md flex items-center justify-center"
-              style={{ background: "rgba(16, 185, 129, 0.2)" }}
+              style={{ background: "rgba(249, 115, 22, 0.2)" }}
             >
-              <svg className="w-3 h-3" style={{ color: "#34d399" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-3 h-3" style={{ color: "#fb923c" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
               </svg>
             </div>
-            <p className="text-xs font-semibold uppercase tracking-wider flex-1" style={{ color: "#34d399" }}>
+            <p className="text-xs font-semibold uppercase tracking-wider flex-1" style={{ color: "#fb923c" }}>
               AI Insight
             </p>
             <button
               onClick={readAloud}
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all duration-200"
               style={{
-                background: playing ? "rgba(244, 63, 94, 0.15)" : "rgba(16, 185, 129, 0.12)",
-                border: playing ? "1px solid rgba(244, 63, 94, 0.3)" : "1px solid rgba(16, 185, 129, 0.2)",
-                color: playing ? "#fb7185" : "#6ee7b7",
+                background: playing ? "rgba(244, 63, 94, 0.15)" : "rgba(249, 115, 22, 0.12)",
+                border: playing ? "1px solid rgba(244, 63, 94, 0.3)" : "1px solid rgba(249, 115, 22, 0.2)",
+                color: playing ? "#fb7185" : "#fb923c",
               }}
             >
               {playing ? (
@@ -96,7 +96,7 @@ export default function WeeklyDigest({ stats }: { stats: WeeklyStats }) {
               )}
             </button>
           </div>
-          <p className="text-sm leading-relaxed" style={{ color: "rgba(236, 253, 245, 0.85)" }}>
+          <p className="text-sm leading-relaxed" style={{ color: "#431407" }}>
             {stats.insight}
           </p>
         </div>
@@ -105,17 +105,17 @@ export default function WeeklyDigest({ stats }: { stats: WeeklyStats }) {
       {/* Category breakdown */}
       {stats.byCategory.length > 0 && (
         <div className="animate-slide-up delay-150">
-          <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "rgba(16, 185, 129, 0.5)" }}>
+          <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "rgba(249, 115, 22, 0.5)" }}>
             By Category
           </h3>
           <div className="flex flex-col gap-2.5">
             {stats.byCategory.map((cat) => (
               <div key={cat.category}>
                 <div className="flex justify-between items-baseline mb-1">
-                  <span className="text-sm font-medium" style={{ color: "rgba(236, 253, 245, 0.8)" }}>
+                  <span className="text-sm font-medium" style={{ color: "#431407" }}>
                     {cat.category}
                   </span>
-                  <span className="text-xs" style={{ color: "rgba(16, 185, 129, 0.4)" }}>
+                  <span className="text-xs" style={{ color: "rgba(249, 115, 22, 0.4)" }}>
                     {cat.count} tasks &middot; {cat.minutes}m
                   </span>
                 </div>
@@ -127,7 +127,7 @@ export default function WeeklyDigest({ stats }: { stats: WeeklyStats }) {
                     className="h-full rounded-full transition-all duration-500"
                     style={{
                       width: `${Math.max(8, (cat.minutes / maxCatMinutes) * 100)}%`,
-                      background: "linear-gradient(90deg, #059669, #10b981)",
+                      background: "linear-gradient(90deg, #ea580c, #f97316)",
                     }}
                   />
                 </div>
@@ -140,7 +140,7 @@ export default function WeeklyDigest({ stats }: { stats: WeeklyStats }) {
       {/* Priority breakdown */}
       {stats.byPriority.length > 0 && (
         <div className="animate-slide-up delay-200">
-          <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "rgba(16, 185, 129, 0.5)" }}>
+          <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "rgba(249, 115, 22, 0.5)" }}>
             By Priority
           </h3>
           <div className="flex gap-3">
@@ -153,10 +153,10 @@ export default function WeeklyDigest({ stats }: { stats: WeeklyStats }) {
                   border: "1px solid var(--border)",
                 }}
               >
-                <p className="text-xl font-bold" style={{ color: priorityColors[p.priority] ?? "#6ee7b7" }}>
+                <p className="text-xl font-bold" style={{ color: priorityColors[p.priority] ?? "#fb923c" }}>
                   {p.count}
                 </p>
-                <p className="text-xs capitalize" style={{ color: "rgba(16, 185, 129, 0.5)" }}>
+                <p className="text-xs capitalize" style={{ color: "rgba(249, 115, 22, 0.5)" }}>
                   {p.priority}
                 </p>
               </div>
@@ -168,7 +168,7 @@ export default function WeeklyDigest({ stats }: { stats: WeeklyStats }) {
       {/* Most deferred */}
       {stats.mostDeferred.length > 0 && (
         <div className="animate-slide-up delay-300">
-          <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "rgba(16, 185, 129, 0.5)" }}>
+          <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "rgba(249, 115, 22, 0.5)" }}>
             Most Deferred
           </h3>
           <div className="flex flex-col gap-2">
@@ -190,7 +190,7 @@ export default function WeeklyDigest({ stats }: { stats: WeeklyStats }) {
                 >
                   {t.deferCount}x
                 </span>
-                <span className="text-sm truncate" style={{ color: "rgba(236, 253, 245, 0.8)" }}>
+                <span className="text-sm truncate" style={{ color: "#431407" }}>
                   {t.text}
                 </span>
               </div>
@@ -211,13 +211,13 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub: st
         border: "1px solid var(--border)",
       }}
     >
-      <p className="text-xs font-medium mb-1" style={{ color: "rgba(16, 185, 129, 0.5)" }}>
+      <p className="text-xs font-medium mb-1" style={{ color: "rgba(249, 115, 22, 0.5)" }}>
         {label}
       </p>
-      <p className="text-2xl font-bold" style={{ color: "#6ee7b7" }}>
+      <p className="text-2xl font-bold" style={{ color: "#ea580c" }}>
         {value}
       </p>
-      <p className="text-xs mt-0.5" style={{ color: "rgba(16, 185, 129, 0.35)" }}>
+      <p className="text-xs mt-0.5" style={{ color: "rgba(249, 115, 22, 0.35)" }}>
         {sub}
       </p>
     </div>

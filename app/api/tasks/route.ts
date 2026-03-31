@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { classifyTaskCapability } from "@/lib/classifier"
 
 const USER_ID = "user_me"
 
@@ -29,6 +30,16 @@ export async function POST(request: NextRequest) {
       notes: notes ?? null,
       userId: USER_ID,
     },
+  })
+
+  // Classify capability in background (non-blocking)
+  classifyTaskCapability(task.text).then((capability) => {
+    if (capability) {
+      prisma.task.update({
+        where: { id: task.id },
+        data: { capability },
+      }).catch(() => {})
+    }
   })
 
   return Response.json(task, { status: 201 })

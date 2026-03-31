@@ -151,14 +151,14 @@ export default function MobileVoicePanel({
                   style={
                     m.role === "user"
                       ? {
-                          background: "linear-gradient(135deg, #059669, #10b981)",
+                          background: "linear-gradient(135deg, #ea580c, #f97316)",
                           color: "white",
-                          boxShadow: "0 4px 16px rgba(16, 185, 129, 0.3)",
+                          boxShadow: "0 4px 16px rgba(249, 115, 22, 0.3)",
                         }
                       : {
                           background: "var(--surface-3)",
-                          color: "rgba(236, 253, 245, 0.85)",
-                          border: "1px solid rgba(16, 185, 129, 0.12)",
+                          color: "#431407",
+                          border: "1px solid rgba(249, 115, 22, 0.12)",
                         }
                   }
                 >
@@ -186,15 +186,15 @@ export default function MobileVoicePanel({
             className="flex-1 rounded-full px-4 py-2.5 text-sm outline-none transition-all duration-200"
             style={{
               background: "var(--surface-2)",
-              border: "1px solid rgba(16, 185, 129, 0.15)",
-              color: "rgba(236, 253, 245, 0.9)",
+              border: "1px solid rgba(249, 115, 22, 0.15)",
+              color: "#431407",
             }}
             onFocus={(e) => {
-              e.currentTarget.style.borderColor = "rgba(16, 185, 129, 0.4)"
-              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(16, 185, 129, 0.1)"
+              e.currentTarget.style.borderColor = "rgba(249, 115, 22, 0.4)"
+              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(249, 115, 22, 0.1)"
             }}
             onBlur={(e) => {
-              e.currentTarget.style.borderColor = "rgba(16, 185, 129, 0.15)"
+              e.currentTarget.style.borderColor = "rgba(249, 115, 22, 0.15)"
               e.currentTarget.style.boxShadow = "none"
             }}
             disabled={isLoading}
@@ -204,8 +204,8 @@ export default function MobileVoicePanel({
             disabled={isLoading || !input.trim()}
             className="w-10 h-10 flex-shrink-0 rounded-full flex items-center justify-center transition-all duration-200 disabled:opacity-40"
             style={{
-              background: "linear-gradient(135deg, #059669, #10b981)",
-              boxShadow: "0 0 16px rgba(16, 185, 129, 0.3)",
+              background: "linear-gradient(135deg, #ea580c, #f97316)",
+              boxShadow: "0 0 16px rgba(249, 115, 22, 0.3)",
             }}
           >
             {isLoading ? (
@@ -222,7 +222,7 @@ export default function MobileVoicePanel({
       {/* Mode label */}
       <p
         className="text-xs text-center mb-1.5 pointer-events-none"
-        style={{ color: "rgba(16, 185, 129, 0.35)" }}
+        style={{ color: "rgba(249, 115, 22, 0.35)" }}
       >
         {mode === "quick" ? "Quick add" : "Chat mode"}
       </p>
@@ -240,16 +240,16 @@ export default function MobileVoicePanel({
           }}
           className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200"
           style={{
-            background: showInput ? "rgba(16, 185, 129, 0.15)" : "var(--surface-2)",
+            background: showInput ? "rgba(249, 115, 22, 0.15)" : "var(--surface-2)",
             border: showInput
-              ? "1px solid rgba(16, 185, 129, 0.3)"
+              ? "1px solid rgba(249, 115, 22, 0.3)"
               : "1px solid var(--border)",
           }}
           aria-label="Toggle text input"
         >
           <svg
             className="w-4 h-4"
-            style={{ color: showInput ? "#6ee7b7" : "rgba(16, 185, 129, 0.5)" }}
+            style={{ color: showInput ? "#ea580c" : "rgba(249, 115, 22, 0.5)" }}
             fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12" />
@@ -265,9 +265,9 @@ export default function MobileVoicePanel({
           onClick={() => setMode(mode === "quick" ? "chat" : "quick")}
           className="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200"
           style={{
-            background: mode === "chat" ? "rgba(16, 185, 129, 0.15)" : "var(--surface-2)",
+            background: mode === "chat" ? "rgba(249, 115, 22, 0.15)" : "var(--surface-2)",
             border: mode === "chat"
-              ? "1px solid rgba(16, 185, 129, 0.3)"
+              ? "1px solid rgba(249, 115, 22, 0.3)"
               : "1px solid var(--border)",
           }}
           aria-label={mode === "quick" ? "Switch to chat mode" : "Switch to quick add"}
@@ -276,7 +276,7 @@ export default function MobileVoicePanel({
             // Lightning bolt — quick add mode
             <svg
               className="w-4 h-4"
-              style={{ color: "rgba(16, 185, 129, 0.5)" }}
+              style={{ color: "rgba(249, 115, 22, 0.5)" }}
               fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
@@ -285,7 +285,7 @@ export default function MobileVoicePanel({
             // Chat bubble — chat mode
             <svg
               className="w-4 h-4"
-              style={{ color: "#6ee7b7" }}
+              style={{ color: "#ea580c" }}
               fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />

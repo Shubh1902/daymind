@@ -16,8 +16,8 @@ type TaskProp = {
 
 const inputStyle: React.CSSProperties = {
   background: "var(--surface-2)",
-  border: "1px solid rgba(16, 185, 129, 0.15)",
-  color: "rgba(236, 253, 245, 0.9)",
+  border: "1px solid rgba(249, 115, 22, 0.15)",
+  color: "#431407",
   borderRadius: "0.75rem",
   padding: "0.625rem 0.75rem",
   fontSize: "0.875rem",
@@ -27,11 +27,11 @@ const inputStyle: React.CSSProperties = {
 }
 
 function focusStyle(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
-  e.currentTarget.style.borderColor = "rgba(16, 185, 129, 0.45)"
-  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(16, 185, 129, 0.1)"
+  e.currentTarget.style.borderColor = "rgba(249, 115, 22, 0.45)"
+  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(249, 115, 22, 0.1)"
 }
 function blurStyle(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
-  e.currentTarget.style.borderColor = "rgba(16, 185, 129, 0.15)"
+  e.currentTarget.style.borderColor = "rgba(249, 115, 22, 0.15)"
   e.currentTarget.style.boxShadow = "none"
 }
 
@@ -99,13 +99,13 @@ export default function TaskEditForm({ task }: { task: TaskProp }) {
       className="flex flex-col gap-5 rounded-2xl p-6"
       style={{
         background: "var(--surface-1)",
-        border: "1px solid rgba(16, 185, 129, 0.15)",
-        boxShadow: "0 0 40px rgba(16, 185, 129, 0.05)",
+        border: "1px solid rgba(249, 115, 22, 0.15)",
+        boxShadow: "0 0 40px rgba(249, 115, 22, 0.05)",
       }}
     >
       {/* Main text + voice */}
       <div>
-        <label className="block text-sm font-medium mb-1.5" style={{ color: "rgba(52, 211, 153, 0.8)" }}>
+        <label className="block text-sm font-medium mb-1.5" style={{ color: "rgba(234, 88, 12, 0.8)" }}>
           Task <span style={{ color: "#fb7185" }}>*</span>
         </label>
         <div className="flex gap-2">
@@ -133,7 +133,7 @@ export default function TaskEditForm({ task }: { task: TaskProp }) {
       <div className="grid grid-cols-2 gap-4">
         {/* Deadline */}
         <div>
-          <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(16, 185, 129, 0.55)" }}>Deadline</label>
+          <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(249, 115, 22, 0.55)" }}>Deadline</label>
           <input
             type="datetime-local"
             value={deadline}
@@ -146,7 +146,7 @@ export default function TaskEditForm({ task }: { task: TaskProp }) {
 
         {/* Estimate */}
         <div>
-          <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(16, 185, 129, 0.55)" }}>Est. minutes</label>
+          <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(249, 115, 22, 0.55)" }}>Est. minutes</label>
           <input
             type="number"
             value={estimatedMinutes}
@@ -161,7 +161,7 @@ export default function TaskEditForm({ task }: { task: TaskProp }) {
 
         {/* Priority */}
         <div>
-          <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(16, 185, 129, 0.55)" }}>Priority</label>
+          <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(249, 115, 22, 0.55)" }}>Priority</label>
           <select
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
@@ -177,7 +177,7 @@ export default function TaskEditForm({ task }: { task: TaskProp }) {
 
         {/* Category */}
         <div>
-          <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(16, 185, 129, 0.55)" }}>Category</label>
+          <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(249, 115, 22, 0.55)" }}>Category</label>
           <input
             type="text"
             value={category}
@@ -192,7 +192,7 @@ export default function TaskEditForm({ task }: { task: TaskProp }) {
 
       {/* Notes + voice */}
       <div>
-        <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(16, 185, 129, 0.55)" }}>Notes</label>
+        <label className="block text-xs font-medium mb-1.5" style={{ color: "rgba(249, 115, 22, 0.55)" }}>Notes</label>
         <div className="flex gap-2">
           <textarea
             value={notes}
@@ -216,8 +216,8 @@ export default function TaskEditForm({ task }: { task: TaskProp }) {
           onClick={() => router.back()}
           className="text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-200"
           style={{
-            color: "rgba(52, 211, 153, 0.6)",
-            border: "1px solid rgba(16, 185, 129, 0.15)",
+            color: "rgba(234, 88, 12, 0.6)",
+            border: "1px solid rgba(249, 115, 22, 0.15)",
           }}
         >
           Cancel

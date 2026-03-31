@@ -5,9 +5,14 @@ import { usePathname } from "next/navigation"
 
 const NAV_ITEMS = [
   { href: "/closet", label: "Closet", emoji: "👗" },
+  { href: "/closet/organize", label: "Wardrobe", emoji: "🪟" },
   { href: "/closet/mix", label: "Mix", emoji: "🎨" },
   { href: "/closet/outfits", label: "Outfits", emoji: "✨" },
+  { href: "/closet/weather", label: "Weather", emoji: "🌤️" },
+  { href: "/closet/inspiration", label: "Inspo", emoji: "🔮" },
   { href: "/closet/calendar", label: "Calendar", emoji: "📅" },
+  { href: "/closet/history", label: "History", emoji: "🔄" },
+  { href: "/closet/wishlist", label: "Wishlist", emoji: "🛍️" },
   { href: "/closet/stats", label: "Stats", emoji: "📊" },
   { href: "/closet/profile", label: "Style", emoji: "💎" },
   { href: "/closet/packing", label: "Pack", emoji: "🧳" },

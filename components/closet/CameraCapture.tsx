@@ -3,6 +3,13 @@
 import { useRef, useState, useCallback, useEffect } from "react"
 import { enhanceClothingImage } from "@/lib/imageEnhance"
 
+type DuplicateItem = {
+  id: string
+  name: string | null
+  imageData: string
+  similarityScore: number
+}
+
 type CapturedPhoto = {
   id: string
   dataUri: string
@@ -16,6 +23,7 @@ type CapturedPhoto = {
   name?: string
   vibes?: string[]
   error?: string
+  duplicates?: DuplicateItem[]
 }
 
 interface CameraCaptureProps {
@@ -104,6 +112,26 @@ export default function CameraCapture({ onAllSaved }: CameraCaptureProps) {
       if (!res.ok) throw new Error("Categorization failed")
 
       const data = await res.json()
+      // Check for duplicates
+      let duplicates: DuplicateItem[] = []
+      try {
+        const dupRes = await fetch("/api/closet/duplicates", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            category: data.category,
+            subcategory: data.subcategory,
+            color: data.color,
+            colorHex: data.colorHex,
+            pattern: data.pattern,
+          }),
+        })
+        if (dupRes.ok) {
+          const dupData = await dupRes.json()
+          duplicates = dupData.duplicates ?? []
+        }
+      } catch { /* ignore */ }
+
       setPhotos((prev) =>
         prev.map((p) =>
           p.id === id
@@ -118,6 +146,7 @@ export default function CameraCapture({ onAllSaved }: CameraCaptureProps) {
                 season: data.season,
                 name: data.name,
                 vibes: data.vibes,
+                duplicates,
               }
             : p
         )
@@ -354,6 +383,17 @@ export default function CameraCapture({ onAllSaved }: CameraCaptureProps) {
                     )}
                   </div>
                 </div>
+
+                {/* Duplicate warning */}
+                {photo.duplicates && photo.duplicates.length > 0 && (
+                  <div
+                    className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-xs font-medium"
+                    style={{ background: "rgba(245, 158, 11, 0.9)", color: "white" }}
+                    title={`Similar to: ${photo.duplicates.map((d) => d.name).join(", ")}`}
+                  >
+                    ⚠️ Similar
+                  </div>
+                )}
 
                 {/* Remove button */}
                 <button

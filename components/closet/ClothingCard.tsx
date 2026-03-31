@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { getProductDisplayFilter } from "@/lib/imageEnhance"
+import EditItemSheet from "./EditItemSheet"
+import ItemDetailSheet from "./ItemDetailSheet"
 
 type ClothingItem = {
   id: string
@@ -37,6 +39,8 @@ interface Props {
 export default function ClothingCard({ item, compact, onWhatGoesWith }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [showEdit, setShowEdit] = useState(false)
+  const [showDetail, setShowDetail] = useState(false)
 
   async function toggleFavorite(e: React.MouseEvent) {
     e.stopPropagation()
@@ -99,12 +103,13 @@ export default function ClothingCard({ item, compact, onWhatGoesWith }: Props) {
 
   return (
     <div
-      className="card-hover rounded-xl overflow-hidden relative group"
+      className="card-hover rounded-xl overflow-hidden relative group cursor-pointer"
       style={{
         background: "#FAFAFA",
         border: "1px solid var(--border)",
         opacity: loading ? 0.5 : 1,
       }}
+      onClick={() => setShowDetail(true)}
     >
       {/* Image — product shot style: contained on clean background */}
       <div
@@ -134,6 +139,17 @@ export default function ClothingCard({ item, compact, onWhatGoesWith }: Props) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </button>
+          <button
+              onClick={(e) => { e.stopPropagation(); setShowEdit(true) }}
+              disabled={loading}
+              className="p-2.5 rounded-full transition-transform hover:scale-110"
+              style={{ background: "rgba(56, 189, 248, 0.9)", color: "white" }}
+              title="Edit item details"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+              </svg>
+            </button>
           {onWhatGoesWith && (
             <button
               onClick={(e) => { e.stopPropagation(); onWhatGoesWith(item) }}
@@ -248,6 +264,16 @@ export default function ClothingCard({ item, compact, onWhatGoesWith }: Props) {
           )}
         </div>
       </div>
+
+      {/* Edit Sheet */}
+      {showEdit && (
+        <EditItemSheet item={item} onClose={() => setShowEdit(false)} />
+      )}
+
+      {/* Detail Sheet with multi-photo */}
+      {showDetail && (
+        <ItemDetailSheet item={item} onClose={() => setShowDetail(false)} />
+      )}
     </div>
   )
 }

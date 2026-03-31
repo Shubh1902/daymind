@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import ClothingCard from "./ClothingCard"
 import ColorPaletteFilter from "./ColorPaletteFilter"
 
@@ -53,10 +53,34 @@ export default function ClosetGrid({ initialItems }: ClosetGridProps) {
   const [activeVibes, setActiveVibes] = useState<string[]>([])
   const [activeColors, setActiveColors] = useState<string[]>([])
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<ClothingItem[] | null>(null)
+  const [searching, setSearching] = useState(false)
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     setItems(initialItems)
   }, [initialItems])
+
+  // Debounced search
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults(null)
+      return
+    }
+    setSearching(true)
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+    searchTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/closet/search?q=${encodeURIComponent(searchQuery)}`)
+        if (res.ok) setSearchResults(await res.json())
+      } catch { /* ignore */ }
+      setSearching(false)
+    }, 300)
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+    }
+  }, [searchQuery])
 
   const toggleVibe = useCallback((vibe: string) => {
     setActiveVibes((prev) =>
@@ -92,8 +116,51 @@ export default function ClosetGrid({ initialItems }: ClosetGridProps) {
 
   const hasActiveFilters = activeVibes.length > 0 || activeColors.length > 0 || showFavoritesOnly
 
+  // Use search results if searching, otherwise use filtered
+  const displayItems = searchResults ?? filtered
+
   return (
     <div>
+      {/* Search bar */}
+      <div className="relative mb-3">
+        <svg
+          className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+          style={{ color: "rgba(249, 115, 22, 0.4)" }}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+        </svg>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by name, color, vibe, pattern..."
+          className="w-full pl-9 pr-8 py-2.5 rounded-xl text-sm"
+          style={{
+            background: "var(--surface-2)",
+            border: "1px solid var(--border)",
+            color: "#431407",
+          }}
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2"
+            style={{ color: "rgba(249, 115, 22, 0.4)" }}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+        {searching && (
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
+        )}
+      </div>
+
       {/* Category filter tabs */}
       <div className="flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-hide">
         {CATEGORIES.map((cat) => {
@@ -175,7 +242,7 @@ export default function ClosetGrid({ initialItems }: ClosetGridProps) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <p className="text-xs" style={{ color: "rgba(249, 115, 22, 0.5)" }}>
-            {filtered.length} items
+            {displayItems.length} items{searchResults ? ` matching "${searchQuery}"` : ""}
           </p>
           {hasActiveFilters && (
             <button
@@ -221,7 +288,7 @@ export default function ClosetGrid({ initialItems }: ClosetGridProps) {
       </div>
 
       {/* Grid */}
-      {filtered.length === 0 ? (
+      {displayItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 animate-scale-in">
           <div
             className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
@@ -240,7 +307,7 @@ export default function ClosetGrid({ initialItems }: ClosetGridProps) {
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {filtered.map((item, i) => (
+          {displayItems.map((item, i) => (
             <div
               key={item.id}
               className="animate-slide-up"

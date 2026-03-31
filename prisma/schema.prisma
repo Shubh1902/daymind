@@ -86,7 +86,32 @@ model ClothingItem {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  outfitItems OutfitItem[]
+  outfitItems   OutfitItem[]
+  extraImages   ClothingItemImage[]
+}
+
+model ClothingItemImage {
+  id             String       @id @default(cuid())
+  clothingItemId String
+  imageData      String       // base64 data URI
+  label          String?      // "front", "back", "detail", "tag"
+  sortOrder      Int          @default(0)
+  createdAt      DateTime     @default(now())
+  clothingItem   ClothingItem @relation(fields: [clothingItemId], references: [id], onDelete: Cascade)
+}
+
+model WishlistItem {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  category    String?  // "tops" | "bottoms" | "dresses" | "shoes" | "accessories"
+  color       String?
+  description String?
+  reason      String?  // "gap analysis", "style upgrade", "manual"
+  purchased   Boolean  @default(false)
+  priority    String   @default("medium") // "low" | "medium" | "high"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Outfit {

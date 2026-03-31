@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useCallback, useEffect } from "react"
+import { useRef, useState, useEffect } from "react"
 import { refineClothingImageAI } from "@/lib/imageEnhance"
 
 type EnhanceStatus = "enhancing" | "ai-refining" | "done"
@@ -35,101 +35,126 @@ interface CameraCaptureProps {
 }
 
 /**
- * Stops all tracks on a MediaStream and detaches it from a video element.
- * This is the single source of truth for camera cleanup — called on:
- * - Component unmount (navigation away, mode switch to Gallery)
- * - Camera flip (before starting new stream)
- * - Page visibility change (tab switch, app minimize)
- * - Window beforeunload (browser close / hard navigation)
+ * Immediately kills every track on a MediaStream and detaches the video element.
+ * Safe to call with null/undefined — it's a no-op.
  */
-function stopStream(streamRef: React.RefObject<MediaStream | null>, videoEl?: HTMLVideoElement | null) {
-  const s = streamRef.current
-  if (s) {
-    s.getTracks().forEach((track) => {
+function killStream(stream: MediaStream | null | undefined, videoEl?: HTMLVideoElement | null) {
+  if (stream) {
+    for (const track of stream.getTracks()) {
       track.stop()
-      s.removeTrack(track)
-    })
+    }
   }
   if (videoEl) {
     videoEl.srcObject = null
   }
-  streamRef.current = null
 }
 
 export default function CameraCapture({ onAllSaved }: CameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  // Use a ref for the stream so cleanup always accesses the current value
-  // (avoids stale closure issues that cause camera to stay open)
   const streamRef = useRef<MediaStream | null>(null)
   const [cameraReady, setCameraReady] = useState(false)
+  const [cameraPaused, setCameraPaused] = useState(false)
   const [photos, setPhotos] = useState<CapturedPhoto[]>([])
   const [saving, setSaving] = useState(false)
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment")
+  // Bump this to force the main effect to re-run (e.g. resume after pause)
+  const [cameraGeneration, setCameraGeneration] = useState(0)
 
-  const startCamera = useCallback(async () => {
-    try {
-      // Always stop any existing stream first
-      stopStream(streamRef, videoRef.current)
-      setCameraReady(false)
-
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode,
-          width: { ideal: 1280 },
-          height: { ideal: 960 },
-        },
-        audio: false,
-      })
-
-      // Safety: if component unmounted while awaiting getUserMedia, stop immediately
-      if (!videoRef.current) {
-        mediaStream.getTracks().forEach((t) => t.stop())
-        return
-      }
-
-      streamRef.current = mediaStream
-      videoRef.current.srcObject = mediaStream
-      videoRef.current.onloadedmetadata = () => setCameraReady(true)
-    } catch {
-      setCameraReady(false)
-    }
-  }, [facingMode])
-
-  // Start/restart camera when facingMode changes
+  // ─── Single effect owns the entire camera lifecycle ───
+  // The `active` flag closes over each effect invocation so that even
+  // if getUserMedia resolves *after* cleanup has run, the stream is
+  // killed immediately and never assigned to the ref.
   useEffect(() => {
-    startCamera()
+    let active = true
+
+    async function openCamera() {
+      // Kill whatever was running before (e.g. previous facingMode)
+      killStream(streamRef.current, videoRef.current)
+      streamRef.current = null
+      setCameraReady(false)
+
+      try {
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode,
+            width: { ideal: 1280 },
+            height: { ideal: 960 },
+          },
+          audio: false,
+        })
+
+        // ── POST-AWAIT GATE ──
+        // If cleanup ran while we were awaiting, kill the fresh stream
+        // immediately so the camera light goes off.
+        if (!active) {
+          killStream(mediaStream)
+          return
+        }
+
+        streamRef.current = mediaStream
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream
+          videoRef.current.onloadedmetadata = () => {
+            if (active) setCameraReady(true)
+          }
+        }
+      } catch {
+        if (active) setCameraReady(false)
+      }
+    }
+
+    setCameraPaused(false)
+    openCamera()
+
+    // ── CLEANUP (runs on unmount, facingMode change, or Strict-Mode remount) ──
     return () => {
-      // Cleanup on unmount or before re-running (e.g. facingMode change)
-      stopStream(streamRef, videoRef.current)
+      active = false
+      killStream(streamRef.current, videoRef.current)
+      streamRef.current = null
       setCameraReady(false)
     }
-  }, [startCamera])
+  }, [facingMode, cameraGeneration]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Safety: stop camera when page becomes hidden (tab switch, app minimize)
+  // ─── Pause / resume on visibility change; hard-kill on beforeunload ───
   useEffect(() => {
     function handleVisibilityChange() {
       if (document.hidden) {
-        stopStream(streamRef, videoRef.current)
+        // User switched tabs or minimised — kill camera immediately
+        killStream(streamRef.current, videoRef.current)
+        streamRef.current = null
         setCameraReady(false)
-      } else {
-        // Re-start camera when user returns to tab
-        startCamera()
+        setCameraPaused(true)
       }
+      // We intentionally do NOT auto-restart on visibility return.
+      // The user must tap "Resume Camera" to re-engage.
+      // This avoids surprise camera activation when returning to the tab.
     }
 
-    // Safety: stop camera on hard navigation (browser close, URL change)
     function handleBeforeUnload() {
-      stopStream(streamRef, videoRef.current)
+      killStream(streamRef.current, videoRef.current)
+      streamRef.current = null
+    }
+
+    // Next.js client-side navigation fires popstate before unmount
+    function handlePopState() {
+      killStream(streamRef.current, videoRef.current)
+      streamRef.current = null
+      setCameraReady(false)
     }
 
     document.addEventListener("visibilitychange", handleVisibilityChange)
     window.addEventListener("beforeunload", handleBeforeUnload)
+    window.addEventListener("popstate", handlePopState)
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange)
       window.removeEventListener("beforeunload", handleBeforeUnload)
+      window.removeEventListener("popstate", handlePopState)
+      // Belt-and-suspenders: kill on this effect's own cleanup too
+      killStream(streamRef.current, videoRef.current)
+      streamRef.current = null
     }
-  }, [startCamera])
+  }, [])
 
   async function capturePhoto() {
     const video = videoRef.current
@@ -271,6 +296,11 @@ export default function CameraCapture({ onAllSaved }: CameraCaptureProps) {
     setFacingMode((prev) => (prev === "environment" ? "user" : "environment"))
   }
 
+  function resumeCamera() {
+    // Bump generation to re-run the main effect and reopen camera
+    setCameraGeneration((g) => g + 1)
+  }
+
   const readyCount = photos.filter((p) => !p.categorizing && !p.error && p.category).length
 
   return (
@@ -297,14 +327,33 @@ export default function CameraCapture({ onAllSaved }: CameraCaptureProps) {
                 className="w-12 h-12 rounded-full mx-auto mb-3 flex items-center justify-center"
                 style={{ background: "rgba(249, 115, 22, 0.15)" }}
               >
-                <svg className="w-6 h-6" style={{ color: "#f97316" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
-                </svg>
+                {cameraPaused ? (
+                  <svg className="w-6 h-6" style={{ color: "#f97316" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
+                  </svg>
+                ) : (
+                  <svg className="w-6 h-6" style={{ color: "#f97316" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
+                  </svg>
+                )}
               </div>
               <p className="text-sm" style={{ color: "rgba(249, 115, 22, 0.6)" }}>
-                Starting camera...
+                {cameraPaused ? "Camera paused for privacy" : "Starting camera..."}
               </p>
+              {cameraPaused && (
+                <button
+                  onClick={resumeCamera}
+                  className="mt-3 px-4 py-2 rounded-xl text-sm font-semibold transition-transform active:scale-95"
+                  style={{
+                    background: "linear-gradient(135deg, #ea580c, #f97316)",
+                    color: "white",
+                    boxShadow: "0 2px 8px rgba(249, 115, 22, 0.3)",
+                  }}
+                >
+                  Resume Camera
+                </button>
+              )}
             </div>
           </div>
         )}

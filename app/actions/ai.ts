@@ -4,7 +4,11 @@ import Anthropic from "@anthropic-ai/sdk"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+function getAnthropicClient() {
+  const apiKey = process.env.ANTHROPIC_API_KEY?.trim()
+  if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set. Check your .env.local and ensure no empty ANTHROPIC_API_KEY exists in your shell environment.")
+  return new Anthropic({ apiKey })
+}
 
 const SYSTEM_PROMPT =
   "You are a personal chief of staff. You know everything about the user's tasks and context. " +
@@ -163,7 +167,7 @@ Produce a day plan. Return ONLY valid JSON in this exact shape:
   "questions": ["any context you need to schedule better, e.g. How long does writing a proposal take you?"]
 }`
 
-  const stream = anthropic.messages.stream({
+  const stream = getAnthropicClient().messages.stream({
     model: "claude-sonnet-4-6",
     max_tokens: 4096,
     thinking: { type: "adaptive" },
@@ -370,7 +374,7 @@ export async function generateWeeklyDigest(userId: string): Promise<WeeklyStats>
   try {
     const summaryText = `This week: ${completedCount} tasks completed out of ${createdCount} created (${completionRate}% rate). ${totalFocusMinutes} minutes of focus time.${avgAccuracy ? ` Time estimate accuracy: ${avgAccuracy}%.` : ""} Most deferred: ${mostDeferred.slice(0, 3).map((t) => `"${t.text}" (${t.deferCount}x)`).join(", ") || "none"}. Categories: ${byCategory.map((c) => `${c.category} (${c.count})`).join(", ") || "none"}.`
 
-    const response = await anthropic.messages.create({
+    const response = await getAnthropicClient().messages.create({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 256,
       system: "You are a productivity coach. Given weekly stats, provide 2-3 sentences of friendly, actionable insight. Be specific and encouraging. No fluff.",

@@ -34,10 +34,34 @@ interface CameraCaptureProps {
   onAllSaved: () => void
 }
 
+/**
+ * Stops all tracks on a MediaStream and detaches it from a video element.
+ * This is the single source of truth for camera cleanup — called on:
+ * - Component unmount (navigation away, mode switch to Gallery)
+ * - Camera flip (before starting new stream)
+ * - Page visibility change (tab switch, app minimize)
+ * - Window beforeunload (browser close / hard navigation)
+ */
+function stopStream(streamRef: React.RefObject<MediaStream | null>, videoEl?: HTMLVideoElement | null) {
+  const s = streamRef.current
+  if (s) {
+    s.getTracks().forEach((track) => {
+      track.stop()
+      s.removeTrack(track)
+    })
+  }
+  if (videoEl) {
+    videoEl.srcObject = null
+  }
+  streamRef.current = null
+}
+
 export default function CameraCapture({ onAllSaved }: CameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [stream, setStream] = useState<MediaStream | null>(null)
+  // Use a ref for the stream so cleanup always accesses the current value
+  // (avoids stale closure issues that cause camera to stay open)
+  const streamRef = useRef<MediaStream | null>(null)
   const [cameraReady, setCameraReady] = useState(false)
   const [photos, setPhotos] = useState<CapturedPhoto[]>([])
   const [saving, setSaving] = useState(false)
@@ -45,10 +69,9 @@ export default function CameraCapture({ onAllSaved }: CameraCaptureProps) {
 
   const startCamera = useCallback(async () => {
     try {
-      // Stop existing stream
-      if (stream) {
-        stream.getTracks().forEach((t) => t.stop())
-      }
+      // Always stop any existing stream first
+      stopStream(streamRef, videoRef.current)
+      setCameraReady(false)
 
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
@@ -58,22 +81,55 @@ export default function CameraCapture({ onAllSaved }: CameraCaptureProps) {
         },
         audio: false,
       })
-      setStream(mediaStream)
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream
-        videoRef.current.onloadedmetadata = () => setCameraReady(true)
+
+      // Safety: if component unmounted while awaiting getUserMedia, stop immediately
+      if (!videoRef.current) {
+        mediaStream.getTracks().forEach((t) => t.stop())
+        return
       }
+
+      streamRef.current = mediaStream
+      videoRef.current.srcObject = mediaStream
+      videoRef.current.onloadedmetadata = () => setCameraReady(true)
     } catch {
       setCameraReady(false)
     }
-  }, [facingMode]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [facingMode])
 
+  // Start/restart camera when facingMode changes
   useEffect(() => {
     startCamera()
     return () => {
-      stream?.getTracks().forEach((t) => t.stop())
+      // Cleanup on unmount or before re-running (e.g. facingMode change)
+      stopStream(streamRef, videoRef.current)
+      setCameraReady(false)
     }
-  }, [facingMode]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [startCamera])
+
+  // Safety: stop camera when page becomes hidden (tab switch, app minimize)
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        stopStream(streamRef, videoRef.current)
+        setCameraReady(false)
+      } else {
+        // Re-start camera when user returns to tab
+        startCamera()
+      }
+    }
+
+    // Safety: stop camera on hard navigation (browser close, URL change)
+    function handleBeforeUnload() {
+      stopStream(streamRef, videoRef.current)
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    window.addEventListener("beforeunload", handleBeforeUnload)
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+      window.removeEventListener("beforeunload", handleBeforeUnload)
+    }
+  }, [startCamera])
 
   async function capturePhoto() {
     const video = videoRef.current

@@ -29,6 +29,7 @@ model Task {
   completedAt      DateTime?
   deferCount       Int       @default(0)
   notes            String?
+  capability       String?
   userId           String
   user             User      @relation(fields: [userId], references: [id])
   createdAt        DateTime  @default(now())
@@ -63,4 +64,47 @@ model PushSubscription {
   p256dh    String
   auth      String
   createdAt DateTime @default(now())
+}
+
+// ─── Closet Module ────────────────────────────────
+
+model ClothingItem {
+  id          String   @id @default(cuid())
+  userId      String
+  imageData   String   // base64 data URI of the photo
+  category    String   // "tops" | "bottoms" | "dresses" | "shoes" | "accessories"
+  subcategory String?  // e.g. "t-shirt", "blouse", "jeans", "sneakers"
+  color       String?  // primary color detected by AI
+  pattern     String?  // e.g. "solid", "striped", "floral", "plaid"
+  season      String?  // "spring", "summer", "fall", "winter", "all"
+  name        String?  // optional user-given name
+  favorite    Boolean  @default(false)
+  wearCount   Int      @default(0)
+  lastWornAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  outfitItems OutfitItem[]
+}
+
+model Outfit {
+  id          String       @id @default(cuid())
+  userId      String
+  name        String?
+  occasion    String?      // "casual", "work", "date", "party"
+  aiGenerated Boolean      @default(false)
+  saved       Boolean      @default(false)
+  rating      Int?         // 1-5 user rating
+  createdAt   DateTime     @default(now())
+  items       OutfitItem[]
+}
+
+model OutfitItem {
+  id             String       @id @default(cuid())
+  outfitId       String
+  clothingItemId String
+  outfit         Outfit       @relation(fields: [outfitId], references: [id], onDelete: Cascade)
+  clothingItem   ClothingItem @relation(fields: [clothingItemId], references: [id], onDelete: Cascade)
+
+  @@unique([outfitId, clothingItemId])
 }

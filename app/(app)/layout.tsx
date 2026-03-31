@@ -41,6 +41,15 @@ const navItems = [
     ),
   },
   {
+    href: "/closet",
+    label: "Closet",
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+      </svg>
+    ),
+  },
+  {
     href: "/ai-flow",
     label: "AI Flow",
     icon: (
@@ -70,15 +79,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold"
               style={{
-                background: "linear-gradient(135deg, #059669, #10b981)",
-                boxShadow: "0 0 16px rgba(16, 185, 129, 0.4)",
+                background: "linear-gradient(135deg, #ea580c, #f97316)",
+                boxShadow: "0 0 16px rgba(249, 115, 22, 0.4)",
               }}
             >
               D
             </div>
             <span className="text-gradient text-lg font-bold">DayMind</span>
           </div>
-          <p className="text-xs mt-1.5 px-0.5" style={{ color: "rgba(16, 185, 129, 0.5)" }}>
+          <p className="text-xs mt-1.5 px-0.5" style={{ color: "rgba(249, 115, 22, 0.5)" }}>
             Your chief of staff
           </p>
         </div>
@@ -93,13 +102,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 href={item.href}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
                 style={{
-                  background: isActive ? "rgba(16, 185, 129, 0.15)" : "transparent",
-                  color: isActive ? "#6ee7b7" : "rgba(52, 211, 153, 0.5)",
-                  borderLeft: isActive ? "2px solid #10b981" : "2px solid transparent",
-                  boxShadow: isActive ? "0 0 12px rgba(16, 185, 129, 0.08)" : "none",
+                  background: isActive ? "rgba(249, 115, 22, 0.08)" : "transparent",
+                  color: isActive ? "#ea580c" : "#78716c",
+                  borderLeft: isActive ? "2px solid #f97316" : "2px solid transparent",
+                  boxShadow: isActive ? "0 0 12px rgba(249, 115, 22, 0.08)" : "none",
                 }}
               >
-                <span style={{ color: isActive ? "#10b981" : "rgba(16, 185, 129, 0.4)" }}>
+                <span style={{ color: isActive ? "#f97316" : "rgba(249, 115, 22, 0.4)" }}>
                   {item.icon}
                 </span>
                 {item.label}
@@ -110,7 +119,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         {/* Bottom decoration */}
         <div className="mt-auto pt-4" style={{ borderTop: "1px solid var(--border)" }}>
-          <p className="text-xs px-2" style={{ color: "rgba(16, 185, 129, 0.3)" }}>
+          <p className="text-xs px-2" style={{ color: "rgba(249, 115, 22, 0.4)" }}>
             Powered by Claude AI
           </p>
         </div>
@@ -120,7 +129,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <nav
         className="fixed bottom-0 left-0 right-0 z-20 flex md:hidden px-2 pb-safe"
         style={{
-          background: "rgba(6, 13, 18, 0.85)",
+          background: "rgba(255, 247, 237, 0.92)",
           backdropFilter: "blur(20px)",
           WebkitBackdropFilter: "blur(20px)",
           borderTop: "1px solid var(--border)",
@@ -134,14 +143,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               href={item.href}
               className="flex-1 flex flex-col items-center gap-1 py-3 text-xs font-medium transition-all duration-200"
               style={{
-                color: isActive ? "#6ee7b7" : "rgba(16, 185, 129, 0.4)",
+                color: isActive ? "#ea580c" : "rgba(249, 115, 22, 0.4)",
               }}
             >
               <span
                 className="p-1.5 rounded-lg transition-all duration-200"
                 style={{
-                  background: isActive ? "rgba(16, 185, 129, 0.15)" : "transparent",
-                  color: isActive ? "#10b981" : "inherit",
+                  background: isActive ? "rgba(249, 115, 22, 0.1)" : "transparent",
+                  color: isActive ? "#f97316" : "inherit",
                 }}
               >
                 {item.icon}

@@ -1,9 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import { createPortal } from "react-dom"
 import { useRouter } from "next/navigation"
 import { getProductDisplayFilter } from "@/lib/imageEnhance"
-import EditItemSheet from "./EditItemSheet"
 import ItemDetailSheet from "./ItemDetailSheet"
 
 type ClothingItem = {
@@ -39,7 +39,6 @@ interface Props {
 export default function ClothingCard({ item, compact, onWhatGoesWith }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [showEdit, setShowEdit] = useState(false)
   const [showDetail, setShowDetail] = useState(false)
 
   async function toggleFavorite(e: React.MouseEvent) {
@@ -54,35 +53,12 @@ export default function ClothingCard({ item, compact, onWhatGoesWith }: Props) {
     setLoading(false)
   }
 
-  async function deleteItem(e: React.MouseEvent) {
-    e.stopPropagation()
-    if (!confirm("Remove this item from your closet?")) return
-    setLoading(true)
-    await fetch(`/api/closet/items/${item.id}`, { method: "DELETE" })
-    router.refresh()
-    setLoading(false)
-  }
-
-  async function markWorn(e: React.MouseEvent) {
-    e.stopPropagation()
-    setLoading(true)
-    await fetch(`/api/closet/items/${item.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        wearCount: item.wearCount + 1,
-        lastWornAt: new Date().toISOString(),
-      }),
-    })
-    router.refresh()
-    setLoading(false)
-  }
-
   if (compact) {
     return (
       <div
-        className="rounded-lg overflow-hidden"
+        className="rounded-lg overflow-hidden cursor-pointer"
         style={{ border: "1px solid var(--border)", opacity: loading ? 0.5 : 1, background: "#FAFAFA" }}
+        onClick={() => setShowDetail(true)}
       >
         <div className="aspect-square overflow-hidden flex items-center justify-center" style={{ background: "#FAFAFA" }}>
           <img
@@ -97,183 +73,149 @@ export default function ClothingCard({ item, compact, onWhatGoesWith }: Props) {
             {item.name ?? item.subcategory ?? item.category}
           </p>
         </div>
+
+        {/* Portal: detail sheet renders at document root, not inside this card */}
+        {showDetail && createPortal(
+          <ItemDetailSheet
+            item={item}
+            onClose={() => { setShowDetail(false); router.refresh() }}
+            onWhatGoesWith={onWhatGoesWith}
+          />,
+          document.body
+        )}
       </div>
     )
   }
 
   return (
-    <div
-      className="card-hover rounded-xl overflow-hidden relative group cursor-pointer"
-      style={{
-        background: "#FAFAFA",
-        border: "1px solid var(--border)",
-        opacity: loading ? 0.5 : 1,
-      }}
-      onClick={() => setShowDetail(true)}
-    >
-      {/* Image — product shot style: contained on clean background */}
+    <>
       <div
-        className="aspect-square relative overflow-hidden flex items-center justify-center"
-        style={{ background: "#FAFAFA" }}
+        className="card-hover rounded-xl overflow-hidden relative group cursor-pointer"
+        style={{
+          background: "#FAFAFA",
+          border: "1px solid var(--border)",
+          opacity: loading ? 0.5 : 1,
+        }}
+        onClick={() => setShowDetail(true)}
       >
-        <img
-          src={item.imageData}
-          alt={item.name ?? `${item.category} item`}
-          className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
-          style={{ filter: getProductDisplayFilter() }}
-        />
-
-        {/* Hover overlay */}
+        {/* Image */}
         <div
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2"
-          style={{ background: "rgba(67, 20, 7, 0.5)", backdropFilter: "blur(4px)" }}
+          className="aspect-square relative overflow-hidden flex items-center justify-center"
+          style={{ background: "#FAFAFA" }}
         >
-          <button
-            onClick={markWorn}
-            disabled={loading}
-            className="p-2.5 rounded-full transition-transform hover:scale-110"
-            style={{ background: "rgba(249, 115, 22, 0.9)", color: "white" }}
-            title="Mark as worn today"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          </button>
-          <button
-              onClick={(e) => { e.stopPropagation(); setShowEdit(true) }}
-              disabled={loading}
-              className="p-2.5 rounded-full transition-transform hover:scale-110"
-              style={{ background: "rgba(56, 189, 248, 0.9)", color: "white" }}
-              title="Edit item details"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-              </svg>
-            </button>
-          {onWhatGoesWith && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onWhatGoesWith(item) }}
-              disabled={loading}
-              className="p-2.5 rounded-full transition-transform hover:scale-110"
-              style={{ background: "rgba(168, 85, 247, 0.9)", color: "white" }}
-              title="What goes with this?"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
-              </svg>
-            </button>
-          )}
-          <button
-            onClick={deleteItem}
-            disabled={loading}
-            className="p-2.5 rounded-full transition-transform hover:scale-110"
-            style={{ background: "rgba(244, 63, 94, 0.9)", color: "white" }}
-            title="Remove from closet"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-            </svg>
-          </button>
-        </div>
+          <img
+            src={item.imageData}
+            alt={item.name ?? `${item.category} item`}
+            className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+            style={{ filter: getProductDisplayFilter() }}
+          />
 
-        {/* Favorite button */}
-        <button
-          onClick={toggleFavorite}
-          disabled={loading}
-          className="absolute top-2 right-2 p-1.5 rounded-full transition-all duration-200"
-          style={{
-            background: item.favorite ? "rgba(249, 115, 22, 0.9)" : "rgba(0, 0, 0, 0.4)",
-            backdropFilter: "blur(4px)",
-          }}
-        >
-          <svg
-            className="w-3.5 h-3.5"
-            fill={item.favorite ? "white" : "none"}
-            viewBox="0 0 24 24"
-            stroke="white"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
-            />
-          </svg>
-        </button>
-
-        {/* Category + color badge */}
-        <div className="absolute top-2 left-2 flex items-center gap-1">
-          <div
-            className="px-2 py-0.5 rounded-full text-xs font-medium"
+          {/* Favorite button */}
+          <button
+            onClick={toggleFavorite}
+            disabled={loading}
+            className="absolute top-2 right-2 p-1.5 rounded-full transition-all duration-200"
             style={{
-              background: "rgba(0, 0, 0, 0.5)",
+              background: item.favorite ? "rgba(249, 115, 22, 0.9)" : "rgba(0, 0, 0, 0.4)",
               backdropFilter: "blur(4px)",
-              color: "white",
             }}
+            aria-label={item.favorite ? "Remove from favorites" : "Add to favorites"}
           >
-            {categoryEmoji[item.category] ?? "🧵"} {item.category}
-          </div>
-          {item.colorHex && (
+            <svg
+              className="w-3.5 h-3.5"
+              fill={item.favorite ? "white" : "none"}
+              viewBox="0 0 24 24"
+              stroke="white"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+              />
+            </svg>
+          </button>
+
+          {/* Category + color badge */}
+          <div className="absolute top-2 left-2 flex items-center gap-1">
             <div
-              className="w-5 h-5 rounded-full border-2 border-white/50"
-              style={{ background: item.colorHex }}
-              title={item.color ?? ""}
-            />
-          )}
-        </div>
-      </div>
+              className="px-2 py-0.5 rounded-full text-xs font-medium"
+              style={{
+                background: "rgba(0, 0, 0, 0.5)",
+                backdropFilter: "blur(4px)",
+                color: "white",
+              }}
+            >
+              {categoryEmoji[item.category] ?? "🧵"} {item.category}
+            </div>
+            {item.colorHex && (
+              <div
+                className="w-5 h-5 rounded-full border-2 border-white/50"
+                style={{ background: item.colorHex }}
+                title={item.color ?? ""}
+              />
+            )}
+          </div>
 
-      {/* Info */}
-      <div className="p-3">
-        <p className="text-sm font-medium truncate" style={{ color: "#431407" }}>
-          {item.name ?? `${item.subcategory ?? item.category}`}
-        </p>
-        <div className="flex flex-wrap gap-1 mt-1.5">
-          {item.color && (
-            <span
-              className="text-xs px-1.5 py-0.5 rounded-full"
-              style={{ background: "rgba(249, 115, 22, 0.08)", color: "rgba(234, 88, 12, 0.7)" }}
-            >
-              {item.color}
-            </span>
-          )}
-          {item.pattern && item.pattern !== "solid" && (
-            <span
-              className="text-xs px-1.5 py-0.5 rounded-full"
-              style={{ background: "rgba(168, 85, 247, 0.08)", color: "rgba(168, 85, 247, 0.7)" }}
-            >
-              {item.pattern}
-            </span>
-          )}
-          {item.vibes?.slice(0, 2).map((v) => (
-            <span
-              key={v}
-              className="text-xs px-1.5 py-0.5 rounded-full"
-              style={{ background: "rgba(34, 197, 94, 0.08)", color: "rgba(34, 197, 94, 0.7)" }}
-            >
-              {v}
-            </span>
-          ))}
+          {/* Worn count badge */}
           {item.wearCount > 0 && (
-            <span
-              className="text-xs px-1.5 py-0.5 rounded-full"
-              style={{ background: "rgba(56, 189, 248, 0.08)", color: "rgba(56, 189, 248, 0.8)" }}
+            <div
+              className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded-full text-xs font-medium"
+              style={{
+                background: "rgba(0, 0, 0, 0.5)",
+                backdropFilter: "blur(4px)",
+                color: "white",
+              }}
             >
-              Worn {item.wearCount}x
-            </span>
+              {item.wearCount}× worn
+            </div>
           )}
+        </div>
+
+        {/* Info */}
+        <div className="p-3">
+          <p className="text-sm font-medium truncate" style={{ color: "#431407" }}>
+            {item.name ?? `${item.subcategory ?? item.category}`}
+          </p>
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            {item.color && (
+              <span
+                className="text-xs px-1.5 py-0.5 rounded-full"
+                style={{ background: "rgba(249, 115, 22, 0.08)", color: "rgba(234, 88, 12, 0.7)" }}
+              >
+                {item.color}
+              </span>
+            )}
+            {item.pattern && item.pattern !== "solid" && (
+              <span
+                className="text-xs px-1.5 py-0.5 rounded-full"
+                style={{ background: "rgba(168, 85, 247, 0.08)", color: "rgba(168, 85, 247, 0.7)" }}
+              >
+                {item.pattern}
+              </span>
+            )}
+            {item.vibes?.slice(0, 2).map((v) => (
+              <span
+                key={v}
+                className="text-xs px-1.5 py-0.5 rounded-full"
+                style={{ background: "rgba(34, 197, 94, 0.08)", color: "rgba(34, 197, 94, 0.7)" }}
+              >
+                {v}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Edit Sheet */}
-      {showEdit && (
-        <EditItemSheet item={item} onClose={() => setShowEdit(false)} />
+      {/* Portal: detail sheet renders at document root, not inside this card */}
+      {showDetail && createPortal(
+        <ItemDetailSheet
+          item={item}
+          onClose={() => { setShowDetail(false); router.refresh() }}
+          onWhatGoesWith={onWhatGoesWith}
+        />,
+        document.body
       )}
-
-      {/* Detail Sheet with multi-photo */}
-      {showDetail && (
-        <ItemDetailSheet item={item} onClose={() => setShowDetail(false)} />
-      )}
-    </div>
+    </>
   )
 }

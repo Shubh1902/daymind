@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import { createPortal } from "react-dom"
 import { useRouter } from "next/navigation"
 import { getProductDisplayFilter } from "@/lib/imageEnhance"
 import { enhanceClothingImage } from "@/lib/imageEnhance"
@@ -35,31 +36,32 @@ type ExtraImage = {
 interface Props {
   item: ClothingItem
   onClose: () => void
+  onWhatGoesWith?: (item: ClothingItem) => void
 }
 
-export default function ItemDetailSheet({ item, onClose }: Props) {
+export default function ItemDetailSheet({ item, onClose, onWhatGoesWith }: Props) {
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
   const [extraImages, setExtraImages] = useState<ExtraImage[]>([])
-  const [activeIndex, setActiveIndex] = useState(0) // 0 = main image
+  const [activeIndex, setActiveIndex] = useState(0)
   const [uploading, setUploading] = useState(false)
   const [showEdit, setShowEdit] = useState(false)
   const [showFullscreen, setShowFullscreen] = useState(false)
   const [showTryOn, setShowTryOn] = useState(false)
+  const [actionLoading, setActionLoading] = useState(false)
 
   useEffect(() => {
     document.body.style.overflow = "hidden"
     function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose()
+      if (e.key === "Escape" && !showEdit && !showFullscreen && !showTryOn) onClose()
     }
     window.addEventListener("keydown", handleKey)
     return () => {
       document.body.style.overflow = ""
       window.removeEventListener("keydown", handleKey)
     }
-  }, [onClose])
+  }, [onClose, showEdit, showFullscreen, showTryOn])
 
-  // All images: main + extras
   const allImages = [
     { id: "main", imageData: item.imageData, label: "Main" },
     ...extraImages,
@@ -67,7 +69,7 @@ export default function ItemDetailSheet({ item, onClose }: Props) {
 
   useEffect(() => {
     fetchExtraImages()
-  }, [item.id])
+  }, [item.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function fetchExtraImages() {
     try {
@@ -109,6 +111,30 @@ export default function ItemDetailSheet({ item, onClose }: Props) {
     await fetchExtraImages()
   }
 
+  async function markWorn() {
+    setActionLoading(true)
+    try {
+      await fetch(`/api/closet/items/${item.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          wearCount: item.wearCount + 1,
+          lastWornAt: new Date().toISOString(),
+        }),
+      })
+      router.refresh()
+    } catch { /* ignore */ }
+    setActionLoading(false)
+  }
+
+  async function deleteItem() {
+    if (!confirm("Remove this item from your closet?")) return
+    setActionLoading(true)
+    await fetch(`/api/closet/items/${item.id}`, { method: "DELETE" })
+    router.refresh()
+    onClose()
+  }
+
   const daysAgo = item.lastWornAt
     ? Math.floor((Date.now() - new Date(item.lastWornAt).getTime()) / 86400000)
     : null
@@ -140,7 +166,10 @@ export default function ItemDetailSheet({ item, onClose }: Props) {
           />
 
           {/* Fullscreen hint */}
-          <div className="absolute bottom-2 right-2 p-1.5 rounded-lg" style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}>
+          <div
+            className="absolute bottom-2 right-2 p-1.5 rounded-lg"
+            style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)" }}
+          >
             <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
             </svg>
@@ -149,9 +178,10 @@ export default function ItemDetailSheet({ item, onClose }: Props) {
           {/* Delete extra image button */}
           {activeIndex > 0 && (
             <button
-              onClick={() => deleteExtraImage(extraImages[activeIndex - 1].id)}
+              onClick={(e) => { e.stopPropagation(); deleteExtraImage(extraImages[activeIndex - 1].id) }}
               className="absolute top-2 right-2 p-2 rounded-full"
               style={{ background: "rgba(244, 63, 94, 0.9)", color: "white" }}
+              aria-label="Delete this photo"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
@@ -193,13 +223,13 @@ export default function ItemDetailSheet({ item, onClose }: Props) {
               </button>
             ))}
 
-            {/* Add photo button */}
             {extraImages.length < 5 && (
               <button
                 onClick={() => fileRef.current?.click()}
                 disabled={uploading}
                 className="shrink-0 w-14 h-14 rounded-lg flex items-center justify-center transition-all duration-200"
                 style={{ border: "2px dashed rgba(249, 115, 22, 0.2)", background: "rgba(249, 115, 22, 0.02)" }}
+                aria-label="Add another photo"
               >
                 {uploading ? (
                   <span className="w-4 h-4 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
@@ -217,14 +247,16 @@ export default function ItemDetailSheet({ item, onClose }: Props) {
 
         {/* Item details */}
         <div className="px-5 pb-6">
+          {/* Name + edit button */}
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xl font-bold" style={{ color: "#431407" }}>
+            <h2 className="text-xl font-bold truncate pr-2" style={{ color: "#431407" }}>
               {item.name ?? item.subcategory ?? item.category}
             </h2>
             <button
               onClick={() => setShowEdit(true)}
-              className="p-2 rounded-lg"
+              className="p-2 rounded-lg shrink-0"
               style={{ background: "rgba(249, 115, 22, 0.08)", color: "#ea580c" }}
+              aria-label="Edit item details"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
@@ -271,40 +303,99 @@ export default function ItemDetailSheet({ item, onClose }: Props) {
             </div>
           )}
 
-          {/* Stats */}
-          <div className="flex gap-4 mb-4">
-            <div>
+          {/* Stats row */}
+          <div
+            className="flex items-center gap-6 mb-5 px-4 py-3 rounded-xl"
+            style={{ background: "rgba(249, 115, 22, 0.04)", border: "1px solid rgba(249, 115, 22, 0.08)" }}
+          >
+            <div className="text-center">
               <p className="text-lg font-bold" style={{ color: "#431407" }}>{item.wearCount}</p>
-              <p className="text-xs" style={{ color: "rgba(249, 115, 22, 0.5)" }}>Times worn</p>
+              <p className="text-xs" style={{ color: "rgba(249, 115, 22, 0.5)" }}>Worn</p>
             </div>
             {daysAgo !== null && (
-              <div>
+              <div className="text-center">
                 <p className="text-lg font-bold" style={{ color: "#431407" }}>{daysAgo}d</p>
-                <p className="text-xs" style={{ color: "rgba(249, 115, 22, 0.5)" }}>Since last worn</p>
+                <p className="text-xs" style={{ color: "rgba(249, 115, 22, 0.5)" }}>Last worn</p>
               </div>
             )}
-            <div>
+            <div className="text-center">
               <p className="text-lg font-bold" style={{ color: "#431407" }}>{allImages.length}</p>
               <p className="text-xs" style={{ color: "rgba(249, 115, 22, 0.5)" }}>Photos</p>
             </div>
           </div>
 
-          {/* Try-On button */}
-          {(item.category === "tops" || item.category === "bottoms" || item.category === "dresses") && (
+          {/* Action buttons — clean grid */}
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            {/* Mark as worn */}
             <button
-              onClick={() => setShowTryOn(true)}
-              className="w-full py-2.5 rounded-xl text-sm font-semibold mb-2 flex items-center justify-center gap-2"
+              onClick={markWorn}
+              disabled={actionLoading}
+              className="py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
               style={{
-                background: "linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(249, 115, 22, 0.08))",
-                color: "#7c3aed",
-                border: "1px solid rgba(168, 85, 247, 0.2)",
+                background: "rgba(249, 115, 22, 0.08)",
+                color: "#ea580c",
+                border: "1px solid rgba(249, 115, 22, 0.15)",
               }}
             >
-              <span>👗</span>
-              Try On with AI Model
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              Worn Today
             </button>
-          )}
 
+            {/* What goes with */}
+            {onWhatGoesWith && (
+              <button
+                onClick={() => { onWhatGoesWith(item); onClose() }}
+                className="py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                style={{
+                  background: "rgba(168, 85, 247, 0.08)",
+                  color: "#7c3aed",
+                  border: "1px solid rgba(168, 85, 247, 0.15)",
+                }}
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                </svg>
+                Style Match
+              </button>
+            )}
+
+            {/* Try On (for applicable categories) */}
+            {(item.category === "tops" || item.category === "bottoms" || item.category === "dresses") && (
+              <button
+                onClick={() => setShowTryOn(true)}
+                className="py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                style={{
+                  background: "linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(249, 115, 22, 0.06))",
+                  color: "#7c3aed",
+                  border: "1px solid rgba(168, 85, 247, 0.15)",
+                }}
+              >
+                <span className="text-sm">👗</span>
+                Try On
+              </button>
+            )}
+
+            {/* Delete */}
+            <button
+              onClick={deleteItem}
+              disabled={actionLoading}
+              className="py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+              style={{
+                background: "rgba(244, 63, 94, 0.06)",
+                color: "#e11d48",
+                border: "1px solid rgba(244, 63, 94, 0.12)",
+              }}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+              </svg>
+              Remove
+            </button>
+          </div>
+
+          {/* Close */}
           <button
             onClick={onClose}
             className="w-full py-2.5 rounded-xl text-sm font-semibold"
@@ -314,22 +405,28 @@ export default function ItemDetailSheet({ item, onClose }: Props) {
           </button>
         </div>
 
-        {showEdit && <EditItemSheet item={item} onClose={() => { setShowEdit(false); router.refresh() }} />}
+        {/* Sub-modals rendered via Portal to escape this sheet's stacking context */}
+        {showEdit && createPortal(
+          <EditItemSheet item={item} onClose={() => { setShowEdit(false); router.refresh() }} />,
+          document.body
+        )}
 
-        {showFullscreen && (
+        {showFullscreen && createPortal(
           <FullscreenPreview
             images={allImages.map((img) => ({ id: img.id, imageData: img.imageData, label: img.label ?? undefined }))}
             initialIndex={activeIndex}
             itemName={item.name ?? item.subcategory ?? item.category}
             onClose={() => setShowFullscreen(false)}
-          />
+          />,
+          document.body
         )}
 
-        {showTryOn && (
+        {showTryOn && createPortal(
           <TryOnPreview
             items={[{ id: item.id, imageData: item.imageData, category: item.category, name: item.name }]}
             onClose={() => setShowTryOn(false)}
-          />
+          />,
+          document.body
         )}
       </div>
     </div>

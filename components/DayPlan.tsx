@@ -63,11 +63,11 @@ export default function DayPlan({
             <div className="flex-shrink-0 w-14 text-right pt-3">
               <span
                 className="text-xs font-semibold block leading-tight"
-                style={{ color: "rgba(234, 88, 12, 0.6)" }}
+                style={{ color: "#c2410c" }}
               >
                 {planItem.scheduledTime}
               </span>
-              <p className="text-xs leading-tight mt-0.5" style={{ color: "rgba(249, 115, 22, 0.35)" }}>
+              <p className="text-xs leading-tight mt-0.5" style={{ color: "#9a3412" }}>
                 {planItem.estimatedMinutes}m
               </p>
             </div>
@@ -92,7 +92,7 @@ export default function DayPlan({
                 {planItem.reason && (
                   <p
                     className="text-xs mt-1.5 ml-2 italic"
-                    style={{ color: "rgba(249, 115, 22, 0.35)" }}
+                    style={{ color: "#92400e" }}
                   >
                     {planItem.reason}
                   </p>
@@ -130,10 +130,10 @@ export default function DayPlan({
   })
 
   const priorityLabels: Record<string, { label: string; color: string }> = {
-    high:   { label: "High Priority",   color: "#fb7185" },
-    medium: { label: "Medium Priority", color: "#fbbf24" },
-    low:    { label: "Low Priority",    color: "#34d399" },
-    other:  { label: "Other",           color: "rgba(249, 115, 22, 0.5)" },
+    high:   { label: "High Priority",   color: "#dc2626" },
+    medium: { label: "Medium Priority", color: "#b45309" },
+    low:    { label: "Low Priority",    color: "#047857" },
+    other:  { label: "Other",           color: "#9a3412" },
   }
 
   const sections = [...priorityOrder, "other"]

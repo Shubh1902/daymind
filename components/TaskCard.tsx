@@ -19,9 +19,9 @@ type Task = {
 }
 
 const priorityConfig: Record<string, { bg: string; text: string; dot: string }> = {
-  high:   { bg: "rgba(244, 63, 94, 0.12)",  text: "#fb7185", dot: "#f43f5e" },
-  medium: { bg: "rgba(245, 158, 11, 0.12)", text: "#fbbf24", dot: "#f59e0b" },
-  low:    { bg: "rgba(20, 184, 166, 0.12)", text: "#34d399", dot: "#10b981" },
+  high:   { bg: "rgba(220, 38, 38, 0.12)",  text: "#dc2626", dot: "#dc2626" },
+  medium: { bg: "rgba(217, 119, 6, 0.14)",  text: "#b45309", dot: "#d97706" },
+  low:    { bg: "rgba(5, 150, 105, 0.12)",  text: "#047857", dot: "#059669" },
 }
 
 function formatDeadline(date: Date | null) {
@@ -112,13 +112,13 @@ export default function TaskCard({ task }: { task: Task }) {
           {task.category && (
             <span
               className="text-xs px-2 py-0.5 rounded-full font-medium"
-              style={{ background: "rgba(249, 115, 22, 0.1)", color: "rgba(234, 88, 12, 0.7)" }}
+              style={{ background: "rgba(234, 88, 12, 0.1)", color: "#c2410c" }}
             >
               {task.category}
             </span>
           )}
           {task.deadline && (
-            <span className="text-xs flex items-center gap-1" style={{ color: "rgba(249, 115, 22, 0.5)" }}>
+            <span className="text-xs flex items-center gap-1" style={{ color: "#9a3412" }}>
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
@@ -126,7 +126,7 @@ export default function TaskCard({ task }: { task: Task }) {
             </span>
           )}
           {task.estimatedMinutes && (
-            <span className="text-xs flex items-center gap-1" style={{ color: "rgba(249, 115, 22, 0.5)" }}>
+            <span className="text-xs flex items-center gap-1" style={{ color: "#9a3412" }}>
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -138,19 +138,19 @@ export default function TaskCard({ task }: { task: Task }) {
               onClick={(e) => { e.stopPropagation(); setShowAgent(true) }}
               className="text-xs px-2 py-0.5 rounded-full font-medium transition-all duration-200"
               style={{
-                background: "rgba(96, 165, 250, 0.12)",
-                color: "#93c5fd",
-                border: "1px solid rgba(96, 165, 250, 0.2)"
+                background: "rgba(37, 99, 235, 0.1)",
+                color: "#2563eb",
+                border: "1px solid rgba(37, 99, 235, 0.2)"
               }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(96, 165, 250, 0.22)" }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(96, 165, 250, 0.12)" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(37, 99, 235, 0.18)" }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(37, 99, 235, 0.1)" }}
             >
               ✨ AI can help
             </button>
           )}
         </div>
         {task.notes && (
-          <p className="text-xs mt-1.5 truncate italic" style={{ color: "rgba(249, 115, 22, 0.4)" }}>
+          <p className="text-xs mt-1.5 truncate italic" style={{ color: "#92400e" }}>
             {task.notes}
           </p>
         )}

@@ -184,3 +184,45 @@ export async function enhanceClothingImage(dataUri: string): Promise<string> {
 export function getProductDisplayFilter(): string {
   return "brightness(1.05) contrast(1.08) saturate(1.12)"
 }
+
+/**
+ * AI-powered image refinement via Replicate.
+ * Removes background, smooths wrinkles, adds studio lighting.
+ * Falls back to canvas-only enhancement if AI is unavailable.
+ *
+ * Returns { refined, bgRemoved, usedAI }
+ */
+export async function refineClothingImageAI(
+  dataUri: string
+): Promise<{ refined: string; bgRemoved: string | null; usedAI: boolean }> {
+  try {
+    const res = await fetch("/api/closet/refine-image", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageData: dataUri }),
+    })
+
+    if (!res.ok) throw new Error("AI refinement unavailable")
+
+    const data = await res.json()
+    if (data.error) throw new Error(data.error)
+
+    // AI returned a refined image — still run canvas pipeline for
+    // consistent framing (square crop, padding, vignette)
+    const finalImage = await enhanceClothingImage(data.refined)
+
+    return {
+      refined: finalImage,
+      bgRemoved: data.bgRemoved ?? null,
+      usedAI: true,
+    }
+  } catch {
+    // Fallback: canvas-only enhancement
+    const enhanced = await enhanceClothingImage(dataUri)
+    return {
+      refined: enhanced,
+      bgRemoved: null,
+      usedAI: false,
+    }
+  }
+}

@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState, useCallback } from "react"
-import { enhanceClothingImage } from "@/lib/imageEnhance"
+import { refineClothingImageAI } from "@/lib/imageEnhance"
 import { getProductDisplayFilter } from "@/lib/imageEnhance"
 
 type UploadedPhoto = {
@@ -17,6 +17,8 @@ type UploadedPhoto = {
   name?: string
   vibes?: string[]
   error?: string
+  usedAI?: boolean
+  refining?: boolean
 }
 
 interface GalleryUploadProps {
@@ -54,15 +56,15 @@ export default function GalleryUpload({ onAllSaved }: GalleryUploadProps) {
           const rawDataUri = await readFileAsDataUri(file)
 
           // Add with raw preview immediately
-          const photo: UploadedPhoto = { id, dataUri: rawDataUri, categorizing: true }
+          const photo: UploadedPhoto = { id, dataUri: rawDataUri, categorizing: true, refining: true }
           setPhotos((prev) => [...prev, photo])
 
-          // Enhance image to product-shot quality
-          const enhancedDataUri = await enhanceClothingImage(rawDataUri)
+          // AI-powered refinement (bg removal + wrinkle smoothing + studio lighting)
+          const { refined: enhancedDataUri, usedAI } = await refineClothingImageAI(rawDataUri)
 
           // Update with enhanced version
           setPhotos((prev) =>
-            prev.map((p) => (p.id === id ? { ...p, dataUri: enhancedDataUri } : p))
+            prev.map((p) => (p.id === id ? { ...p, dataUri: enhancedDataUri, refining: false, usedAI } : p))
           )
 
           // Auto-categorize
@@ -364,13 +366,29 @@ export default function GalleryUpload({ onAllSaved }: GalleryUploadProps) {
                   />
                 </div>
 
+                {/* AI badge */}
+                {photo.usedAI && !photo.categorizing && !photo.refining && (
+                  <div
+                    className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-xs font-medium z-10"
+                    style={{ background: "rgba(168, 85, 247, 0.9)", color: "white" }}
+                  >
+                    ✨ AI
+                  </div>
+                )}
+
                 {/* Status overlay */}
                 <div
                   className="absolute inset-0 flex items-end"
                   style={{ background: "linear-gradient(transparent 50%, rgba(0,0,0,0.7))" }}
                 >
                   <div className="p-2 w-full">
-                    {photo.categorizing && (
+                    {photo.refining && (
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className="w-3 h-3 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+                        <span className="text-xs text-purple-200">AI refining...</span>
+                      </div>
+                    )}
+                    {photo.categorizing && !photo.refining && (
                       <div className="flex items-center gap-1.5">
                         <span className="w-3 h-3 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
                         <span className="text-xs text-white/80">Analyzing...</span>

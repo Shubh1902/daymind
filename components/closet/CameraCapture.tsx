@@ -1,7 +1,9 @@
 "use client"
 
 import { useRef, useState, useCallback, useEffect } from "react"
-import { enhanceClothingImage } from "@/lib/imageEnhance"
+import { refineClothingImageAI } from "@/lib/imageEnhance"
+
+type EnhanceStatus = "enhancing" | "ai-refining" | "done"
 
 type DuplicateItem = {
   id: string
@@ -24,6 +26,8 @@ type CapturedPhoto = {
   vibes?: string[]
   error?: string
   duplicates?: DuplicateItem[]
+  enhanceStatus?: EnhanceStatus
+  usedAI?: boolean
 }
 
 interface CameraCaptureProps {
@@ -86,15 +90,16 @@ export default function CameraCapture({ onAllSaved }: CameraCaptureProps) {
     const id = crypto.randomUUID()
 
     // Show raw photo immediately with "enhancing" state
-    const photo: CapturedPhoto = { id, dataUri: rawDataUri, categorizing: true }
+    const photo: CapturedPhoto = { id, dataUri: rawDataUri, categorizing: true, enhanceStatus: "ai-refining" }
     setPhotos((prev) => [photo, ...prev])
 
-    // Enhance image to look like a product shot (clean bg, bright, sharp)
-    const enhancedDataUri = await enhanceClothingImage(rawDataUri)
+    // AI-powered refinement (bg removal + wrinkle smoothing + studio lighting)
+    // Falls back to canvas-only enhancement if AI is unavailable
+    const { refined: enhancedDataUri, usedAI } = await refineClothingImageAI(rawDataUri)
 
     // Update with enhanced version
     setPhotos((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, dataUri: enhancedDataUri } : p))
+      prev.map((p) => (p.id === id ? { ...p, dataUri: enhancedDataUri, enhanceStatus: "done", usedAI } : p))
     )
 
     // Auto-categorize with the enhanced image
@@ -349,7 +354,13 @@ export default function CameraCapture({ onAllSaved }: CameraCaptureProps) {
                   style={{ background: "linear-gradient(transparent 40%, rgba(0,0,0,0.7))" }}
                 >
                   <div className="p-2 w-full">
-                    {photo.categorizing && (
+                    {photo.enhanceStatus === "ai-refining" && (
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className="w-3 h-3 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+                        <span className="text-xs text-purple-200">AI refining...</span>
+                      </div>
+                    )}
+                    {photo.categorizing && photo.enhanceStatus === "done" && (
                       <div className="flex items-center gap-1.5">
                         <span className="w-3 h-3 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
                         <span className="text-xs text-white/80">Analyzing...</span>
@@ -384,11 +395,21 @@ export default function CameraCapture({ onAllSaved }: CameraCaptureProps) {
                   </div>
                 </div>
 
+                {/* AI enhanced badge */}
+                {photo.usedAI && !photo.categorizing && (
+                  <div
+                    className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-xs font-medium"
+                    style={{ background: "rgba(168, 85, 247, 0.9)", color: "white" }}
+                  >
+                    ✨ AI
+                  </div>
+                )}
+
                 {/* Duplicate warning */}
                 {photo.duplicates && photo.duplicates.length > 0 && (
                   <div
                     className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-xs font-medium"
-                    style={{ background: "rgba(245, 158, 11, 0.9)", color: "white" }}
+                    style={{ background: "rgba(245, 158, 11, 0.9)", color: "white", top: photo.usedAI ? "28px" : "4px" }}
                     title={`Similar to: ${photo.duplicates.map((d) => d.name).join(", ")}`}
                   >
                     ⚠️ Similar

@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
-  const { imageData, category, subcategory, color, pattern, season, name } = body
+  const { imageData, category, subcategory, color, colorHex, pattern, season, name, vibes } = body
 
   if (!imageData || !category) {
     return Response.json({ error: "imageData and category are required" }, { status: 400 })
@@ -34,9 +34,11 @@ export async function POST(request: NextRequest) {
       category,
       subcategory: subcategory ?? null,
       color: color ?? null,
+      colorHex: colorHex ?? null,
       pattern: pattern ?? null,
       season: season ?? null,
       name: name ?? null,
+      vibes: Array.isArray(vibes) ? vibes : [],
     },
   })
 

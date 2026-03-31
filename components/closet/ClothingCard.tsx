@@ -9,9 +9,11 @@ type ClothingItem = {
   category: string
   subcategory: string | null
   color: string | null
+  colorHex: string | null
   pattern: string | null
   season: string | null
   name: string | null
+  vibes: string[]
   favorite: boolean
   wearCount: number
   createdAt: string
@@ -25,7 +27,13 @@ const categoryEmoji: Record<string, string> = {
   accessories: "👜",
 }
 
-export default function ClothingCard({ item }: { item: ClothingItem }) {
+interface Props {
+  item: ClothingItem
+  compact?: boolean
+  onWhatGoesWith?: (item: ClothingItem) => void
+}
+
+export default function ClothingCard({ item, compact, onWhatGoesWith }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
@@ -65,6 +73,26 @@ export default function ClothingCard({ item }: { item: ClothingItem }) {
     setLoading(false)
   }
 
+  if (compact) {
+    return (
+      <div
+        className="rounded-lg overflow-hidden"
+        style={{ border: "1px solid var(--border)", opacity: loading ? 0.5 : 1 }}
+      >
+        <img
+          src={item.imageData}
+          alt={item.name ?? item.category}
+          className="w-full aspect-square object-cover"
+        />
+        <div className="px-2 py-1.5">
+          <p className="text-xs font-medium truncate" style={{ color: "#431407" }}>
+            {item.name ?? item.subcategory ?? item.category}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div
       className="card-hover rounded-xl overflow-hidden relative group"
@@ -98,6 +126,19 @@ export default function ClothingCard({ item }: { item: ClothingItem }) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </button>
+          {onWhatGoesWith && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onWhatGoesWith(item) }}
+              disabled={loading}
+              className="p-2.5 rounded-full transition-transform hover:scale-110"
+              style={{ background: "rgba(168, 85, 247, 0.9)", color: "white" }}
+              title="What goes with this?"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+              </svg>
+            </button>
+          )}
           <button
             onClick={deleteItem}
             disabled={loading}
@@ -136,25 +177,31 @@ export default function ClothingCard({ item }: { item: ClothingItem }) {
           </svg>
         </button>
 
-        {/* Category badge */}
-        <div
-          className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-xs font-medium"
-          style={{
-            background: "rgba(0, 0, 0, 0.5)",
-            backdropFilter: "blur(4px)",
-            color: "white",
-          }}
-        >
-          {categoryEmoji[item.category] ?? "🧵"} {item.category}
+        {/* Category + color badge */}
+        <div className="absolute top-2 left-2 flex items-center gap-1">
+          <div
+            className="px-2 py-0.5 rounded-full text-xs font-medium"
+            style={{
+              background: "rgba(0, 0, 0, 0.5)",
+              backdropFilter: "blur(4px)",
+              color: "white",
+            }}
+          >
+            {categoryEmoji[item.category] ?? "🧵"} {item.category}
+          </div>
+          {item.colorHex && (
+            <div
+              className="w-5 h-5 rounded-full border-2 border-white/50"
+              style={{ background: item.colorHex }}
+              title={item.color ?? ""}
+            />
+          )}
         </div>
       </div>
 
       {/* Info */}
       <div className="p-3">
-        <p
-          className="text-sm font-medium truncate"
-          style={{ color: "#431407" }}
-        >
+        <p className="text-sm font-medium truncate" style={{ color: "#431407" }}>
           {item.name ?? `${item.subcategory ?? item.category}`}
         </p>
         <div className="flex flex-wrap gap-1 mt-1.5">
@@ -174,10 +221,19 @@ export default function ClothingCard({ item }: { item: ClothingItem }) {
               {item.pattern}
             </span>
           )}
+          {item.vibes?.slice(0, 2).map((v) => (
+            <span
+              key={v}
+              className="text-xs px-1.5 py-0.5 rounded-full"
+              style={{ background: "rgba(34, 197, 94, 0.08)", color: "rgba(34, 197, 94, 0.7)" }}
+            >
+              {v}
+            </span>
+          ))}
           {item.wearCount > 0 && (
             <span
               className="text-xs px-1.5 py-0.5 rounded-full"
-              style={{ background: "rgba(34, 197, 94, 0.08)", color: "rgba(34, 197, 94, 0.7)" }}
+              style={{ background: "rgba(56, 189, 248, 0.08)", color: "rgba(56, 189, 248, 0.8)" }}
             >
               Worn {item.wearCount}x
             </span>

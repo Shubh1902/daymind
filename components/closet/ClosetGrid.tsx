@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, useCallback } from "react"
 import ClothingCard from "./ClothingCard"
+import ColorPaletteFilter from "./ColorPaletteFilter"
 
 type ClothingItem = {
   id: string
@@ -10,9 +10,11 @@ type ClothingItem = {
   category: string
   subcategory: string | null
   color: string | null
+  colorHex: string | null
   pattern: string | null
   season: string | null
   name: string | null
+  vibes: string[]
   favorite: boolean
   wearCount: number
   createdAt: string
@@ -27,24 +29,52 @@ const CATEGORIES = [
   { value: "accessories", label: "Accessories", emoji: "👜" },
 ]
 
+const VIBES = [
+  { value: "casual", emoji: "☀️" },
+  { value: "office", emoji: "💼" },
+  { value: "party", emoji: "🎉" },
+  { value: "date", emoji: "🌹" },
+  { value: "nightlife", emoji: "🌙" },
+  { value: "brunch", emoji: "🥂" },
+  { value: "gym", emoji: "💪" },
+  { value: "modest", emoji: "🧕" },
+  { value: "sexy", emoji: "🔥" },
+  { value: "streetwear", emoji: "🛹" },
+  { value: "vacation", emoji: "🏖️" },
+]
+
 interface ClosetGridProps {
   initialItems: ClothingItem[]
 }
 
 export default function ClosetGrid({ initialItems }: ClosetGridProps) {
-  const router = useRouter()
   const [items, setItems] = useState<ClothingItem[]>(initialItems)
   const [activeCategory, setActiveCategory] = useState("all")
+  const [activeVibes, setActiveVibes] = useState<string[]>([])
+  const [activeColors, setActiveColors] = useState<string[]>([])
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
 
-  // Re-sync when initialItems changes (server refresh)
   useEffect(() => {
     setItems(initialItems)
   }, [initialItems])
 
+  const toggleVibe = useCallback((vibe: string) => {
+    setActiveVibes((prev) =>
+      prev.includes(vibe) ? prev.filter((v) => v !== vibe) : [...prev, vibe]
+    )
+  }, [])
+
+  const toggleColor = useCallback((hex: string) => {
+    setActiveColors((prev) =>
+      prev.includes(hex) ? prev.filter((c) => c !== hex) : [...prev, hex]
+    )
+  }, [])
+
   const filtered = items.filter((item) => {
     if (activeCategory !== "all" && item.category !== activeCategory) return false
     if (showFavoritesOnly && !item.favorite) return false
+    if (activeVibes.length > 0 && !activeVibes.some((v) => item.vibes?.includes(v))) return false
+    if (activeColors.length > 0 && (!item.colorHex || !activeColors.includes(item.colorHex))) return false
     return true
   })
 
@@ -53,10 +83,19 @@ export default function ClosetGrid({ initialItems }: ClosetGridProps) {
     return acc
   }, {})
 
+  // Collect all colors for the palette
+  const allColors = items.map((i) => i.colorHex).filter(Boolean) as string[]
+
+  // Only show vibes that exist in the items
+  const existingVibes = new Set(items.flatMap((i) => i.vibes ?? []))
+  const availableVibes = VIBES.filter((v) => existingVibes.has(v.value))
+
+  const hasActiveFilters = activeVibes.length > 0 || activeColors.length > 0 || showFavoritesOnly
+
   return (
     <div>
       {/* Category filter tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-hide">
         {CATEGORIES.map((cat) => {
           const isActive = activeCategory === cat.value
           const count = cat.value === "all" ? items.length : (categoryCounts[cat.value] ?? 0)
@@ -91,11 +130,68 @@ export default function ClosetGrid({ initialItems }: ClosetGridProps) {
         })}
       </div>
 
-      {/* Favorites toggle */}
+      {/* Vibe tags */}
+      {availableVibes.length > 0 && (
+        <div className="mb-3">
+          <p className="text-xs font-semibold mb-2" style={{ color: "rgba(234, 88, 12, 0.6)" }}>
+            Vibe
+          </p>
+          <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+            {availableVibes.map((vibe) => {
+              const isActive = activeVibes.includes(vibe.value)
+              return (
+                <button
+                  key={vibe.value}
+                  onClick={() => toggleVibe(vibe.value)}
+                  className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200"
+                  style={{
+                    background: isActive
+                      ? "linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(168, 85, 247, 0.08))"
+                      : "var(--surface-2)",
+                    color: isActive ? "#a855f7" : "rgba(249, 115, 22, 0.5)",
+                    border: isActive
+                      ? "1px solid rgba(168, 85, 247, 0.3)"
+                      : "1px solid var(--border)",
+                  }}
+                >
+                  <span>{vibe.emoji}</span>
+                  {vibe.value}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Color palette filter */}
+      <ColorPaletteFilter
+        colors={allColors}
+        activeColors={activeColors}
+        onToggle={toggleColor}
+        onClear={() => setActiveColors([])}
+      />
+
+      {/* Favorites toggle + count */}
       <div className="flex items-center justify-between mb-4">
-        <p className="text-xs" style={{ color: "rgba(249, 115, 22, 0.5)" }}>
-          {filtered.length} items
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="text-xs" style={{ color: "rgba(249, 115, 22, 0.5)" }}>
+            {filtered.length} items
+          </p>
+          {hasActiveFilters && (
+            <button
+              onClick={() => {
+                setActiveVibes([])
+                setActiveColors([])
+                setShowFavoritesOnly(false)
+                setActiveCategory("all")
+              }}
+              className="text-xs px-2 py-0.5 rounded-full"
+              style={{ background: "rgba(244, 63, 94, 0.1)", color: "#fb7185" }}
+            >
+              Clear all filters
+            </button>
+          )}
+        </div>
         <button
           onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
           className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-all duration-200"
@@ -134,11 +230,11 @@ export default function ClosetGrid({ initialItems }: ClosetGridProps) {
             <span className="text-2xl">👗</span>
           </div>
           <p className="text-lg font-semibold" style={{ color: "rgba(234, 88, 12, 0.6)" }}>
-            {showFavoritesOnly ? "No favorites yet" : "No items yet"}
+            {hasActiveFilters ? "No matches" : "No items yet"}
           </p>
           <p className="text-sm mt-1" style={{ color: "rgba(249, 115, 22, 0.35)" }}>
-            {showFavoritesOnly
-              ? "Heart your favorite pieces to see them here"
+            {hasActiveFilters
+              ? "Try adjusting your filters"
               : "Take photos of your clothes to start building your closet"}
           </p>
         </div>
@@ -148,7 +244,7 @@ export default function ClosetGrid({ initialItems }: ClosetGridProps) {
             <div
               key={item.id}
               className="animate-slide-up"
-              style={{ animationDelay: `${i * 40}ms` }}
+              style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}
             >
               <ClothingCard item={item} />
             </div>

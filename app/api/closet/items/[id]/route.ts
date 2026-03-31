@@ -24,6 +24,8 @@ export async function PATCH(
   if (body.pattern !== undefined) data.pattern = body.pattern
   if (body.season !== undefined) data.season = body.season
   if (body.name !== undefined) data.name = body.name
+  if (body.colorHex !== undefined) data.colorHex = body.colorHex
+  if (body.vibes !== undefined) data.vibes = Array.isArray(body.vibes) ? body.vibes : []
   if (body.favorite !== undefined) data.favorite = body.favorite
   if (body.wearCount !== undefined) data.wearCount = Number(body.wearCount)
   if (body.lastWornAt !== undefined) data.lastWornAt = body.lastWornAt ? new Date(body.lastWornAt) : null

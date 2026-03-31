@@ -9,9 +9,11 @@ type CapturedPhoto = {
   category?: string
   subcategory?: string
   color?: string
+  colorHex?: string
   pattern?: string
   season?: string
   name?: string
+  vibes?: string[]
   error?: string
 }
 
@@ -101,9 +103,11 @@ export default function CameraCapture({ onAllSaved }: CameraCaptureProps) {
                 category: data.category,
                 subcategory: data.subcategory,
                 color: data.color,
+                colorHex: data.colorHex,
                 pattern: data.pattern,
                 season: data.season,
                 name: data.name,
+                vibes: data.vibes,
               }
             : p
         )
@@ -145,9 +149,11 @@ export default function CameraCapture({ onAllSaved }: CameraCaptureProps) {
               category: p.category,
               subcategory: p.subcategory,
               color: p.color,
+              colorHex: p.colorHex,
               pattern: p.pattern,
               season: p.season,
               name: p.name,
+              vibes: p.vibes,
             }),
           })
         )

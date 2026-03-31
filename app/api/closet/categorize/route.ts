@@ -29,9 +29,11 @@ export async function POST(request: NextRequest) {
   "category": "tops" | "bottoms" | "dresses" | "shoes" | "accessories",
   "subcategory": "specific type like t-shirt, blouse, jeans, sneakers, handbag, etc.",
   "color": "primary color (e.g. navy blue, cream white, forest green)",
+  "colorHex": "#hex code of the primary color (e.g. #1e3a5f)",
   "pattern": "solid" | "striped" | "plaid" | "floral" | "polka-dot" | "graphic" | "abstract" | "animal-print",
   "season": "spring" | "summer" | "fall" | "winter" | "all",
-  "name": "a short descriptive name like 'Navy Linen Blazer' or 'White Cotton T-Shirt'"
+  "name": "a short descriptive name like 'Navy Linen Blazer' or 'White Cotton T-Shirt'",
+  "vibes": ["array of 1-4 occasion/vibe tags from this list: office, nightlife, party, date, casual, gym, brunch, modest, sexy, streetwear, vacation"]
 }
 
 Rules:
@@ -40,6 +42,8 @@ Rules:
 - "dresses" includes all one-piece garments: dresses, jumpsuits, rompers
 - "shoes" includes all footwear: sneakers, heels, boots, sandals, flats
 - "accessories" includes bags, scarves, hats, belts, jewelry
+- Assign vibes based on the item's style, cut, fabric, and overall look
+- colorHex must be a valid CSS hex color
 - Return ONLY the JSON, no explanation`,
       messages: [
         {

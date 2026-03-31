@@ -75,8 +75,10 @@ model ClothingItem {
   category    String   // "tops" | "bottoms" | "dresses" | "shoes" | "accessories"
   subcategory String?  // e.g. "t-shirt", "blouse", "jeans", "sneakers"
   color       String?  // primary color detected by AI
+  colorHex    String?  // hex code for visual swatch, e.g. "#1e3a5f"
   pattern     String?  // e.g. "solid", "striped", "floral", "plaid"
   season      String?  // "spring", "summer", "fall", "winter", "all"
+  vibes       String[] @default([]) // ["office", "nightlife", "party", "date", "casual", "gym", "brunch", "modest", "sexy"]
   name        String?  // optional user-given name
   favorite    Boolean  @default(false)
   wearCount   Int      @default(0)
@@ -88,15 +90,17 @@ model ClothingItem {
 }
 
 model Outfit {
-  id          String       @id @default(cuid())
-  userId      String
-  name        String?
-  occasion    String?      // "casual", "work", "date", "party"
-  aiGenerated Boolean      @default(false)
-  saved       Boolean      @default(false)
-  rating      Int?         // 1-5 user rating
-  createdAt   DateTime     @default(now())
-  items       OutfitItem[]
+  id              String               @id @default(cuid())
+  userId          String
+  name            String?
+  occasion        String?              // "casual", "work", "date", "party"
+  aiGenerated     Boolean              @default(false)
+  saved           Boolean              @default(false)
+  rating          Int?                 // 1-5 user rating
+  feedback        String?              // AI feedback on the combination
+  createdAt       DateTime             @default(now())
+  items           OutfitItem[]
+  calendarEntries OutfitCalendarEntry[]
 }
 
 model OutfitItem {
@@ -107,4 +111,26 @@ model OutfitItem {
   clothingItem   ClothingItem @relation(fields: [clothingItemId], references: [id], onDelete: Cascade)
 
   @@unique([outfitId, clothingItemId])
+}
+
+model OutfitCalendarEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime
+  outfitId  String?
+  outfit    Outfit?  @relation(fields: [outfitId], references: [id], onDelete: SetNull)
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, date])
+}
+
+model StyleProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  styleDna    Json     // { primary, secondary, breakdown }
+  gapAnalysis Json?    // { categoryBalance, suggestions }
+  analyzedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

@@ -141,15 +141,15 @@ export default function ItemDetailSheet({ item, onClose, onWhatGoesWith }: Props
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true" onClick={onClose}>
-      <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }} />
+      <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)" }} />
       <div
         className="relative w-full max-w-lg rounded-t-2xl max-h-[90vh] overflow-y-auto animate-slide-up"
-        style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+        style={{ background: "#ffffff", borderTop: "1px solid #e5e7eb" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Handle bar */}
         <div className="flex justify-center pt-3 pb-2">
-          <div className="w-10 h-1 rounded-full" style={{ background: "rgba(249, 115, 22, 0.2)" }} />
+          <div className="w-10 h-1 rounded-full" style={{ background: "#d4d4d8" }} />
         </div>
 
         {/* Main image viewer */}
@@ -266,27 +266,27 @@ export default function ItemDetailSheet({ item, onClose, onWhatGoesWith }: Props
 
           {/* Tags */}
           <div className="flex flex-wrap gap-1.5 mb-4">
-            <span className="text-xs px-2 py-1 rounded-full capitalize" style={{ background: "rgba(249, 115, 22, 0.1)", color: "#ea580c" }}>
+            <span className="text-xs font-medium px-2.5 py-1 rounded-full capitalize" style={{ background: "#fff7ed", color: "#c2410c", border: "1px solid #fed7aa" }}>
               {item.category}
             </span>
             {item.subcategory && (
-              <span className="text-xs px-2 py-1 rounded-full" style={{ background: "rgba(249, 115, 22, 0.06)", color: "rgba(234, 88, 12, 0.7)" }}>
+              <span className="text-xs font-medium px-2.5 py-1 rounded-full" style={{ background: "#fff7ed", color: "#c2410c", border: "1px solid #fed7aa" }}>
                 {item.subcategory}
               </span>
             )}
             {item.color && (
-              <span className="text-xs px-2 py-1 rounded-full flex items-center gap-1" style={{ background: "rgba(249, 115, 22, 0.06)", color: "rgba(234, 88, 12, 0.7)" }}>
-                {item.colorHex && <span className="w-3 h-3 rounded-full inline-block" style={{ background: item.colorHex }} />}
+              <span className="text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1.5" style={{ background: "#f9fafb", color: "#374151", border: "1px solid #e5e7eb" }}>
+                {item.colorHex && <span className="w-3 h-3 rounded-full inline-block shrink-0" style={{ background: item.colorHex, border: "1px solid rgba(0,0,0,0.1)" }} />}
                 {item.color}
               </span>
             )}
             {item.pattern && item.pattern !== "solid" && (
-              <span className="text-xs px-2 py-1 rounded-full" style={{ background: "rgba(168, 85, 247, 0.08)", color: "#a855f7" }}>
+              <span className="text-xs font-medium px-2.5 py-1 rounded-full" style={{ background: "#faf5ff", color: "#7c3aed", border: "1px solid #e9d5ff" }}>
                 {item.pattern}
               </span>
             )}
             {item.season && (
-              <span className="text-xs px-2 py-1 rounded-full capitalize" style={{ background: "rgba(56, 189, 248, 0.08)", color: "rgba(56, 189, 248, 0.8)" }}>
+              <span className="text-xs font-medium px-2.5 py-1 rounded-full capitalize" style={{ background: "#f0f9ff", color: "#0369a1", border: "1px solid #bae6fd" }}>
                 {item.season}
               </span>
             )}
@@ -296,7 +296,7 @@ export default function ItemDetailSheet({ item, onClose, onWhatGoesWith }: Props
           {item.vibes?.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-4">
               {item.vibes.map((v) => (
-                <span key={v} className="text-xs px-2 py-1 rounded-full capitalize" style={{ background: "rgba(34, 197, 94, 0.08)", color: "#22c55e" }}>
+                <span key={v} className="text-xs font-medium px-2.5 py-1 rounded-full capitalize" style={{ background: "#f0fdf4", color: "#15803d", border: "1px solid #bbf7d0" }}>
                   {v}
                 </span>
               ))}
@@ -305,39 +305,39 @@ export default function ItemDetailSheet({ item, onClose, onWhatGoesWith }: Props
 
           {/* Stats row */}
           <div
-            className="flex items-center gap-6 mb-5 px-4 py-3 rounded-xl"
-            style={{ background: "rgba(249, 115, 22, 0.04)", border: "1px solid rgba(249, 115, 22, 0.08)" }}
+            className="flex items-center justify-around mb-5 px-4 py-3.5 rounded-xl"
+            style={{ background: "#fff7ed", border: "1px solid #fed7aa" }}
           >
             <div className="text-center">
-              <p className="text-lg font-bold" style={{ color: "#431407" }}>{item.wearCount}</p>
-              <p className="text-xs" style={{ color: "rgba(249, 115, 22, 0.5)" }}>Worn</p>
+              <p className="text-lg font-bold" style={{ color: "#9a3412" }}>{item.wearCount}</p>
+              <p className="text-xs font-medium" style={{ color: "#c2410c" }}>Worn</p>
             </div>
+            <div className="w-px h-8" style={{ background: "#fed7aa" }} />
             {daysAgo !== null && (
-              <div className="text-center">
-                <p className="text-lg font-bold" style={{ color: "#431407" }}>{daysAgo}d</p>
-                <p className="text-xs" style={{ color: "rgba(249, 115, 22, 0.5)" }}>Last worn</p>
-              </div>
+              <>
+                <div className="text-center">
+                  <p className="text-lg font-bold" style={{ color: "#9a3412" }}>{daysAgo}d</p>
+                  <p className="text-xs font-medium" style={{ color: "#c2410c" }}>Last worn</p>
+                </div>
+                <div className="w-px h-8" style={{ background: "#fed7aa" }} />
+              </>
             )}
             <div className="text-center">
-              <p className="text-lg font-bold" style={{ color: "#431407" }}>{allImages.length}</p>
-              <p className="text-xs" style={{ color: "rgba(249, 115, 22, 0.5)" }}>Photos</p>
+              <p className="text-lg font-bold" style={{ color: "#9a3412" }}>{allImages.length}</p>
+              <p className="text-xs font-medium" style={{ color: "#c2410c" }}>Photos</p>
             </div>
           </div>
 
           {/* Action buttons — clean grid */}
-          <div className="grid grid-cols-2 gap-2 mb-3">
+          <div className="grid grid-cols-2 gap-2.5 mb-4">
             {/* Mark as worn */}
             <button
               onClick={markWorn}
               disabled={actionLoading}
-              className="py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
-              style={{
-                background: "rgba(249, 115, 22, 0.08)",
-                color: "#ea580c",
-                border: "1px solid rgba(249, 115, 22, 0.15)",
-              }}
+              className="py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.97]"
+              style={{ background: "#fff7ed", color: "#9a3412", border: "1px solid #fdba74" }}
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
               Worn Today
@@ -347,14 +347,10 @@ export default function ItemDetailSheet({ item, onClose, onWhatGoesWith }: Props
             {onWhatGoesWith && (
               <button
                 onClick={() => { onWhatGoesWith(item); onClose() }}
-                className="py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
-                style={{
-                  background: "rgba(168, 85, 247, 0.08)",
-                  color: "#7c3aed",
-                  border: "1px solid rgba(168, 85, 247, 0.15)",
-                }}
+                className="py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.97]"
+                style={{ background: "#faf5ff", color: "#6d28d9", border: "1px solid #c4b5fd" }}
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                 </svg>
                 Style Match
@@ -365,12 +361,8 @@ export default function ItemDetailSheet({ item, onClose, onWhatGoesWith }: Props
             {(item.category === "tops" || item.category === "bottoms" || item.category === "dresses") && (
               <button
                 onClick={() => setShowTryOn(true)}
-                className="py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
-                style={{
-                  background: "linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(249, 115, 22, 0.06))",
-                  color: "#7c3aed",
-                  border: "1px solid rgba(168, 85, 247, 0.15)",
-                }}
+                className="py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.97]"
+                style={{ background: "#faf5ff", color: "#6d28d9", border: "1px solid #c4b5fd" }}
               >
                 <span className="text-sm">👗</span>
                 Try On
@@ -381,14 +373,10 @@ export default function ItemDetailSheet({ item, onClose, onWhatGoesWith }: Props
             <button
               onClick={deleteItem}
               disabled={actionLoading}
-              className="py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
-              style={{
-                background: "rgba(244, 63, 94, 0.06)",
-                color: "#e11d48",
-                border: "1px solid rgba(244, 63, 94, 0.12)",
-              }}
+              className="py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.97]"
+              style={{ background: "#fff1f2", color: "#be123c", border: "1px solid #fecdd3" }}
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
               </svg>
               Remove
@@ -398,8 +386,8 @@ export default function ItemDetailSheet({ item, onClose, onWhatGoesWith }: Props
           {/* Close */}
           <button
             onClick={onClose}
-            className="w-full py-2.5 rounded-xl text-sm font-semibold"
-            style={{ background: "var(--surface-2)", color: "#9a3412", border: "1px solid var(--border)" }}
+            className="w-full py-3 rounded-xl text-sm font-semibold transition-all active:scale-[0.98]"
+            style={{ background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db" }}
           >
             Close
           </button>

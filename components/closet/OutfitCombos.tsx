@@ -129,7 +129,7 @@ export default function OutfitCombos({ tops, bottoms, dresses }: Props) {
           </p>
 
           {/* Combo grid */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {filteredCombos.map((combo) => (
               <div
                 key={`${combo.top.id}-${combo.bottom.id}`}
@@ -303,7 +303,7 @@ export default function OutfitCombos({ tops, bottoms, dresses }: Props) {
               </div>
 
               {/* Match grid — show the OTHER side */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {(focusSide === "bottom" ? tops : bottoms).map((match) => {
                   const top = focusSide === "bottom" ? match : activeTop!
                   const bottom = focusSide === "bottom" ? activeBottom! : match

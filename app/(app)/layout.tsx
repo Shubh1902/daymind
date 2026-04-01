@@ -170,8 +170,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         })}
       </nav>
 
-      {/* Main content */}
-      <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 max-w-3xl w-full">
+      {/* Main content — closet gets full width, other pages stay constrained */}
+      <main className={`flex-1 p-4 md:p-8 pb-24 md:pb-8 w-full ${pathname.startsWith("/closet") ? "" : "max-w-3xl"}`}>
         {children}
       </main>
     </div>

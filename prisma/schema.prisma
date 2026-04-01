@@ -159,3 +159,30 @@ model StyleProfile {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+// ─── Household Task Tracker ───────────────────────
+
+model HouseholdMember {
+  id        String          @id @default(cuid())
+  name      String
+  slug      String          @unique // "shubhanshu" | "partner"
+  color     String          // hex color for charts, e.g. "#f97316"
+  tasks     HouseholdTask[]
+  createdAt DateTime        @default(now())
+}
+
+model HouseholdTask {
+  id              String          @id @default(cuid())
+  choreType       String          // "cooking", "cleaning", "laundry", etc.
+  description     String?         // optional note, e.g. "made pasta"
+  durationMinutes Int             // actual or auto-estimated
+  effortScore     Int             @default(2) // 1-5, auto-filled from choreType
+  memberId        String
+  member          HouseholdMember @relation(fields: [memberId], references: [id])
+  completedAt     DateTime        @default(now())
+  source          String          @default("form") // "form" | "voice"
+  createdAt       DateTime        @default(now())
+
+  @@index([memberId, completedAt])
+  @@index([choreType, completedAt])
+}

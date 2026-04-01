@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma"
 
 const DEFAULT_MEMBERS = [
   { name: "Shubhanshu", slug: "shubhanshu", color: "#f97316" },
-  { name: "Partner", slug: "partner", color: "#8b5cf6" },
+  { name: "Shanku", slug: "partner", color: "#8b5cf6" },
 ]
 
 export async function GET() {

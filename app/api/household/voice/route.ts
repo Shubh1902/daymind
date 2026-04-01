@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
 The household has two members: "${member1}" (slug: "shubhanshu") and "${member2}" (slug: "partner").
 - "I", "me", "my" → shubhanshu
-- "she", "her", "wife", "wifey", "partner", "babe", "${member2.toLowerCase()}" → partner
+- "she", "her", "wife", "wifey", "partner", "babe", "shanku", "shaa", "baba", "${member2.toLowerCase()}" → partner
 
 Known chore types: ${choreList}
 

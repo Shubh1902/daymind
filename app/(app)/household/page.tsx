@@ -13,7 +13,7 @@ import QuickLogFAB from "@/components/household/QuickLogFAB"
 // Auto-seed members if none exist
 const DEFAULT_MEMBERS = [
   { name: "Shubhanshu", slug: "shubhanshu", color: "#f97316" },
-  { name: "Partner", slug: "partner", color: "#8b5cf6" },
+  { name: "Shanku", slug: "partner", color: "#8b5cf6" },
 ]
 
 function computeStreak(dates: Date[]): number {

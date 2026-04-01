@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic"
 import { prisma } from "@/lib/prisma"
 import { getChoreEmoji } from "@/lib/household-chores"
 import Link from "next/link"
+import QuickTextInput from "@/components/household/QuickTextInput"
 import FairnessRing from "@/components/household/FairnessRing"
 import MemberStatCards from "@/components/household/MemberStatCards"
 import StreakCards from "@/components/household/StreakCards"
@@ -135,8 +136,13 @@ export default async function HouseholdPage() {
         </Link>
       </div>
 
+      {/* Quick text input — always visible */}
+      <div className="mb-4 animate-slide-up delay-50">
+        <QuickTextInput members={members.map((m) => ({ id: m.id, name: m.name, slug: m.slug, color: m.color }))} />
+      </div>
+
       {/* Fairness Ring */}
-      <div className="animate-slide-up delay-50">
+      <div className="animate-slide-up delay-100">
         <FairnessRing members={memberStats} fairness={fairness} />
       </div>
 

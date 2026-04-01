@@ -25,6 +25,7 @@ export default async function HouseholdHistoryPage() {
     id: t.id, choreType: t.choreType, description: t.description,
     durationMinutes: t.durationMinutes, effortScore: t.effortScore,
     completedAt: t.completedAt.toISOString(), source: t.source,
+    memberId: t.memberId,
     member: { id: t.member.id, name: t.member.name, slug: t.member.slug, color: t.member.color },
   }))
 

@@ -14,6 +14,20 @@ import Replicate from "replicate"
 const DEFAULT_MODEL_IMAGE =
   "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=768&h=1024&fit=crop&q=80"
 
+// Map app categories to IDM-VTON category enum values
+const CATEGORY_MAP: Record<string, "upper_body" | "lower_body" | "dresses"> = {
+  tops: "upper_body",
+  bottoms: "lower_body",
+  dresses: "dresses",
+}
+
+// Descriptive garment text for better try-on results
+const GARMENT_DESC_MAP: Record<string, string> = {
+  tops: "Upper body garment, top or shirt",
+  bottoms: "Lower body garment, pants or skirt",
+  dresses: "Full body dress",
+}
+
 export async function POST(request: NextRequest) {
   const token = process.env.REPLICATE_API_TOKEN
   if (!token) {
@@ -26,9 +40,9 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "garmentImage or garmentItemId is required" }, { status: 400 })
   }
 
-  // If an item ID was provided instead of image data, fetch it from DB
+  // Resolve garment image — always need base64 data URI for Replicate
   let resolvedGarmentImage = garmentImage
-  if (garmentItemId && !garmentImage) {
+  if (garmentItemId && (!garmentImage || !garmentImage.startsWith("data:"))) {
     const { prisma } = await import("@/lib/prisma")
     const item = await prisma.clothingItem.findUnique({
       where: { id: garmentItemId },
@@ -40,51 +54,68 @@ export async function POST(request: NextRequest) {
     resolvedGarmentImage = item.imageData
   }
 
+  // Safety check: Replicate needs an actual image, not a relative URL
+  if (resolvedGarmentImage && !resolvedGarmentImage.startsWith("data:") && !resolvedGarmentImage.startsWith("http")) {
+    return Response.json({ error: "Invalid garment image format" }, { status: 400 })
+  }
+
   const replicate = new Replicate({ auth: token })
 
-  // Determine garment description for the model
-  const garmentDesc = category === "dresses"
-    ? "full body dress"
-    : category === "bottoms"
-    ? "lower body pants/skirt"
-    : category === "tops"
-    ? "upper body top/shirt"
-    : "clothing item"
+  const idmCategory = CATEGORY_MAP[category] ?? "upper_body"
+  const garmentDesc = GARMENT_DESC_MAP[category] ?? "Clothing item"
 
   try {
-    console.log("[try-on] Starting IDM-VTON with token:", token.slice(0, 6) + "...")
-    // Use IDM-VTON for virtual try-on
+    console.log("[try-on] Starting IDM-VTON | category:", idmCategory, "| token:", token.slice(0, 6) + "...")
+
     const result = await replicate.run(
-      "cuuupid/idm-vton:906425dbca90663ff5427624839572cc56ea7d380343d13e2a4c4b09d3f0c30f" as `${string}/${string}:${string}`,
+      "cuuupid/idm-vton:0513734a452173b8173e907e3a59d19a36266e55b48528559432bd21c7d7e985" as `${string}/${string}:${string}`,
       {
         input: {
           human_img: modelImage ?? DEFAULT_MODEL_IMAGE,
           garm_img: resolvedGarmentImage,
           garment_des: garmentDesc,
-          is_checked: true,
-          is_checked_crop: false,
-          denoise_steps: 30,
+          category: idmCategory,
+          crop: true,       // Crop to handle non-3:4 images
+          steps: 30,        // Denoising steps (1-40)
           seed: 42,
         },
       }
     )
+
+    console.log("[try-on] IDM-VTON succeeded, result type:", typeof result, Array.isArray(result) ? `array[${(result as unknown[]).length}]` : "")
 
     const resultUrl = extractUrl(result)
     const resultB64 = await urlToDataUri(resultUrl)
 
     return Response.json({ tryOnImage: resultB64 })
   } catch (error: any) {
-    console.error("[try-on] IDM-VTON failed:", error?.message ?? error)
+    const errMsg = error?.message ?? String(error)
+    console.error("[try-on] IDM-VTON failed:", errMsg)
 
-    // Fallback: Use SDXL to generate a model wearing the garment
+    // If it's a billing/auth issue, don't bother with fallback — surface it directly
+    if (errMsg.includes("402") || errMsg.includes("Payment Required") || errMsg.includes("Insufficient credit")) {
+      return Response.json(
+        { error: "Replicate account has insufficient credit. Please add a payment method at replicate.com/account/billing." },
+        { status: 402 }
+      )
+    }
+    if (errMsg.includes("401") || errMsg.includes("Unauthorized") || errMsg.includes("Invalid token")) {
+      return Response.json(
+        { error: "Invalid Replicate API token. Please check your REPLICATE_API_TOKEN." },
+        { status: 401 }
+      )
+    }
+
+    // Fallback: Use SDXL to generate a styled image based on the garment
     try {
+      console.log("[try-on] Attempting SDXL fallback...")
       const fallbackResult = await replicate.run(
         "stability-ai/sdxl:7762fd07cf82c948538e41f63f77d685e02b063e37e496e96eefd46c929f9bdc" as `${string}/${string}:${string}`,
         {
           input: {
             image: resolvedGarmentImage,
             prompt:
-              `fashion model wearing this ${garmentDesc}, full body shot, ` +
+              `fashion model wearing this ${garmentDesc.toLowerCase()}, full body shot, ` +
               "professional fashion photography, studio lighting, clean white background, " +
               "model pose, high fashion editorial, sharp focus, 4k",
             negative_prompt:
@@ -107,7 +138,10 @@ export async function POST(request: NextRequest) {
       return Response.json({ tryOnImage: fallbackB64, method: "generated" })
     } catch (fallbackError: any) {
       console.error("[try-on] SDXL fallback also failed:", fallbackError?.message ?? fallbackError)
-      return Response.json({ error: "Virtual try-on failed. Check server logs for details." }, { status: 500 })
+      return Response.json(
+        { error: "Virtual try-on failed. Please try again later." },
+        { status: 500 }
+      )
     }
   }
 }

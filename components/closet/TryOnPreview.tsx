@@ -52,12 +52,13 @@ export default function TryOnPreview({ items, onClose }: Props) {
         }),
       })
 
-      if (!res.ok) throw new Error("Failed")
       const data = await res.json()
-      if (data.error) throw new Error(data.error)
+      if (!res.ok || data.error) {
+        throw new Error(data.error ?? `Request failed (${res.status})`)
+      }
       setTryOnImage(data.tryOnImage)
-    } catch {
-      setError("Could not generate try-on. Please try again later.")
+    } catch (err: any) {
+      setError(err?.message ?? "Could not generate try-on. Please try again later.")
     }
     setLoading(false)
   }

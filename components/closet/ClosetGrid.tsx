@@ -133,7 +133,7 @@ export default function ClosetGrid({ initialItems }: ClosetGridProps) {
       <div className="relative mb-3">
         <svg
           className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-          style={{ color: "rgba(249, 115, 22, 0.4)" }}
+          style={{ color: "var(--closet-text-3, rgba(249, 115, 22, 0.4))" }}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -149,9 +149,9 @@ export default function ClosetGrid({ initialItems }: ClosetGridProps) {
           aria-label="Search your closet"
           className="w-full pl-9 pr-8 py-2.5 rounded-xl text-sm"
           style={{
-            background: "var(--surface-2)",
-            border: "1px solid var(--border)",
-            color: "#431407",
+            background: "var(--closet-surface, var(--surface-2))",
+            border: "1px solid var(--closet-border, var(--border))",
+            color: "var(--closet-text, #431407)",
           }}
         />
         {searchQuery && (
@@ -183,12 +183,12 @@ export default function ClosetGrid({ initialItems }: ClosetGridProps) {
               className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200"
               style={{
                 background: isActive
-                  ? "linear-gradient(135deg, rgba(234, 88, 12, 0.12), rgba(249, 115, 22, 0.08))"
-                  : "var(--surface-2)",
-                color: isActive ? "#ea580c" : "rgba(249, 115, 22, 0.5)",
+                  ? "var(--closet-surface-2, rgba(234, 88, 12, 0.12))"
+                  : "var(--closet-surface, var(--surface-2))",
+                color: isActive ? "var(--closet-accent, #ea580c)" : "var(--closet-text-3, rgba(249, 115, 22, 0.5))",
                 border: isActive
-                  ? "1px solid rgba(249, 115, 22, 0.25)"
-                  : "1px solid var(--border)",
+                  ? "1px solid var(--closet-border-bright, rgba(249, 115, 22, 0.25))"
+                  : "1px solid var(--closet-border, var(--border))",
               }}
             >
               <span>{cat.emoji}</span>
@@ -196,8 +196,8 @@ export default function ClosetGrid({ initialItems }: ClosetGridProps) {
               <span
                 className="text-xs px-1.5 rounded-full"
                 style={{
-                  background: isActive ? "rgba(249, 115, 22, 0.15)" : "rgba(249, 115, 22, 0.08)",
-                  color: isActive ? "#f97316" : "rgba(249, 115, 22, 0.4)",
+                  background: isActive ? "var(--closet-surface-3, rgba(249, 115, 22, 0.15))" : "var(--closet-surface-2, rgba(249, 115, 22, 0.08))",
+                  color: isActive ? "var(--closet-accent, #f97316)" : "var(--closet-text-3, rgba(249, 115, 22, 0.4))",
                 }}
               >
                 {count}
@@ -210,7 +210,7 @@ export default function ClosetGrid({ initialItems }: ClosetGridProps) {
       {/* Vibe tags */}
       {availableVibes.length > 0 && (
         <div className="mb-3">
-          <p className="text-xs font-semibold mb-2" style={{ color: "rgba(234, 88, 12, 0.6)" }}>
+          <p className="text-xs font-semibold mb-2" style={{ color: "var(--closet-accent, rgba(234, 88, 12, 0.6))" }}>
             Vibe
           </p>
           <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
@@ -223,12 +223,12 @@ export default function ClosetGrid({ initialItems }: ClosetGridProps) {
                   className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200"
                   style={{
                     background: isActive
-                      ? "linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(168, 85, 247, 0.08))"
-                      : "var(--surface-2)",
-                    color: isActive ? "#a855f7" : "rgba(249, 115, 22, 0.5)",
+                      ? "var(--closet-surface-2, rgba(168, 85, 247, 0.15))"
+                      : "var(--closet-surface, var(--surface-2))",
+                    color: isActive ? "var(--closet-accent-bright, #a855f7)" : "var(--closet-text-3, rgba(249, 115, 22, 0.5))",
                     border: isActive
-                      ? "1px solid rgba(168, 85, 247, 0.3)"
-                      : "1px solid var(--border)",
+                      ? "1px solid var(--closet-border-bright, rgba(168, 85, 247, 0.3))"
+                      : "1px solid var(--closet-border, var(--border))",
                   }}
                 >
                   <span>{vibe.emoji}</span>
@@ -251,7 +251,7 @@ export default function ClosetGrid({ initialItems }: ClosetGridProps) {
       {/* Favorites toggle + count */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <p className="text-xs" style={{ color: "rgba(249, 115, 22, 0.5)" }}>
+          <p className="text-xs" style={{ color: "var(--closet-text-3, rgba(249, 115, 22, 0.5))" }}>
             {displayItems.length} items{searchResults ? ` matching "${searchQuery}"` : ""}
           </p>
           {hasActiveFilters && (
@@ -273,10 +273,10 @@ export default function ClosetGrid({ initialItems }: ClosetGridProps) {
           onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
           className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-all duration-200"
           style={{
-            background: showFavoritesOnly ? "rgba(249, 115, 22, 0.12)" : "transparent",
-            color: showFavoritesOnly ? "#ea580c" : "rgba(249, 115, 22, 0.4)",
+            background: showFavoritesOnly ? "var(--closet-surface-2, rgba(249, 115, 22, 0.12))" : "transparent",
+            color: showFavoritesOnly ? "var(--closet-accent, #ea580c)" : "var(--closet-text-3, rgba(249, 115, 22, 0.4))",
             border: showFavoritesOnly
-              ? "1px solid rgba(249, 115, 22, 0.2)"
+              ? "1px solid var(--closet-border, rgba(249, 115, 22, 0.2))"
               : "1px solid transparent",
           }}
         >

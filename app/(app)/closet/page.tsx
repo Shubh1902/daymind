@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic"
 import { prisma } from "@/lib/prisma"
 import ClosetGridWithFeatures from "@/components/closet/ClosetGridWithFeatures"
 import ClosetSubNav from "@/components/closet/ClosetSubNav"
+import ClosetThemeToggle from "@/components/closet/ClosetThemeToggle"
 import Link from "next/link"
 
 const USER_ID = "user_me"
@@ -45,12 +46,14 @@ export default async function ClosetPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4 animate-slide-up">
         <div>
-          <h1 className="text-3xl font-bold text-gradient">My Closet</h1>
-          <p className="text-xs mt-1" style={{ color: "rgba(249, 115, 22, 0.5)" }}>
+          <h1 className="text-3xl font-bold" style={{ background: "linear-gradient(135deg, var(--closet-gradient-from), var(--closet-gradient-to))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>My Closet</h1>
+          <p className="text-xs mt-1" style={{ color: "var(--closet-text-3)" }}>
             {totalItems} items · {categories.size} categories
           </p>
         </div>
-        <Link
+        <div className="flex items-center gap-3">
+          <ClosetThemeToggle />
+          <Link
           href="/closet/capture"
           className="btn-primary text-white text-sm font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2"
         >
@@ -60,6 +63,7 @@ export default async function ClosetPage() {
           </svg>
           Add
         </Link>
+        </div>
       </div>
 
       <ClosetSubNav />

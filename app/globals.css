@@ -19,6 +19,50 @@
   --border-bright: #ffe4c4;
 }
 
+/* ─── Closet Themes (scoped to closet module) ──── */
+
+[data-closet-theme="light"] {
+  --closet-bg: #fdf2f8;
+  --closet-surface: #ffffff;
+  --closet-surface-2: #fce7f3;
+  --closet-surface-3: #fff1f2;
+  --closet-text: #1f2937;
+  --closet-text-2: #6b7280;
+  --closet-text-3: #9ca3af;
+  --closet-accent: #ec4899;
+  --closet-accent-bright: #f472b6;
+  --closet-accent-dim: #f9a8d4;
+  --closet-border: #fbcfe8;
+  --closet-border-bright: #f9a8d4;
+  --closet-card-shadow: rgba(236, 72, 153, 0.06);
+  --closet-card-hover-shadow: rgba(236, 72, 153, 0.12);
+  --closet-gradient-from: #ec4899;
+  --closet-gradient-to: #f472b6;
+  --closet-image-bg: #fafafa;
+  --closet-nav-bg: rgba(253, 242, 248, 0.92);
+}
+
+[data-closet-theme="dark"] {
+  --closet-bg: #0f0f0f;
+  --closet-surface: #1a1a1a;
+  --closet-surface-2: #242424;
+  --closet-surface-3: #1a1a1a;
+  --closet-text: #f5f5f5;
+  --closet-text-2: #a3a3a3;
+  --closet-text-3: #737373;
+  --closet-accent: #f97316;
+  --closet-accent-bright: #fb923c;
+  --closet-accent-dim: #c2410c;
+  --closet-border: #2a2a2a;
+  --closet-border-bright: #3a3a3a;
+  --closet-card-shadow: rgba(0, 0, 0, 0.2);
+  --closet-card-hover-shadow: rgba(249, 115, 22, 0.15);
+  --closet-gradient-from: #ea580c;
+  --closet-gradient-to: #f97316;
+  --closet-image-bg: #1a1a1a;
+  --closet-nav-bg: rgba(15, 15, 15, 0.92);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

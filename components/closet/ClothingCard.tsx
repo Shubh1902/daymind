@@ -92,8 +92,8 @@ export default function ClothingCard({ item, compact, onWhatGoesWith }: Props) {
       <div
         className="card-hover rounded-xl overflow-hidden relative group cursor-pointer"
         style={{
-          background: "#FAFAFA",
-          border: "1px solid var(--border)",
+          background: "var(--closet-surface, #FAFAFA)",
+          border: "1px solid var(--closet-border, var(--border))",
           opacity: loading ? 0.5 : 1,
         }}
         onClick={() => setShowDetail(true)}
@@ -101,7 +101,7 @@ export default function ClothingCard({ item, compact, onWhatGoesWith }: Props) {
         {/* Image */}
         <div
           className="aspect-square relative overflow-hidden flex items-center justify-center"
-          style={{ background: "#FAFAFA" }}
+          style={{ background: "var(--closet-image-bg, #FAFAFA)" }}
         >
           <img
             src={item.imageData}
@@ -173,8 +173,8 @@ export default function ClothingCard({ item, compact, onWhatGoesWith }: Props) {
         </div>
 
         {/* Info */}
-        <div className="p-3">
-          <p className="text-sm font-medium truncate" style={{ color: "#431407" }}>
+        <div className="p-3" style={{ background: "var(--closet-surface, white)" }}>
+          <p className="text-sm font-medium truncate" style={{ color: "var(--closet-text, #431407)" }}>
             {item.name ?? `${item.subcategory ?? item.category}`}
           </p>
           <div className="flex flex-wrap gap-1 mt-1.5">

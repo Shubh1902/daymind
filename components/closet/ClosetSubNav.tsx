@@ -43,10 +43,10 @@ export default function ClosetSubNav() {
               className="shrink-0 flex items-center gap-1 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200"
               style={{
                 background: isActive
-                  ? "linear-gradient(135deg, rgba(234, 88, 12, 0.12), rgba(249, 115, 22, 0.08))"
+                  ? "var(--closet-surface-2, rgba(234, 88, 12, 0.12))"
                   : "transparent",
-                color: isActive ? "#ea580c" : "rgba(249, 115, 22, 0.45)",
-                border: isActive ? "1px solid rgba(249, 115, 22, 0.2)" : "1px solid transparent",
+                color: isActive ? "var(--closet-accent, #ea580c)" : "var(--closet-text-3, rgba(249, 115, 22, 0.45))",
+                border: isActive ? "1px solid var(--closet-border, rgba(249, 115, 22, 0.2))" : "1px solid transparent",
               }}
             >
               <span>{item.emoji}</span>
@@ -58,7 +58,7 @@ export default function ClosetSubNav() {
       <div
         className="absolute right-0 top-0 bottom-2 w-8 pointer-events-none"
         style={{
-          background: "linear-gradient(to right, transparent, var(--background, #fff))",
+          background: "linear-gradient(to right, transparent, var(--closet-bg, var(--background, #fff)))",
         }}
       />
     </nav>

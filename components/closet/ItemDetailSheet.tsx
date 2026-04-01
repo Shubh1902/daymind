@@ -369,6 +369,23 @@ export default function ItemDetailSheet({ item, onClose, onWhatGoesWith }: Props
               </button>
             )}
 
+            {/* Download */}
+            <button
+              onClick={() => {
+                const a = document.createElement("a")
+                a.href = `/api/closet/items/${item.id}/image?download=true`
+                a.download = ""
+                a.click()
+              }}
+              className="py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.97]"
+              style={{ background: "#f0f9ff", color: "#0369a1", border: "1px solid #bae6fd" }}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              Download
+            </button>
+
             {/* Delete */}
             <button
               onClick={deleteItem}

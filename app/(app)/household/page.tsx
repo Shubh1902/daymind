@@ -113,7 +113,8 @@ export default async function HouseholdPage() {
   const recentTasks = tasks.slice(0, 10).map((t) => ({
     id: t.id, choreType: t.choreType, description: t.description,
     durationMinutes: t.durationMinutes, completedAt: t.completedAt.toISOString(),
-    source: t.source, member: { name: t.member.name, color: t.member.color, slug: t.member.slug },
+    source: t.source, memberId: t.memberId,
+    member: { id: t.member.id, name: t.member.name, color: t.member.color, slug: t.member.slug },
   }))
 
   return (
@@ -172,7 +173,7 @@ export default async function HouseholdPage() {
 
       {/* Recent Activity */}
       <div className="animate-slide-up delay-300">
-        <RecentActivity tasks={recentTasks} />
+        <RecentActivity tasks={recentTasks} members={members.map((m) => ({ id: m.id, name: m.name, slug: m.slug, color: m.color }))} />
       </div>
 
       {/* FAB */}

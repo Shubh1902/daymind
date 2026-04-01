@@ -102,6 +102,7 @@ export default function ItemDetailSheet({ item, onClose, onWhatGoesWith }: Props
   }
 
   async function deleteExtraImage(imageId: string) {
+    if (!confirm("Remove this photo?")) return
     await fetch(`/api/closet/items/${item.id}/images`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -203,25 +204,40 @@ export default function ItemDetailSheet({ item, onClose, onWhatGoesWith }: Props
         {/* Thumbnail strip */}
         {(allImages.length > 1 || extraImages.length < 5) && (
           <div className="flex gap-2 px-4 mb-4 overflow-x-auto scrollbar-hide">
-            {allImages.map((img, i) => (
-              <button
-                key={img.id}
-                onClick={() => setActiveIndex(i)}
-                className="shrink-0 w-14 h-14 rounded-lg overflow-hidden transition-all duration-200"
-                style={{
-                  border: activeIndex === i ? "2px solid #f97316" : "2px solid var(--border)",
-                  background: "#FAFAFA",
-                  opacity: activeIndex === i ? 1 : 0.7,
-                }}
-              >
-                <img
-                  src={img.imageData}
-                  alt={img.label ?? ""}
-                  className="w-full h-full object-contain"
-                  style={{ filter: getProductDisplayFilter() }}
-                />
-              </button>
-            ))}
+            {allImages.map((img, i) => {
+              const isExtra = i > 0
+              const canDelete = isExtra && allImages.length > 1
+              return (
+                <div key={img.id} className="shrink-0 relative">
+                  <button
+                    onClick={() => setActiveIndex(i)}
+                    className="w-14 h-14 rounded-lg overflow-hidden transition-all duration-200"
+                    style={{
+                      border: activeIndex === i ? "2px solid #f97316" : "2px solid var(--border)",
+                      background: "#FAFAFA",
+                      opacity: activeIndex === i ? 1 : 0.7,
+                    }}
+                  >
+                    <img
+                      src={img.imageData}
+                      alt={img.label ?? ""}
+                      className="w-full h-full object-contain"
+                      style={{ filter: getProductDisplayFilter() }}
+                    />
+                  </button>
+                  {canDelete && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); deleteExtraImage(extraImages[i - 1].id) }}
+                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs"
+                      style={{ background: "#ef4444", boxShadow: "0 1px 3px rgba(0,0,0,0.2)" }}
+                      aria-label="Remove this photo"
+                    >
+                      &times;
+                    </button>
+                  )}
+                </div>
+              )
+            })}
 
             {extraImages.length < 5 && (
               <button

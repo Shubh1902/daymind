@@ -7,6 +7,7 @@ import { useEffect, useRef } from "react"
 const NAV_ITEMS = [
   { href: "/closet", label: "Closet", emoji: "👗" },
   { href: "/closet/organize", label: "Wardrobe", emoji: "🪟" },
+  { href: "/closet/combos", label: "Combos", emoji: "🔀" },
   { href: "/closet/mix", label: "Mix", emoji: "🎨" },
   { href: "/closet/outfits", label: "Outfits", emoji: "✨" },
   { href: "/closet/weather", label: "Weather", emoji: "🌤️" },

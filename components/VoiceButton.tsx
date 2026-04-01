@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react"
 
 type VoiceState = "idle" | "listening" | "error"
 
-const SILENCE_MS = 2000
+const SILENCE_MS = 3000       // 3s silence after speech → auto-stop
+const MIN_LISTEN_MS = 10000   // keep listening at least 10s regardless of silence
 
 interface SpeechRecognitionEvent extends Event {
   resultIndex: number
@@ -41,9 +42,10 @@ function getSR(): ISpeechRecognitionConstructor | null {
 interface VoiceButtonProps {
   onTranscript: (text: string) => void
   disabled?: boolean
+  size?: "default" | "hero"  // hero = large prominent mic button
 }
 
-export default function VoiceButton({ onTranscript, disabled }: VoiceButtonProps) {
+export default function VoiceButton({ onTranscript, disabled, size = "default" }: VoiceButtonProps) {
   const [state, setState] = useState<VoiceState>("idle")
   const [supported, setSupported] = useState(true)
   const recognitionRef = useRef<ISpeechRecognition | null>(null)
@@ -86,10 +88,12 @@ export default function VoiceButton({ onTranscript, disabled }: VoiceButtonProps
     recognitionRef.current = recognition
 
     let finalTranscript = ""
+    let startedAt = 0
 
     recognition.onstart = () => {
       setState("listening")
       finalTranscript = ""
+      startedAt = Date.now()
     }
 
     recognition.onresult = (event) => {
@@ -104,11 +108,17 @@ export default function VoiceButton({ onTranscript, disabled }: VoiceButtonProps
         }
       }
 
+      // Only auto-stop on silence AFTER the minimum listen window
+      const elapsed = Date.now() - startedAt
+      const delay = elapsed < MIN_LISTEN_MS
+        ? Math.max(SILENCE_MS, MIN_LISTEN_MS - elapsed)
+        : SILENCE_MS
+
       silenceTimerRef.current = setTimeout(() => {
         const text = (finalTranscript + interim).trim()
         if (text) onTranscript(text)
         stopListening()
-      }, SILENCE_MS)
+      }, delay)
     }
 
     recognition.onerror = (e) => {
@@ -140,39 +150,59 @@ export default function VoiceButton({ onTranscript, disabled }: VoiceButtonProps
     )
   }
 
+  const isHero = size === "hero"
+
   return (
     <button
       type="button"
       onClick={startListening}
       disabled={disabled}
       aria-label={state === "listening" ? "Stop recording" : "Start voice input"}
-      className="w-10 h-10 flex-shrink-0 rounded-full flex items-center justify-center transition-all duration-200 disabled:opacity-40"
+      className={`flex-shrink-0 rounded-full flex items-center justify-center transition-all duration-200 disabled:opacity-40 ${
+        isHero ? "w-20 h-20" : "w-10 h-10"
+      }`}
       style={
         state === "listening"
-          ? {
-              background: "rgba(244, 63, 94, 0.2)",
-              border: "1px solid rgba(244, 63, 94, 0.4)",
-              boxShadow: "0 0 16px rgba(244, 63, 94, 0.3)",
-            }
-          : {
-              background: "var(--surface-2)",
-              border: "1px solid var(--border)",
-            }
+          ? isHero
+            ? {
+                background: "linear-gradient(135deg, #ea580c, #f97316)",
+                boxShadow: "0 0 40px rgba(249, 115, 22, 0.4), 0 6px 24px rgba(249, 115, 22, 0.3)",
+              }
+            : {
+                background: "rgba(244, 63, 94, 0.2)",
+                border: "1px solid rgba(244, 63, 94, 0.4)",
+                boxShadow: "0 0 16px rgba(244, 63, 94, 0.3)",
+              }
+          : isHero
+            ? {
+                background: "linear-gradient(135deg, #ea580c, #f97316)",
+                boxShadow: "0 6px 24px rgba(249, 115, 22, 0.35), 0 0 60px rgba(249, 115, 22, 0.1)",
+              }
+            : {
+                background: "var(--surface-2)",
+                border: "1px solid var(--border)",
+              }
       }
     >
       {state === "listening" ? (
         <span className="relative flex items-center justify-center">
           <span
-            className="absolute w-7 h-7 rounded-full opacity-40"
+            className={`absolute rounded-full opacity-40 ${isHero ? "w-14 h-14" : "w-7 h-7"}`}
             style={{
-              background: "rgba(244, 63, 94, 0.5)",
+              background: isHero ? "rgba(255,255,255,0.3)" : "rgba(244, 63, 94, 0.5)",
               animation: "ping-soft 1s ease-out infinite",
             }}
           />
-          <MicIcon className="w-4 h-4 relative z-10" style={{ color: "#fb7185" }} />
+          <MicIcon
+            className={`relative z-10 ${isHero ? "w-8 h-8" : "w-4 h-4"}`}
+            style={{ color: isHero ? "#ffffff" : "#fb7185" }}
+          />
         </span>
       ) : (
-        <MicIcon className="w-4 h-4" style={{ color: "rgba(249, 115, 22, 0.5)" }} />
+        <MicIcon
+          className={isHero ? "w-8 h-8" : "w-4 h-4"}
+          style={{ color: isHero ? "#ffffff" : "rgba(249, 115, 22, 0.5)" }}
+        />
       )}
     </button>
   )

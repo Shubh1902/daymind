@@ -17,7 +17,7 @@ const WHEN_OPTIONS = [
 export default function HouseholdLogForm() {
   const router = useRouter()
   const [members, setMembers] = useState<Member[]>([])
-  const [mode, setMode] = useState<"tap" | "voice">("tap")
+  const [mode, setMode] = useState<"tap" | "voice">("voice")
 
   // Quick Tap state
   const [selectedMember, setSelectedMember] = useState<string | null>(null)
@@ -30,6 +30,7 @@ export default function HouseholdLogForm() {
   const [success, setSuccess] = useState(false)
 
   // Voice state
+  const [voiceListening, setVoiceListening] = useState(false)
   const [voiceText, setVoiceText] = useState("")
   const [voiceParsing, setVoiceParsing] = useState(false)
   const [voiceParsed, setVoiceParsed] = useState<{
@@ -156,19 +157,8 @@ export default function HouseholdLogForm() {
 
   return (
     <div className="space-y-5">
-      {/* Mode Toggle */}
+      {/* Mode Toggle — Voice first */}
       <div className="flex gap-2 p-1 rounded-xl" style={{ background: "#f3f4f6" }}>
-        <button
-          onClick={() => setMode("tap")}
-          className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-1.5"
-          style={{
-            background: mode === "tap" ? "#ffffff" : "transparent",
-            color: mode === "tap" ? "#1f2937" : "#9ca3af",
-            boxShadow: mode === "tap" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
-          }}
-        >
-          <span>👆</span> Quick Tap
-        </button>
         <button
           onClick={() => setMode("voice")}
           className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-1.5"
@@ -179,6 +169,17 @@ export default function HouseholdLogForm() {
           }}
         >
           <span>🎙️</span> Voice / Text
+        </button>
+        <button
+          onClick={() => setMode("tap")}
+          className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-1.5"
+          style={{
+            background: mode === "tap" ? "#ffffff" : "transparent",
+            color: mode === "tap" ? "#1f2937" : "#9ca3af",
+            boxShadow: mode === "tap" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+          }}
+        >
+          <span>👆</span> Quick Tap
         </button>
       </div>
 
@@ -329,28 +330,52 @@ export default function HouseholdLogForm() {
           </button>
         </>
       ) : (
-        /* Voice / Text mode */
-        <div className="space-y-4">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={voiceText}
-              onChange={(e) => setVoiceText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && voiceText.trim()) handleVoiceParse(voiceText) }}
-              placeholder="I did laundry for 45 minutes..."
-              className="input-dark flex-1 text-sm px-4 py-3 rounded-xl"
-            />
-            <VoiceButton onTranscript={(text) => handleVoiceParse(text)} />
-          </div>
-
-          {voiceText && !voiceParsing && !voiceParsed && !voiceError && (
-            <button
-              onClick={() => handleVoiceParse(voiceText)}
-              className="w-full btn-primary text-white font-semibold py-3 rounded-xl text-sm flex items-center justify-center gap-2"
-            >
-              <span>✨</span> Parse & Log
-            </button>
+        /* Voice / Text mode — voice-first hero */
+        <div className="space-y-5">
+          {/* Hero voice area */}
+          {!voiceParsing && !voiceParsed && !voiceError && (
+            <div className="flex flex-col items-center py-8 rounded-2xl" style={{ background: "linear-gradient(180deg, #fff7ed 0%, #ffffff 100%)", border: "1px solid #fed7aa" }}>
+              <div className="relative mb-5">
+                {voiceListening && (
+                  <>
+                    <div className="absolute -inset-3 rounded-full animate-ping opacity-15" style={{ background: "#f97316" }} />
+                    <div className="absolute -inset-6 rounded-full animate-pulse opacity-5" style={{ background: "#f97316" }} />
+                  </>
+                )}
+                <VoiceButton size="hero" onTranscript={(text) => { setVoiceListening(false); handleVoiceParse(text) }} />
+              </div>
+              <p className="text-sm font-semibold" style={{ color: "#1f2937" }}>
+                {voiceListening ? "Listening..." : "Tap the mic to speak"}
+              </p>
+              <p className="text-xs mt-1 text-center px-6" style={{ color: "#9ca3af" }}>
+                {voiceListening ? "Say who did what and for how long" : "\"I did laundry for 45 minutes\""}
+              </p>
+            </div>
           )}
+
+          {/* Text input */}
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#9ca3af" }}>Or type it</p>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={voiceText}
+                onChange={(e) => setVoiceText(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && voiceText.trim()) handleVoiceParse(voiceText) }}
+                placeholder="I did laundry for 45 minutes..."
+                className="input-dark flex-1 text-sm px-4 py-3 rounded-xl"
+              />
+              {voiceText.trim() && (
+                <button
+                  onClick={() => handleVoiceParse(voiceText)}
+                  className="px-4 rounded-xl text-sm font-semibold shrink-0"
+                  style={{ background: "#fff7ed", color: "#ea580c", border: "1px solid #fed7aa" }}
+                >
+                  Go
+                </button>
+              )}
+            </div>
+          </div>
 
           {voiceParsing && (
             <div className="flex items-center justify-center gap-3 py-8">

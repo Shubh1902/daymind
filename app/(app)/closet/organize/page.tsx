@@ -12,7 +12,6 @@ export default async function OrganizePage() {
     orderBy: [{ category: "asc" }, { favorite: "desc" }, { createdAt: "desc" }],
     select: {
       id: true,
-      imageData: true,
       category: true,
       subcategory: true,
       color: true,
@@ -25,8 +24,16 @@ export default async function OrganizePage() {
       wearCount: true,
       lastWornAt: true,
       createdAt: true,
+      // imageData deliberately excluded — served via /api/closet/items/[id]/image
     },
   })
+
+  const itemsWithImageUrl = items.map((item) => ({
+    ...item,
+    imageData: `/api/closet/items/${item.id}/image`,
+    lastWornAt: item.lastWornAt?.toISOString() ?? null,
+    createdAt: item.createdAt.toISOString(),
+  }))
 
   return (
     <div className="animate-fade-in pb-24">
@@ -39,7 +46,7 @@ export default async function OrganizePage() {
       <ClosetSubNav />
       <div className="animate-slide-up delay-100">
         <ClosetOrgView
-          items={items as unknown as Parameters<typeof ClosetOrgView>[0]["items"]}
+          items={itemsWithImageUrl as unknown as Parameters<typeof ClosetOrgView>[0]["items"]}
         />
       </div>
     </div>

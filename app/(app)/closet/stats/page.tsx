@@ -10,6 +10,21 @@ const USER_ID = "user_me"
 export default async function StatsPage() {
   const items = await prisma.clothingItem.findMany({
     where: { userId: USER_ID },
+    select: {
+      id: true,
+      category: true,
+      subcategory: true,
+      color: true,
+      colorHex: true,
+      pattern: true,
+      season: true,
+      name: true,
+      vibes: true,
+      favorite: true,
+      wearCount: true,
+      lastWornAt: true,
+      createdAt: true,
+    },
   })
 
   return (

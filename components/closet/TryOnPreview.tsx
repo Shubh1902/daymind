@@ -42,11 +42,12 @@ export default function TryOnPreview({ items, onClose }: Props) {
     setTryOnImage(null)
 
     try {
+      const isBase64 = item.imageData?.startsWith("data:")
       const res = await fetch("/api/closet/try-on", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          garmentImage: item.imageData,
+          ...(isBase64 ? { garmentImage: item.imageData } : { garmentItemId: item.id }),
           category: item.category,
         }),
       })

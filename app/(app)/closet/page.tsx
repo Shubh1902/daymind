@@ -11,7 +11,31 @@ export default async function ClosetPage() {
   const items = await prisma.clothingItem.findMany({
     where: { userId: USER_ID },
     orderBy: [{ favorite: "desc" }, { createdAt: "desc" }],
+    select: {
+      id: true,
+      category: true,
+      subcategory: true,
+      color: true,
+      colorHex: true,
+      pattern: true,
+      season: true,
+      name: true,
+      vibes: true,
+      favorite: true,
+      wearCount: true,
+      lastWornAt: true,
+      createdAt: true,
+      // imageData deliberately excluded — served via /api/closet/items/[id]/image
+    },
   })
+
+  // Map imageData to lightweight API URL instead of embedding base64 in HTML
+  const itemsWithImageUrl = items.map((item) => ({
+    ...item,
+    imageData: `/api/closet/items/${item.id}/image`,
+    lastWornAt: item.lastWornAt?.toISOString() ?? null,
+    createdAt: item.createdAt.toISOString(),
+  }))
 
   const totalItems = items.length
   const categories = new Set(items.map((i) => i.category))
@@ -43,7 +67,7 @@ export default async function ClosetPage() {
       {/* Grid with OOTD + What Goes With features */}
       <div className="animate-slide-up delay-100">
         <ClosetGridWithFeatures
-          initialItems={items as unknown as Parameters<typeof ClosetGridWithFeatures>[0]["initialItems"]}
+          initialItems={itemsWithImageUrl as unknown as Parameters<typeof ClosetGridWithFeatures>[0]["initialItems"]}
         />
       </div>
     </div>

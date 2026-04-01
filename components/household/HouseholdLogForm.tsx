@@ -33,9 +33,9 @@ export default function HouseholdLogForm() {
   const [voiceListening, setVoiceListening] = useState(false)
   const [voiceText, setVoiceText] = useState("")
   const [voiceParsing, setVoiceParsing] = useState(false)
-  const [voiceParsed, setVoiceParsed] = useState<{
+  const [voiceParsedList, setVoiceParsedList] = useState<{
     memberSlug: string; choreType: string; durationMinutes: number | null; description: string | null; completedAt: string | null
-  } | null>(null)
+  }[]>([])
   const [voiceError, setVoiceError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -92,7 +92,7 @@ export default function HouseholdLogForm() {
     setVoiceText(text)
     setVoiceParsing(true)
     setVoiceError(null)
-    setVoiceParsed(null)
+    setVoiceParsedList([])
     try {
       const res = await fetch("/api/household/voice", {
         method: "POST",
@@ -101,7 +101,9 @@ export default function HouseholdLogForm() {
       })
       const data = await res.json()
       if (data.action === "chore_logged" && data.chore) {
-        setVoiceParsed(data.chore)
+        setVoiceParsedList([data.chore])
+      } else if (data.action === "multiple_chores" && Array.isArray(data.chores) && data.chores.length > 0) {
+        setVoiceParsedList(data.chores)
       } else {
         setVoiceError(data.message ?? "Couldn't understand that. Try again.")
       }
@@ -112,28 +114,28 @@ export default function HouseholdLogForm() {
   }
 
   async function handleVoiceConfirm() {
-    if (!voiceParsed) return
-    const member = members.find((m) => m.slug === voiceParsed.memberSlug)
-    if (!member) return
+    if (voiceParsedList.length === 0) return
     setSubmitting(true)
     try {
-      const defaults = getChoreDefaults(voiceParsed.choreType)
-      const res = await fetch("/api/household/tasks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          choreType: voiceParsed.choreType,
-          memberId: member.id,
-          durationMinutes: voiceParsed.durationMinutes ?? defaults.defaultMinutes,
-          description: voiceParsed.description,
-          completedAt: voiceParsed.completedAt,
-          source: "voice",
-        }),
-      })
-      if (res.ok) {
-        setSuccess(true)
-        setTimeout(() => router.push("/household"), 800)
+      for (const chore of voiceParsedList) {
+        const member = members.find((m) => m.slug === chore.memberSlug)
+        if (!member) continue
+        const defaults = getChoreDefaults(chore.choreType)
+        await fetch("/api/household/tasks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            choreType: chore.choreType,
+            memberId: member.id,
+            durationMinutes: chore.durationMinutes ?? defaults.defaultMinutes,
+            description: chore.description,
+            completedAt: chore.completedAt,
+            source: "voice",
+          }),
+        })
       }
+      setSuccess(true)
+      setTimeout(() => router.push("/household"), 800)
     } catch { /* ignore */ }
     setSubmitting(false)
   }
@@ -152,8 +154,8 @@ export default function HouseholdLogForm() {
     )
   }
 
-  const choreEmoji = CHORE_CATEGORIES.find((c) => c.id === voiceParsed?.choreType)?.emoji ?? "\u2728"
-  const parsedMember = members.find((m) => m.slug === voiceParsed?.memberSlug)
+  // Helpers for parsed display
+  const hasParsed = voiceParsedList.length > 0
 
   return (
     <div className="space-y-5">
@@ -333,7 +335,7 @@ export default function HouseholdLogForm() {
         /* Voice / Text mode — voice-first hero */
         <div className="space-y-5">
           {/* Hero voice area */}
-          {!voiceParsing && !voiceParsed && !voiceError && (
+          {!voiceParsing && !hasParsed && !voiceError && (
             <div className="flex flex-col items-center py-8 rounded-2xl" style={{ background: "linear-gradient(180deg, #fff7ed 0%, #ffffff 100%)", border: "1px solid #fed7aa" }}>
               <div className="relative mb-5">
                 {voiceListening && (
@@ -398,48 +400,41 @@ export default function HouseholdLogForm() {
             </div>
           )}
 
-          {voiceParsed && (
+          {hasParsed && (
             <div className="animate-slide-up">
-              <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#9ca3af" }}>Parsed Result</p>
-              <div className="rounded-xl p-4 space-y-3" style={{ background: "#ffffff", border: "1px solid #e5e7eb", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ background: parsedMember?.color ?? "#6b7280" }}>
-                    {parsedMember?.name?.[0] ?? "?"}
-                  </div>
-                  <span className="font-semibold" style={{ color: "#1f2937" }}>{parsedMember?.name ?? voiceParsed.memberSlug}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">{choreEmoji}</span>
-                  <span className="font-medium" style={{ color: "#1f2937" }}>
-                    {CHORE_CATEGORIES.find((c) => c.id === voiceParsed.choreType)?.label ?? voiceParsed.choreType}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">⏱️</span>
-                  <span className="font-medium" style={{ color: "#1f2937" }}>
-                    {voiceParsed.durationMinutes ?? getChoreDefaults(voiceParsed.choreType).defaultMinutes} minutes
-                  </span>
-                  {!voiceParsed.durationMinutes && (
-                    <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#fef3c7", color: "#92400e" }}>auto-estimated</span>
-                  )}
-                </div>
-                {voiceParsed.description && (
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">📝</span>
-                    <span className="text-sm" style={{ color: "#6b7280" }}>{voiceParsed.description}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">🕐</span>
-                  <span className="text-sm" style={{ color: "#6b7280" }}>
-                    {voiceParsed.completedAt ? new Date(voiceParsed.completedAt).toLocaleString() : "Just now"}
-                  </span>
-                </div>
+              <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#9ca3af" }}>
+                {voiceParsedList.length > 1 ? `${voiceParsedList.length} chores found` : "Parsed Result"}
+              </p>
+              <div className="space-y-2">
+                {voiceParsedList.map((chore, idx) => {
+                  const choreMember = members.find((m) => m.slug === chore.memberSlug)
+                  const choreInfo = CHORE_CATEGORIES.find((c) => c.id === chore.choreType)
+                  return (
+                    <div key={idx} className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: "#ffffff", border: "1px solid #e5e7eb" }}>
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
+                        style={{ background: choreMember?.color ?? "#6b7280" }}
+                      >
+                        {choreMember?.name?.[0] ?? "?"}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold" style={{ color: "#1f2937" }}>
+                          {choreInfo?.emoji ?? "\u2728"} {choreInfo?.label ?? chore.choreType}
+                        </p>
+                        <p className="text-xs" style={{ color: "#6b7280" }}>
+                          {choreMember?.name ?? chore.memberSlug} &bull; {chore.durationMinutes ?? getChoreDefaults(chore.choreType).defaultMinutes}m
+                          {chore.description && ` &bull; ${chore.description}`}
+                          {!chore.durationMinutes && " (auto)"}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
 
               <div className="flex gap-2 mt-3">
                 <button
-                  onClick={() => { setVoiceParsed(null); setVoiceText("") }}
+                  onClick={() => { setVoiceParsedList([]); setVoiceText("") }}
                   className="flex-1 py-3 rounded-xl text-sm font-semibold"
                   style={{ background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db" }}
                 >
@@ -457,7 +452,7 @@ export default function HouseholdLogForm() {
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
-                      Confirm & Log
+                      {voiceParsedList.length > 1 ? `Log ${voiceParsedList.length} Chores` : "Confirm & Log"}
                     </>
                   )}
                 </button>

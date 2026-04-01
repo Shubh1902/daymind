@@ -31,32 +31,45 @@ export async function POST(request: NextRequest) {
 
   const response = await getClient().messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 512,
+    max_tokens: 1024,
     system: `You parse natural language into household chore data. Today is ${dateStr}.
 
-The household has two members: "${member1}" and "${member2}".
-- "I", "me", "my" → "${member1}"
-- "she", "her", "wife", "partner", "${member2.toLowerCase()}" → "${member2}"
+The household has two members: "${member1}" (slug: "shubhanshu") and "${member2}" (slug: "partner").
+- "I", "me", "my" → shubhanshu
+- "she", "her", "wife", "wifey", "partner", "babe", "${member2.toLowerCase()}" → partner
 
 Known chore types: ${choreList}
 
-Extract the chore and return ONLY valid JSON:
+IMPORTANT: The user may mention MULTIPLE chores in one sentence. If so, return an array of chores.
+
+Return ONLY valid JSON in one of these formats:
+
+For a SINGLE chore:
 {
   "action": "chore_logged",
   "chore": {
     "memberSlug": "shubhanshu" or "partner",
-    "choreType": "one of the known types or closest match",
-    "durationMinutes": number or null (if not mentioned, leave null),
-    "description": "optional short note" or null,
-    "completedAt": "ISO date string" or null (null = just now)
+    "choreType": "closest match from known types",
+    "durationMinutes": number or null,
+    "description": "short note" or null,
+    "completedAt": "ISO date" or null
   }
 }
 
+For MULTIPLE chores:
+{
+  "action": "multiple_chores",
+  "chores": [
+    { "memberSlug": "...", "choreType": "...", "durationMinutes": ..., "description": "...", "completedAt": ... },
+    { "memberSlug": "...", "choreType": "...", "durationMinutes": ..., "description": "...", "completedAt": ... }
+  ]
+}
+
 Rules:
-- Map the input to the closest choreType from the list.
-- If duration is mentioned ("for 45 minutes", "an hour", "half an hour"), extract it.
-- If time is mentioned ("yesterday", "this morning", "last night"), set completedAt appropriately relative to today.
-- If the input is unclear or not a chore, return: {"action": "needs_clarification", "message": "short helpful message"}
+- Map input to the closest choreType. "made rice" → cooking. "made papad" → cooking.
+- If duration is mentioned, extract it. Otherwise leave null.
+- If time is mentioned ("yesterday", "this morning"), set completedAt.
+- If unclear, return: {"action": "needs_clarification", "message": "short helpful message"}
 
 Return ONLY valid JSON, nothing else.`,
     messages: [{ role: "user", content: transcript.trim() }],

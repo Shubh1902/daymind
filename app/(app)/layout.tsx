@@ -73,13 +73,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "var(--background)" }}>
+    <div className="min-h-screen flex flex-col md:flex-row" style={{ background: pathname.startsWith("/closet") ? "var(--closet-bg, var(--background))" : "var(--background)" }}>
       {/* Sidebar — desktop */}
       <aside
         className="hidden md:flex flex-col w-60 shrink-0 p-5 gap-2"
         style={{
-          background: "var(--surface-1)",
-          borderRight: "1px solid var(--border)",
+          background: pathname.startsWith("/closet") ? "var(--closet-surface, var(--surface-1))" : "var(--surface-1)",
+          borderRight: `1px solid ${pathname.startsWith("/closet") ? "var(--closet-border, var(--border))" : "var(--border)"}`,
         }}
       >
         {/* Logo */}
@@ -138,10 +138,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <nav
         className="fixed bottom-0 left-0 right-0 z-20 flex md:hidden px-2 pb-safe"
         style={{
-          background: "rgba(255, 247, 237, 0.92)",
+          background: pathname.startsWith("/closet") ? "var(--closet-nav-bg, rgba(255, 247, 237, 0.92))" : "rgba(255, 247, 237, 0.92)",
           backdropFilter: "blur(20px)",
           WebkitBackdropFilter: "blur(20px)",
-          borderTop: "1px solid var(--border)",
+          borderTop: `1px solid ${pathname.startsWith("/closet") ? "var(--closet-border, var(--border))" : "var(--border)"}`,
         }}
       >
         {navItems.map((item) => {
@@ -171,7 +171,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </nav>
 
       {/* Main content — closet gets full width, other pages stay constrained */}
-      <main className={`flex-1 p-4 md:p-8 pb-24 md:pb-8 w-full ${pathname.startsWith("/closet") ? "" : "max-w-3xl"}`}>
+      <main className={`flex-1 pb-24 md:pb-8 w-full ${pathname.startsWith("/closet") ? "p-0" : "p-4 md:p-8 max-w-3xl"}`}>
         {children}
       </main>
     </div>

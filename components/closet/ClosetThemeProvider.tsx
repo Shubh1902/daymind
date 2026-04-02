@@ -36,10 +36,18 @@ export default function ClosetThemeProvider({ children }: { children: ReactNode 
     localStorage.setItem(STORAGE_KEY, next)
   }
 
+  const wrapperStyle: React.CSSProperties = {
+    background: "var(--closet-bg)",
+    color: "var(--closet-text)",
+    minHeight: "100vh",
+    padding: "16px",
+    transition: "background-color 0.3s ease, color 0.3s ease",
+  }
+
   // Prevent flash of wrong theme on mount
   if (!mounted) {
     return (
-      <div data-closet-theme="light" style={{ background: "var(--closet-bg)", minHeight: "100vh" }}>
+      <div data-closet-theme="light" className="md:p-8" style={wrapperStyle}>
         {children}
       </div>
     )
@@ -47,15 +55,7 @@ export default function ClosetThemeProvider({ children }: { children: ReactNode 
 
   return (
     <ClosetThemeContext value={{ theme, toggle }}>
-      <div
-        data-closet-theme={theme}
-        style={{
-          background: "var(--closet-bg)",
-          color: "var(--closet-text)",
-          minHeight: "100vh",
-          transition: "background-color 0.3s ease, color 0.3s ease",
-        }}
-      >
+      <div data-closet-theme={theme} className="md:p-8" style={wrapperStyle}>
         {children}
       </div>
     </ClosetThemeContext>

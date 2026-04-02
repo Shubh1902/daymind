@@ -234,6 +234,27 @@ export default function HouseholdLogForm() {
             </div>
           </div>
 
+          {/* Description — for custom/non-standard tasks */}
+          {selectedChore && ["custom", "booking", "errand", "repair", "admin", "creative"].includes(selectedChore) && (
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#9ca3af" }}>What exactly?</p>
+              <input
+                type="text"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder={
+                  selectedChore === "booking" ? "e.g. Booked badminton court" :
+                  selectedChore === "creative" ? "e.g. Edited a reel, designed poster" :
+                  selectedChore === "errand" ? "e.g. Picked up dry cleaning" :
+                  selectedChore === "repair" ? "e.g. Fixed kitchen tap" :
+                  selectedChore === "admin" ? "e.g. Paid electricity bill" :
+                  "Describe the task..."
+                }
+                className="input-dark w-full text-sm px-4 py-3 rounded-xl"
+              />
+            </div>
+          )}
+
           {/* Step 3: How long? */}
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#9ca3af" }}>How long?</p>

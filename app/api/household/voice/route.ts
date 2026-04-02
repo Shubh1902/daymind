@@ -32,31 +32,39 @@ export async function POST(request: NextRequest) {
   const response = await getClient().messages.create({
     model: "claude-haiku-4-5-20251001",
     max_tokens: 1024,
-    system: `You parse natural language into household chore data. Today is ${dateStr}.
+    system: `You parse natural language into household task data. Today is ${dateStr}.
 
 The household has two members: "${member1}" (slug: "shubhanshu") and "${member2}" (slug: "partner").
 - "I", "me", "my" → shubhanshu
 - "she", "her", "wife", "wifey", "partner", "babe", "shanku", "shaa", "baba", "${member2.toLowerCase()}" → partner
 
-Known chore types: ${choreList}
+Known task types: ${choreList}
 
-IMPORTANT: The user may mention MULTIPLE chores in one sentence. If so, return an array of chores.
+Tasks can be household chores OR any other activity (booking, errands, creative work, admin, etc.).
+- "booked a court" → booking
+- "edited a reel" → creative
+- "paid electricity bill" → admin
+- "picked up dry cleaning" → errand
+- "fixed the tap" → repair
+- Anything that doesn't match a known type → "custom" (and put details in description)
+
+IMPORTANT: The user may mention MULTIPLE tasks in one sentence. If so, return an array.
 
 Return ONLY valid JSON in one of these formats:
 
-For a SINGLE chore:
+For a SINGLE task:
 {
   "action": "chore_logged",
   "chore": {
     "memberSlug": "shubhanshu" or "partner",
-    "choreType": "closest match from known types",
+    "choreType": "closest match from known types, or custom",
     "durationMinutes": number or null,
-    "description": "short note" or null,
+    "description": "short note describing the specific activity" or null,
     "completedAt": "ISO date" or null
   }
 }
 
-For MULTIPLE chores:
+For MULTIPLE tasks:
 {
   "action": "multiple_chores",
   "chores": [
@@ -66,7 +74,7 @@ For MULTIPLE chores:
 }
 
 Rules:
-- Map input to the closest choreType. "made rice" → cooking. "made papad" → cooking.
+- Map input to the closest choreType. "made rice" → cooking. "booked court" → booking. "edited reel" → creative.
 - If duration is mentioned, extract it. Otherwise leave null.
 - If time is mentioned ("yesterday", "this morning"), set completedAt.
 - If unclear, return: {"action": "needs_clarification", "message": "short helpful message"}

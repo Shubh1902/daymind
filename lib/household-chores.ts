@@ -20,7 +20,12 @@ export const CHORE_CATEGORIES: ChoreCategory[] = [
   { id: "meal_prep", label: "Meal Prep", emoji: "\u{1F957}", defaultMinutes: 60, effortScore: 4 },
   { id: "organizing", label: "Organizing", emoji: "\u{1F4E6}", defaultMinutes: 30, effortScore: 3 },
   { id: "yard_work", label: "Yard/Garden", emoji: "\u{1F33F}", defaultMinutes: 45, effortScore: 4 },
-  { id: "other", label: "Other", emoji: "\u2728", defaultMinutes: 20, effortScore: 2 },
+  { id: "errand", label: "Errand", emoji: "\u{1F3C3}", defaultMinutes: 30, effortScore: 2 },
+  { id: "booking", label: "Booking", emoji: "\u{1F4C5}", defaultMinutes: 15, effortScore: 1 },
+  { id: "repair", label: "Repair/Fix", emoji: "\u{1F527}", defaultMinutes: 45, effortScore: 3 },
+  { id: "admin", label: "Admin/Bills", emoji: "\u{1F4CB}", defaultMinutes: 20, effortScore: 2 },
+  { id: "creative", label: "Creative", emoji: "\u{1F3A8}", defaultMinutes: 30, effortScore: 2 },
+  { id: "custom", label: "Custom", emoji: "\u270F\uFE0F", defaultMinutes: 20, effortScore: 2 },
 ]
 
 const choreMap = new Map(CHORE_CATEGORIES.map((c) => [c.id, c]))

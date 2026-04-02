@@ -73,13 +73,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row" style={{ background: pathname.startsWith("/closet") ? "var(--closet-bg, var(--background))" : "var(--background)" }}>
+    <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "var(--background)" }}>
       {/* Sidebar — desktop */}
       <aside
         className="hidden md:flex flex-col w-60 shrink-0 p-5 gap-2"
         style={{
-          background: pathname.startsWith("/closet") ? "var(--closet-surface, var(--surface-1))" : "var(--surface-1)",
-          borderRight: `1px solid ${pathname.startsWith("/closet") ? "var(--closet-border, var(--border))" : "var(--border)"}`,
+          background: "var(--surface-1)",
+          borderRight: "1px solid var(--border)",
         }}
       >
         {/* Logo */}
@@ -138,10 +138,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <nav
         className="fixed bottom-0 left-0 right-0 z-20 flex md:hidden px-2 pb-safe"
         style={{
-          background: pathname.startsWith("/closet") ? "var(--closet-nav-bg, rgba(255, 247, 237, 0.92))" : "rgba(255, 247, 237, 0.92)",
+          background: "rgba(255, 247, 237, 0.92)",
           backdropFilter: "blur(20px)",
           WebkitBackdropFilter: "blur(20px)",
-          borderTop: `1px solid ${pathname.startsWith("/closet") ? "var(--closet-border, var(--border))" : "var(--border)"}`,
+          borderTop: "1px solid var(--border)",
         }}
       >
         {navItems.map((item) => {

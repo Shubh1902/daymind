@@ -22,6 +22,17 @@
 /* ─── Closet Themes (scoped to closet module) ──── */
 
 [data-closet-theme="light"] {
+  /* Override global vars so existing components adapt */
+  --background: #fdf2f8;
+  --foreground: #1f2937;
+  --surface-1: #ffffff;
+  --surface-2: #ffffff;
+  --surface-3: #fdf2f8;
+  --accent: #ec4899;
+  --accent-bright: #f472b6;
+  --accent-dim: #f9a8d4;
+  --border: #fbcfe8;
+  --border-bright: #f9a8d4;
   --closet-bg: #fdf2f8;
   --closet-surface: #ffffff;
   --closet-surface-2: #fce7f3;
@@ -43,6 +54,17 @@
 }
 
 [data-closet-theme="dark"] {
+  /* Override global vars so existing components adapt */
+  --background: #0f0f0f;
+  --foreground: #f5f5f5;
+  --surface-1: #1a1a1a;
+  --surface-2: #242424;
+  --surface-3: #1a1a1a;
+  --accent: #f97316;
+  --accent-bright: #fb923c;
+  --accent-dim: #c2410c;
+  --border: #2a2a2a;
+  --border-bright: #3a3a3a;
   --closet-bg: #0f0f0f;
   --closet-surface: #1a1a1a;
   --closet-surface-2: #242424;

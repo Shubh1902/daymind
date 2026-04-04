@@ -1,5 +1,8 @@
 "use client"
 
+import { useState } from "react"
+import RecordResult from "./RecordResult"
+
 type TeamAssignment = {
   playerId: string; name: string; position: string; skill: number; workRate: string; role: string
 }
@@ -8,6 +11,7 @@ interface Props {
   teamA: TeamAssignment[]
   teamB: TeamAssignment[]
   balanceScore: number
+  gameId: string
   onRegenerate: () => void
   onBack: () => void
 }
@@ -94,7 +98,10 @@ function TeamColumn({ team, label, accent }: { team: TeamAssignment[]; label: st
   )
 }
 
-export default function TeamDisplay({ teamA, teamB, balanceScore, onRegenerate, onBack }: Props) {
+export default function TeamDisplay({ teamA, teamB, balanceScore, gameId, onRegenerate, onBack }: Props) {
+  const [showRecord, setShowRecord] = useState(false)
+  const [resultSaved, setResultSaved] = useState(false)
+
   return (
     <div className="space-y-4 animate-scale-in">
       {/* Balance Score */}
@@ -128,11 +135,36 @@ export default function TeamDisplay({ teamA, teamB, balanceScore, onRegenerate, 
         </button>
         <button
           onClick={onRegenerate}
-          className="flex-1 btn-primary text-white py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
+          className="flex-1 py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
+          style={{ background: "#fff7ed", color: "#9a3412", border: "1px solid #fdba74" }}
         >
           <span>🔄</span> Regenerate
         </button>
       </div>
+
+      {/* Record Result */}
+      {!resultSaved ? (
+        showRecord ? (
+          <RecordResult
+            gameId={gameId}
+            teamA={teamA}
+            teamB={teamB}
+            onSaved={() => setResultSaved(true)}
+          />
+        ) : (
+          <button
+            onClick={() => setShowRecord(true)}
+            className="w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+            style={{ background: "#f0fdf4", color: "#15803d", border: "1px solid #bbf7d0" }}
+          >
+            <span>📋</span> Record Game Result
+          </button>
+        )
+      ) : (
+        <div className="text-center py-3 rounded-xl" style={{ background: "#ecfdf5", border: "1px solid #a7f3d0" }}>
+          <span className="text-sm font-semibold" style={{ color: "#059669" }}>✅ Result saved!</span>
+        </div>
+      )}
     </div>
   )
 }

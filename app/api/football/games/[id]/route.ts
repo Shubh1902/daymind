@@ -8,10 +8,51 @@ export async function GET(
   const { id } = await params
   const game = await prisma.footballGame.findUnique({
     where: { id },
-    include: { selections: { include: { player: true } } },
+    include: { selections: { include: { player: true } }, goals: { include: { player: true } } },
   })
   if (!game) return Response.json({ error: "Not found" }, { status: 404 })
   return Response.json(game)
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+  const body = await request.json()
+  const { scoreA, scoreB, goals } = body
+
+  const game = await prisma.footballGame.findUnique({ where: { id } })
+  if (!game) return Response.json({ error: "Not found" }, { status: 404 })
+
+  // Update score and mark completed
+  const data: Record<string, unknown> = { completed: true }
+  if (scoreA !== undefined) data.scoreA = Number(scoreA)
+  if (scoreB !== undefined) data.scoreB = Number(scoreB)
+
+  await prisma.footballGame.update({ where: { id }, data })
+
+  // Save goals — delete existing first then recreate
+  if (Array.isArray(goals)) {
+    await prisma.footballGoal.deleteMany({ where: { gameId: id } })
+    if (goals.length > 0) {
+      await prisma.footballGoal.createMany({
+        data: goals.map((g: { playerId: string; team: string; minute?: number }) => ({
+          gameId: id,
+          playerId: g.playerId,
+          team: g.team,
+          minute: g.minute ?? null,
+        })),
+      })
+    }
+  }
+
+  const updated = await prisma.footballGame.findUnique({
+    where: { id },
+    include: { goals: { include: { player: true } } },
+  })
+
+  return Response.json(updated)
 }
 
 export async function DELETE(

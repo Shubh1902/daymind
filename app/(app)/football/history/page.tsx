@@ -9,6 +9,7 @@ export default async function FootballHistoryPage() {
   const games = await prisma.footballGame.findMany({
     orderBy: { createdAt: "desc" },
     take: 20,
+    include: { goals: { include: { player: true } } },
   })
 
   return (
@@ -35,35 +36,52 @@ export default async function FootballHistoryPage() {
           {games.map((game) => {
             const teamA = (game.teamAPlayers as TeamPlayer[]) ?? []
             const teamB = (game.teamBPlayers as TeamPlayer[]) ?? []
+            const goalsA = game.goals.filter((g) => g.team === "A")
+            const goalsB = game.goals.filter((g) => g.team === "B")
+            const hasResult = game.completed && game.scoreA != null && game.scoreB != null
+
             return (
               <div key={game.id} className="rounded-xl p-4" style={{ background: "#ffffff", border: "1px solid #e5e7eb" }}>
+                {/* Header + score */}
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-bold" style={{ color: "#1f2937" }}>
                     {game.name ?? new Date(game.createdAt).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
                   </span>
-                  <span
-                    className="text-xs font-semibold px-2 py-0.5 rounded-full"
-                    style={{
-                      background: (game.balanceScore ?? 0) >= 90 ? "#ecfdf5" : "#fef3c7",
-                      color: (game.balanceScore ?? 0) >= 90 ? "#059669" : "#d97706",
-                    }}
-                  >
-                    {game.balanceScore}% balanced
-                  </span>
+                  {hasResult ? (
+                    <span className="text-lg font-bold px-3 py-0.5 rounded-lg" style={{ background: "#f9fafb", border: "1px solid #e5e7eb" }}>
+                      <span style={{ color: "#f97316" }}>{game.scoreA}</span>
+                      <span style={{ color: "#d1d5db" }}> - </span>
+                      <span style={{ color: "#8b5cf6" }}>{game.scoreB}</span>
+                    </span>
+                  ) : (
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: "#fef3c7", color: "#d97706" }}>
+                      No result
+                    </span>
+                  )}
                 </div>
-                <div className="flex gap-4 text-xs" style={{ color: "#6b7280" }}>
-                  <div>
-                    <span className="font-semibold" style={{ color: "#f97316" }}>A:</span>{" "}
-                    {teamA.filter((p) => p.role !== "sub").map((p) => p.name).join(", ")}
+
+                {/* Teams */}
+                <div className="text-xs mb-1" style={{ color: "#6b7280" }}>
+                  <span className="font-semibold" style={{ color: "#f97316" }}>A:</span>{" "}
+                  {teamA.filter((p) => p.role !== "sub").map((p) => p.name).join(", ")}
+                </div>
+                <div className="text-xs mb-2" style={{ color: "#6b7280" }}>
+                  <span className="font-semibold" style={{ color: "#8b5cf6" }}>B:</span>{" "}
+                  {teamB.filter((p) => p.role !== "sub").map((p) => p.name).join(", ")}
+                </div>
+
+                {/* Goal scorers */}
+                {game.goals.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2 pt-2" style={{ borderTop: "1px solid #f3f4f6" }}>
+                    {game.goals.map((goal) => (
+                      <span key={goal.id} className="text-xs flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ background: goal.team === "A" ? "#fff7ed" : "#f5f3ff", color: goal.team === "A" ? "#f97316" : "#8b5cf6" }}>
+                        ⚽ {goal.player.name}
+                      </span>
+                    ))}
                   </div>
-                </div>
-                <div className="flex gap-4 text-xs mt-1" style={{ color: "#6b7280" }}>
-                  <div>
-                    <span className="font-semibold" style={{ color: "#8b5cf6" }}>B:</span>{" "}
-                    {teamB.filter((p) => p.role !== "sub").map((p) => p.name).join(", ")}
-                  </div>
-                </div>
-                <p className="text-xs mt-1" style={{ color: "#d1d5db" }}>
+                )}
+
+                <p className="text-xs mt-2" style={{ color: "#d1d5db" }}>
                   {new Date(game.createdAt).toLocaleString()}
                 </p>
               </div>

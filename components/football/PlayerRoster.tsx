@@ -71,7 +71,7 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
         if (group.length === 0) return null
         const style = AREA_STYLE[area]
         return (
-          <div key={pos}>
+          <div key={area}>
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: style.bg, color: style.color }}>
                 {style.label}

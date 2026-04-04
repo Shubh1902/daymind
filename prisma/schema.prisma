@@ -202,6 +202,7 @@ model FootballPlayer {
   updatedAt DateTime @updatedAt
 
   gameSelections FootballGamePlayer[]
+  goals          FootballGoal[]
 }
 
 model FootballGame {
@@ -211,9 +212,23 @@ model FootballGame {
   teamAPlayers Json     // snapshot: [{ playerId, name, position, skill, role }]
   teamBPlayers Json     // snapshot: [{ playerId, name, position, skill, role }]
   balanceScore Float?
+  scoreA       Int?     // final score team A
+  scoreB       Int?     // final score team B
+  completed    Boolean  @default(false) // true after recording result
   createdAt    DateTime @default(now())
 
   selections FootballGamePlayer[]
+  goals      FootballGoal[]
+}
+
+model FootballGoal {
+  id       String         @id @default(cuid())
+  gameId   String
+  playerId String
+  team     String         // "A" | "B"
+  minute   Int?           // optional: minute of the goal
+  game     FootballGame   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  player   FootballPlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
 }
 
 model FootballGamePlayer {

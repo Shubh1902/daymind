@@ -220,9 +220,16 @@ export function generateTeams(players: Player[], constraints: Constraint[]): Gen
   const teamA = buildTeam(teamAIds, gkA)
   const teamB = buildTeam(teamBIds, gkB)
 
-  // Step 7: Balance score
-  const totalA = teamA.reduce((s, p) => s + p.skill * (WORK_RATE_MULT[p.workRate] ?? 1), 0)
-  const totalB = teamB.reduce((s, p) => s + p.skill * (WORK_RATE_MULT[p.workRate] ?? 1), 0)
+  // Step 7: Balance score — use the same composite scoring
+  const allPlayersMap = new Map(players.map((p) => [p.id, p]))
+  const totalA = teamA.reduce((s, a) => {
+    const orig = allPlayersMap.get(a.playerId)
+    return s + (orig ? compositeScore(orig) : a.skill)
+  }, 0)
+  const totalB = teamB.reduce((s, a) => {
+    const orig = allPlayersMap.get(a.playerId)
+    return s + (orig ? compositeScore(orig) : a.skill)
+  }, 0)
   const maxTotal = Math.max(totalA, totalB, 1)
   const balanceScore = Math.round((100 - Math.abs(totalA - totalB) / maxTotal * 100) * 10) / 10
 

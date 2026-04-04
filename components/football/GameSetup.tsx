@@ -15,11 +15,13 @@ interface Props {
   onTeamsGenerated: (result: { teamA: TeamAssignment[]; teamB: TeamAssignment[]; balanceScore: number; gameId: string }) => void
 }
 
-const POS_COLORS: Record<string, { color: string; bg: string }> = {
-  GK: { color: "#d97706", bg: "#fef3c7" },
-  DEF: { color: "#2563eb", bg: "#dbeafe" },
-  MID: { color: "#16a34a", bg: "#dcfce7" },
-  ATT: { color: "#dc2626", bg: "#fee2e2" },
+import { getPositionArea, getPositionColor } from "@/lib/football-positions"
+
+const AREA_COLORS: Record<string, { color: string; bg: string }> = {
+  Goal: { color: "#d97706", bg: "#fef3c7" },
+  Defense: { color: "#2563eb", bg: "#dbeafe" },
+  Midfield: { color: "#16a34a", bg: "#dcfce7" },
+  Attack: { color: "#dc2626", bg: "#fee2e2" },
 }
 
 export default function GameSetup({ players, onTeamsGenerated }: Props) {
@@ -68,12 +70,12 @@ export default function GameSetup({ players, onTeamsGenerated }: Props) {
     }
   }
 
-  // Group players by position for display
-  const grouped = { GK: [] as Player[], DEF: [] as Player[], MID: [] as Player[], ATT: [] as Player[] }
+  // Group players by area for display
+  const grouped = { Goal: [] as Player[], Defense: [] as Player[], Midfield: [] as Player[], Attack: [] as Player[] }
   for (const p of players) {
-    const key = p.position as keyof typeof grouped
-    if (grouped[key]) grouped[key].push(p)
-    else grouped.ATT.push(p)
+    const area = getPositionArea(p.position) as keyof typeof grouped
+    if (grouped[area]) grouped[area].push(p)
+    else grouped.Midfield.push(p)
   }
 
   return (
@@ -99,13 +101,13 @@ export default function GameSetup({ players, onTeamsGenerated }: Props) {
       </div>
 
       {/* Player selection grid */}
-      {(["GK", "DEF", "MID", "ATT"] as const).map((pos) => {
-        const group = grouped[pos]
+      {(["Goal", "Defense", "Midfield", "Attack"] as const).map((area) => {
+        const group = grouped[area]
         if (group.length === 0) return null
-        const style = POS_COLORS[pos]
+        const style = AREA_COLORS[area]
         return (
-          <div key={pos}>
-            <p className="text-xs font-bold mb-1.5 px-1" style={{ color: style.color }}>{pos}</p>
+          <div key={area}>
+            <p className="text-xs font-bold mb-1.5 px-1" style={{ color: style.color }}>{area}</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
               {group.map((p) => {
                 const isSelected = selected.has(p.id)
@@ -122,6 +124,7 @@ export default function GameSetup({ players, onTeamsGenerated }: Props) {
                   >
                     <span className="text-xs font-bold" style={{ color: style.color }}>{p.skill}</span>
                     <span className="text-xs font-medium truncate" style={{ color: isSelected ? "#1f2937" : "#6b7280" }}>{p.name}</span>
+                    <span className="text-[10px] font-bold ml-auto" style={{ color: style.color, opacity: 0.6 }}>{p.position}</span>
                   </button>
                 )
               })}

@@ -11,12 +11,15 @@ interface Props {
   onRefresh: () => void
 }
 
-const POS_STYLE: Record<string, { color: string; bg: string; label: string }> = {
-  GK: { color: "#d97706", bg: "#fef3c7", label: "GK" },
-  DEF: { color: "#2563eb", bg: "#dbeafe", label: "DEF" },
-  MID: { color: "#16a34a", bg: "#dcfce7", label: "MID" },
-  ATT: { color: "#dc2626", bg: "#fee2e2", label: "ATT" },
+import { getPositionColor, getPositionArea } from "@/lib/football-positions"
+
+const AREA_STYLE: Record<string, { color: string; bg: string; label: string }> = {
+  Goal: { color: "#d97706", bg: "#fef3c7", label: "GK" },
+  Defense: { color: "#2563eb", bg: "#dbeafe", label: "DEF" },
+  Midfield: { color: "#16a34a", bg: "#dcfce7", label: "MID" },
+  Attack: { color: "#dc2626", bg: "#fee2e2", label: "ATT" },
 }
+const POS_STYLE = AREA_STYLE
 
 export default function PlayerRoster({ players, onRefresh }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -25,11 +28,11 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
   const [editWorkRate, setEditWorkRate] = useState("Med")
   const [saving, setSaving] = useState(false)
 
-  const grouped = { GK: [] as Player[], DEF: [] as Player[], MID: [] as Player[], ATT: [] as Player[] }
+  const grouped = { Goal: [] as Player[], Defense: [] as Player[], Midfield: [] as Player[], Attack: [] as Player[] }
   for (const p of players) {
-    const key = p.position as keyof typeof grouped
-    if (grouped[key]) grouped[key].push(p)
-    else grouped.ATT.push(p) // fallback
+    const area = getPositionArea(p.position) as keyof typeof grouped
+    if (grouped[area]) grouped[area].push(p)
+    else grouped.Midfield.push(p)
   }
 
   function startEdit(p: Player) {
@@ -63,10 +66,10 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
 
   return (
     <div className="space-y-4">
-      {(["GK", "DEF", "MID", "ATT"] as const).map((pos) => {
-        const group = grouped[pos]
+      {(["Goal", "Defense", "Midfield", "Attack"] as const).map((area) => {
+        const group = grouped[area]
         if (group.length === 0) return null
-        const style = POS_STYLE[pos]
+        const style = AREA_STYLE[area]
         return (
           <div key={pos}>
             <div className="flex items-center gap-2 mb-2">
@@ -81,10 +84,13 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
                   return (
                     <div key={p.id} className="rounded-xl p-3 space-y-2 animate-slide-up" style={{ background: "#fff", border: "2px solid #f97316" }}>
                       <p className="text-sm font-bold" style={{ color: "#1f2937" }}>{p.name}</p>
-                      <div className="flex gap-1">
-                        {["GK", "DEF", "MID", "ATT"].map((ps) => (
-                          <button key={ps} onClick={() => setEditPosition(ps)} className="flex-1 py-1 rounded text-xs font-bold" style={{ background: editPosition === ps ? POS_STYLE[ps].bg : "#f9fafb", color: editPosition === ps ? POS_STYLE[ps].color : "#d1d5db", border: editPosition === ps ? `1.5px solid ${POS_STYLE[ps].color}` : "1px solid #e5e7eb" }}>{ps}</button>
-                        ))}
+                      <div className="flex flex-wrap gap-1">
+                        {["GK", "CB", "LB", "RB", "CDM", "CM", "CAM", "LW", "RW", "ST", "CF"].map((ps) => {
+                          const pc = getPositionColor(ps)
+                          return (
+                            <button key={ps} onClick={() => setEditPosition(ps)} className="px-1.5 py-1 rounded text-[10px] font-bold" style={{ background: editPosition === ps ? pc.bg : "#f9fafb", color: editPosition === ps ? pc.color : "#d1d5db", border: editPosition === ps ? `1.5px solid ${pc.color}` : "1px solid #e5e7eb" }}>{ps}</button>
+                          )
+                        })}
                       </div>
                       <div className="flex gap-0.5">
                         {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
@@ -123,12 +129,12 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
                       <p className="text-sm font-medium truncate" style={{ color: "#1f2937" }}>{p.name}</p>
                       <div className="flex items-center gap-1 mt-0.5">
                         {(p.positions?.length ? p.positions : [p.position]).map((pos, i) => {
-                          const ps = POS_STYLE[pos]
-                          return ps ? (
-                            <span key={pos} className="text-[10px] font-bold px-1 rounded" style={{ background: i === 0 ? ps.bg : "transparent", color: ps.color, border: i > 0 ? `1px solid ${ps.color}40` : "none" }}>
+                          const pc = getPositionColor(pos)
+                          return (
+                            <span key={pos} className="text-[10px] font-bold px-1 rounded" style={{ background: i === 0 ? pc.bg : "transparent", color: pc.color, border: i > 0 ? `1px solid ${pc.color}40` : "none" }}>
                               {pos}
                             </span>
-                          ) : null
+                          )
                         })}
                         <span className="text-xs" style={{ color: "#d1d5db" }}>·</span>
                         <span className="text-xs" style={{ color: "#9ca3af" }}>WR: {p.workRate}</span>

@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-const VALID_POSITIONS = ["GK", "DEF", "MID", "ATT"]
+const VALID_POSITIONS = ["GK", "CB", "LB", "RB", "LWB", "RWB", "CDM", "CM", "CAM", "LM", "RM", "LW", "RW", "ST", "CF", "SS", "DEF", "MID", "ATT"]
 const VALID_WORK_RATES = ["Low", "Med", "High"]
 
 export async function GET() {

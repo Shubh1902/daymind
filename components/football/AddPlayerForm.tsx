@@ -1,13 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import { POSITION_GROUPS, getPositionColor } from "@/lib/football-positions"
 
-const POSITIONS = [
-  { id: "GK", label: "GK", color: "#d97706", bg: "#fef3c7" },
-  { id: "DEF", label: "DEF", color: "#2563eb", bg: "#dbeafe" },
-  { id: "MID", label: "MID", color: "#16a34a", bg: "#dcfce7" },
-  { id: "ATT", label: "ATT", color: "#dc2626", bg: "#fee2e2" },
-]
 const WORK_RATES = ["Low", "Med", "High"]
 
 interface Props {
@@ -17,14 +12,25 @@ interface Props {
 export default function AddPlayerForm({ onAdded }: Props) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
-  const [positions, setPositions] = useState<string[]>(["MID"])
+  const [positions, setPositions] = useState<string[]>(["CM"])
   const [skill, setSkill] = useState(5)
   const [workRate, setWorkRate] = useState("Med")
   const [notes, setNotes] = useState("")
   const [saving, setSaving] = useState(false)
+  const [showPosPicker, setShowPosPicker] = useState(false)
+
+  function togglePosition(posId: string) {
+    setPositions((prev) => {
+      if (prev.includes(posId)) {
+        const next = prev.filter((p) => p !== posId)
+        return next.length > 0 ? next : prev
+      }
+      return [...prev, posId]
+    })
+  }
 
   async function handleSubmit() {
-    if (!name.trim()) return
+    if (!name.trim() || positions.length === 0) return
     setSaving(true)
     try {
       const res = await fetch("/api/football/players", {
@@ -33,8 +39,8 @@ export default function AddPlayerForm({ onAdded }: Props) {
         body: JSON.stringify({ name: name.trim(), position: positions[0], positions, skill, workRate, notes: notes.trim() || null }),
       })
       if (res.ok) {
-        setName(""); setPositions(["MID"]); setSkill(5); setWorkRate("Med"); setNotes("")
-        setOpen(false)
+        setName(""); setPositions(["CM"]); setSkill(5); setWorkRate("Med"); setNotes("")
+        setOpen(false); setShowPosPicker(false)
         onAdded()
       }
     } catch { /* ignore */ }
@@ -68,42 +74,78 @@ export default function AddPlayerForm({ onAdded }: Props) {
         autoFocus
       />
 
-      {/* Positions (multi-select) */}
+      {/* Positions multi-select */}
       <div>
         <p className="text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#6b7280" }}>
-          Positions <span className="font-normal" style={{ color: "#d1d5db" }}>tap multiple · first = primary</span>
+          Positions <span className="font-normal" style={{ color: "#d1d5db" }}>tap to select · first = primary</span>
         </p>
-        <div className="flex gap-2">
-          {POSITIONS.map((p) => {
-            const isSelected = positions.includes(p.id)
-            const isPrimary = positions[0] === p.id
-            return (
-              <button
-                key={p.id}
-                onClick={() => {
-                  setPositions((prev) => {
-                    if (isSelected) {
-                      const next = prev.filter((x) => x !== p.id)
-                      return next.length > 0 ? next : prev // keep at least one
-                    }
-                    return [...prev, p.id]
-                  })
-                }}
-                className="flex-1 py-2 rounded-lg text-xs font-bold transition-all relative"
-                style={{
-                  background: isSelected ? p.bg : "#f9fafb",
-                  color: isSelected ? p.color : "#9ca3af",
-                  border: isSelected ? `2px solid ${p.color}` : "1px solid #e5e7eb",
-                }}
-              >
-                {p.label}
-                {isPrimary && isSelected && (
-                  <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full text-white text-[7px] flex items-center justify-center" style={{ background: p.color }}>1</span>
-                )}
-              </button>
-            )
-          })}
+
+        {/* Selected tags */}
+        <div
+          className="flex flex-wrap gap-1.5 min-h-[36px] px-3 py-2 rounded-xl cursor-pointer mb-2"
+          style={{ background: "#f9fafb", border: "1px solid #e5e7eb" }}
+          onClick={() => setShowPosPicker(!showPosPicker)}
+        >
+          {positions.length === 0 ? (
+            <span className="text-xs" style={{ color: "#d1d5db" }}>Select positions...</span>
+          ) : (
+            positions.map((posId, i) => {
+              const { color, bg } = getPositionColor(posId)
+              return (
+                <span
+                  key={posId}
+                  className="text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1"
+                  style={{ background: bg, color, border: `1px solid ${color}30` }}
+                >
+                  {posId}
+                  {i === 0 && <span className="text-[8px] opacity-60">primary</span>}
+                </span>
+              )
+            })
+          )}
+          <svg className="w-4 h-4 ml-auto self-center" style={{ color: "#9ca3af", transform: showPosPicker ? "rotate(180deg)" : "" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
         </div>
+
+        {/* Dropdown grouped by area */}
+        {showPosPicker && (
+          <div className="rounded-xl p-3 space-y-2.5 animate-slide-up" style={{ background: "#ffffff", border: "1px solid #e5e7eb", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
+            {POSITION_GROUPS.map((group) => (
+              <div key={group.area}>
+                <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: group.color }}>
+                  {group.area}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {group.positions.map((pos) => {
+                    const isSelected = positions.includes(pos.id)
+                    return (
+                      <button
+                        key={pos.id}
+                        onClick={() => togglePosition(pos.id)}
+                        className="px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all"
+                        style={{
+                          background: isSelected ? group.bg : "#f9fafb",
+                          color: isSelected ? group.color : "#9ca3af",
+                          border: isSelected ? `2px solid ${group.color}` : "1px solid #e5e7eb",
+                        }}
+                      >
+                        {pos.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+            <button
+              onClick={() => setShowPosPicker(false)}
+              className="w-full text-xs font-medium py-1.5 rounded-lg"
+              style={{ background: "#f3f4f6", color: "#374151" }}
+            >
+              Done
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Skill */}
@@ -160,12 +202,12 @@ export default function AddPlayerForm({ onAdded }: Props) {
 
       {/* Actions */}
       <div className="flex gap-2 pt-1">
-        <button onClick={() => setOpen(false)} className="flex-1 py-2.5 rounded-xl text-xs font-semibold" style={{ background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db" }}>
+        <button onClick={() => { setOpen(false); setShowPosPicker(false) }} className="flex-1 py-2.5 rounded-xl text-xs font-semibold" style={{ background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db" }}>
           Cancel
         </button>
         <button
           onClick={handleSubmit}
-          disabled={!name.trim() || saving}
+          disabled={!name.trim() || positions.length === 0 || saving}
           className="flex-1 btn-primary text-white py-2.5 rounded-xl text-xs font-semibold disabled:opacity-40 flex items-center justify-center gap-1"
         >
           {saving ? <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "Add Player"}

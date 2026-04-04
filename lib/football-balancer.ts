@@ -1,9 +1,10 @@
 import { type Constraint } from "./football-instructions"
+import { toBalancerPosition } from "./football-positions"
 
 type Player = {
   id: string
   name: string
-  position: string // GK, DEF, MID, ATT
+  position: string // any valid position (GK, CB, CM, ST, etc.)
   skill: number    // 1-10
   workRate: string  // Low, Med, High
 }
@@ -47,9 +48,9 @@ export function generateTeams(players: Player[], constraints: Constraint[]): Gen
     throw new Error("Need at least 4 players to make teams")
   }
 
-  // Step 1: Separate GKs from outfield
-  const gks = players.filter((p) => p.position === "GK")
-  const outfield = players.filter((p) => p.position !== "GK")
+  // Step 1: Separate GKs from outfield (map detailed positions to categories)
+  const gks = players.filter((p) => toBalancerPosition(p.position) === "GK")
+  const outfield = players.filter((p) => toBalancerPosition(p.position) !== "GK")
 
   // Assign GKs
   let gkA: Player | null = null
@@ -153,7 +154,7 @@ export function generateTeams(players: Player[], constraints: Constraint[]): Gen
 
   // Step 5: Position balance — ensure each team has at least 1 DEF, 1 MID, 1 ATT
   function positionCount(ids: Set<string>, pos: string): number {
-    return allOutfield.filter((p) => ids.has(p.id) && p.position === pos).length
+    return allOutfield.filter((p) => ids.has(p.id) && toBalancerPosition(p.position) === pos).length
   }
 
   for (const pos of ["DEF", "MID", "ATT"]) {

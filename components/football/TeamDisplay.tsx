@@ -12,7 +12,9 @@ interface Props {
   onBack: () => void
 }
 
-const POS_COLORS: Record<string, { color: string; bg: string }> = {
+import { getPositionColor, toBalancerPosition } from "@/lib/football-positions"
+
+const AREA_COLORS: Record<string, { color: string; bg: string }> = {
   GK: { color: "#d97706", bg: "#fef3c7" },
   DEF: { color: "#2563eb", bg: "#dbeafe" },
   MID: { color: "#16a34a", bg: "#dcfce7" },
@@ -23,13 +25,14 @@ function TeamColumn({ team, label, accent }: { team: TeamAssignment[]; label: st
   const gk = team.find((p) => p.role === "gk")
   const outfield = team.filter((p) => p.role === "outfield")
   const sub = team.find((p) => p.role === "sub")
-  const hasDedicatedGK = gk?.position === "GK"
+  const hasDedicatedGK = gk ? toBalancerPosition(gk.position) === "GK" : false
 
-  // Group outfield by position
+  // Group outfield by area (DEF/MID/ATT)
   const grouped: Record<string, TeamAssignment[]> = {}
   for (const p of outfield) {
-    if (!grouped[p.position]) grouped[p.position] = []
-    grouped[p.position].push(p)
+    const area = toBalancerPosition(p.position)
+    if (!grouped[area]) grouped[area] = []
+    grouped[area].push(p)
   }
 
   const totalSkill = team.reduce((s, p) => s + p.skill, 0)
@@ -61,16 +64,19 @@ function TeamColumn({ team, label, accent }: { team: TeamAssignment[]; label: st
         {["DEF", "MID", "ATT"].map((pos) => {
           const group = grouped[pos]
           if (!group?.length) return null
-          const style = POS_COLORS[pos]
+          const style = AREA_COLORS[pos]
           return (
             <div key={pos}>
-              {group.map((p) => (
-                <div key={p.playerId} className="flex items-center gap-2 px-2 py-1.5 rounded-lg mb-1" style={{ background: `${style.bg}`, border: `1px solid ${style.color}20` }}>
-                  <span className="text-xs font-bold w-6 text-center" style={{ color: style.color }}>{pos}</span>
-                  <span className="text-xs font-medium flex-1 truncate" style={{ color: "#1f2937" }}>{p.name}</span>
-                  <span className="text-xs font-bold" style={{ color: style.color }}>{p.skill}</span>
-                </div>
-              ))}
+              {group.map((p) => {
+                const pc = getPositionColor(p.position)
+                return (
+                  <div key={p.playerId} className="flex items-center gap-2 px-2 py-1.5 rounded-lg mb-1" style={{ background: `${style.bg}`, border: `1px solid ${style.color}20` }}>
+                    <span className="text-[10px] font-bold w-8 text-center" style={{ color: pc.color }}>{p.position}</span>
+                    <span className="text-xs font-medium flex-1 truncate" style={{ color: "#1f2937" }}>{p.name}</span>
+                    <span className="text-xs font-bold" style={{ color: style.color }}>{p.skill}</span>
+                  </div>
+                )
+              })}
             </div>
           )
         })}

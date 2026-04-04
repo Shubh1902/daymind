@@ -40,13 +40,15 @@ The household has two members: "${member1}" (slug: "shubhanshu") and "${member2}
 
 Known task types: ${choreList}
 
-Tasks can be household chores OR any other activity (booking, errands, creative work, admin, etc.).
-- "booked a court" → booking
-- "edited a reel" → creative
-- "paid electricity bill" → admin
-- "picked up dry cleaning" → errand
-- "fixed the tap" → repair
-- Anything that doesn't match a known type → "custom" (and put details in description)
+Tasks can be ANYTHING — household chores, errands, random activities, waiting, admin, creative work, etc.
+- "booked a court" → booking, description: "booked a court"
+- "edited a reel" → creative, description: "edited a reel"
+- "paid electricity bill" → admin, description: "paid electricity bill"
+- "picked up dry cleaning" → errand, description: "picked up dry cleaning"
+- "fixed the tap" → repair, description: "fixed the tap"
+- "stood in queue for 10 mins" → custom, description: "stood in queue", durationMinutes: 10
+- "drove to the airport" → custom, description: "drove to the airport"
+- ANY activity that doesn't match a known type → use "custom" as choreType and put the FULL activity in description. NEVER return needs_clarification for a valid activity — always log it as "custom" if unsure.
 
 IMPORTANT: The user may mention MULTIPLE tasks in one sentence. If so, return an array.
 
@@ -74,9 +76,11 @@ For MULTIPLE tasks:
 }
 
 Rules:
-- Map input to the closest choreType. "made rice" → cooking. "booked court" → booking. "edited reel" → creative.
-- If duration is mentioned, extract it. Otherwise leave null.
+- Map input to the closest choreType. "made rice" → cooking. "booked court" → booking. "edited reel" → creative. Anything else → "custom".
+- ALWAYS put meaningful description. Even for known types, include what specifically was done.
+- If duration is mentioned ("for 10 mins", "half hour"), extract it. Otherwise leave null.
 - If time is mentioned ("yesterday", "this morning"), set completedAt.
+- NEVER return needs_clarification unless the input is completely unintelligible gibberish. Any describable activity should be logged as "custom".
 - If unclear, return: {"action": "needs_clarification", "message": "short helpful message"}
 
 Return ONLY valid JSON, nothing else.`,

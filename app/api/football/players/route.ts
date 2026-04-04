@@ -14,14 +14,22 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
-  const { name, position, skill, workRate, notes } = body
+  const { name, position, positions, skill, workRate, notes } = body
 
   if (!name?.trim()) {
     return Response.json({ error: "Name is required" }, { status: 400 })
   }
-  if (!VALID_POSITIONS.includes(position)) {
-    return Response.json({ error: "Position must be GK, DEF, MID, or ATT" }, { status: 400 })
+
+  // Support both single position and positions array
+  const posArr: string[] = Array.isArray(positions) && positions.length > 0
+    ? positions.filter((p: string) => VALID_POSITIONS.includes(p))
+    : VALID_POSITIONS.includes(position) ? [position] : []
+
+  if (posArr.length === 0) {
+    return Response.json({ error: "At least one valid position required" }, { status: 400 })
   }
+
+  const primaryPos = posArr[0]
   const skillNum = Number(skill)
   if (!skillNum || skillNum < 1 || skillNum > 10) {
     return Response.json({ error: "Skill must be 1-10" }, { status: 400 })
@@ -30,7 +38,8 @@ export async function POST(request: NextRequest) {
   const player = await prisma.footballPlayer.create({
     data: {
       name: name.trim(),
-      position,
+      position: primaryPos,
+      positions: posArr,
       skill: skillNum,
       workRate: VALID_WORK_RATES.includes(workRate) ? workRate : "Med",
       notes: notes?.trim() || null,

@@ -192,7 +192,8 @@ model HouseholdTask {
 model FootballPlayer {
   id        String   @id @default(cuid())
   name      String
-  position  String   // "GK" | "DEF" | "MID" | "ATT"
+  position  String   // primary: "GK" | "DEF" | "MID" | "ATT"
+  positions String[] @default([]) // all positions player can play, e.g. ["DEF", "MID"]
   skill     Int      // 1-10
   workRate  String   @default("Med") // "Low" | "Med" | "High"
   notes     String?

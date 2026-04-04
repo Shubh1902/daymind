@@ -7,7 +7,7 @@ import GameSetup from "./GameSetup"
 import TeamDisplay from "./TeamDisplay"
 
 type Player = {
-  id: string; name: string; position: string; skill: number; workRate: string; notes: string | null
+  id: string; name: string; position: string; positions?: string[]; skill: number; workRate: string; notes: string | null
 }
 
 type TeamAssignment = {

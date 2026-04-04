@@ -14,6 +14,7 @@ export async function PATCH(
   const data: Record<string, unknown> = {}
   if (body.name !== undefined) data.name = body.name.trim()
   if (body.position !== undefined) data.position = body.position
+  if (body.positions !== undefined) data.positions = Array.isArray(body.positions) ? body.positions : []
   if (body.skill !== undefined) data.skill = Number(body.skill)
   if (body.workRate !== undefined) data.workRate = body.workRate
   if (body.notes !== undefined) data.notes = body.notes?.trim() || null

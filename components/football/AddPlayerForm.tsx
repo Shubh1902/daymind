@@ -17,7 +17,7 @@ interface Props {
 export default function AddPlayerForm({ onAdded }: Props) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
-  const [position, setPosition] = useState("MID")
+  const [positions, setPositions] = useState<string[]>(["MID"])
   const [skill, setSkill] = useState(5)
   const [workRate, setWorkRate] = useState("Med")
   const [notes, setNotes] = useState("")
@@ -30,10 +30,10 @@ export default function AddPlayerForm({ onAdded }: Props) {
       const res = await fetch("/api/football/players", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), position, skill, workRate, notes: notes.trim() || null }),
+        body: JSON.stringify({ name: name.trim(), position: positions[0], positions, skill, workRate, notes: notes.trim() || null }),
       })
       if (res.ok) {
-        setName(""); setPosition("MID"); setSkill(5); setWorkRate("Med"); setNotes("")
+        setName(""); setPositions(["MID"]); setSkill(5); setWorkRate("Med"); setNotes("")
         setOpen(false)
         onAdded()
       }
@@ -68,24 +68,41 @@ export default function AddPlayerForm({ onAdded }: Props) {
         autoFocus
       />
 
-      {/* Position */}
+      {/* Positions (multi-select) */}
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#6b7280" }}>Position</p>
+        <p className="text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#6b7280" }}>
+          Positions <span className="font-normal" style={{ color: "#d1d5db" }}>tap multiple · first = primary</span>
+        </p>
         <div className="flex gap-2">
-          {POSITIONS.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => setPosition(p.id)}
-              className="flex-1 py-2 rounded-lg text-xs font-bold transition-all"
-              style={{
-                background: position === p.id ? p.bg : "#f9fafb",
-                color: position === p.id ? p.color : "#9ca3af",
-                border: position === p.id ? `2px solid ${p.color}` : "1px solid #e5e7eb",
-              }}
-            >
-              {p.label}
-            </button>
-          ))}
+          {POSITIONS.map((p) => {
+            const isSelected = positions.includes(p.id)
+            const isPrimary = positions[0] === p.id
+            return (
+              <button
+                key={p.id}
+                onClick={() => {
+                  setPositions((prev) => {
+                    if (isSelected) {
+                      const next = prev.filter((x) => x !== p.id)
+                      return next.length > 0 ? next : prev // keep at least one
+                    }
+                    return [...prev, p.id]
+                  })
+                }}
+                className="flex-1 py-2 rounded-lg text-xs font-bold transition-all relative"
+                style={{
+                  background: isSelected ? p.bg : "#f9fafb",
+                  color: isSelected ? p.color : "#9ca3af",
+                  border: isSelected ? `2px solid ${p.color}` : "1px solid #e5e7eb",
+                }}
+              >
+                {p.label}
+                {isPrimary && isSelected && (
+                  <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full text-white text-[7px] flex items-center justify-center" style={{ background: p.color }}>1</span>
+                )}
+              </button>
+            )
+          })}
         </div>
       </div>
 

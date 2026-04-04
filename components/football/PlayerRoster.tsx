@@ -3,7 +3,7 @@
 import { useState } from "react"
 
 type Player = {
-  id: string; name: string; position: string; skill: number; workRate: string; notes: string | null
+  id: string; name: string; position: string; positions?: string[]; skill: number; workRate: string; notes: string | null
 }
 
 interface Props {
@@ -121,9 +121,19 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
                     {/* Name + meta */}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate" style={{ color: "#1f2937" }}>{p.name}</p>
-                      <p className="text-xs" style={{ color: "#9ca3af" }}>
-                        WR: {p.workRate}{p.notes ? ` · ${p.notes}` : ""}
-                      </p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        {(p.positions?.length ? p.positions : [p.position]).map((pos, i) => {
+                          const ps = POS_STYLE[pos]
+                          return ps ? (
+                            <span key={pos} className="text-[10px] font-bold px-1 rounded" style={{ background: i === 0 ? ps.bg : "transparent", color: ps.color, border: i > 0 ? `1px solid ${ps.color}40` : "none" }}>
+                              {pos}
+                            </span>
+                          ) : null
+                        })}
+                        <span className="text-xs" style={{ color: "#d1d5db" }}>·</span>
+                        <span className="text-xs" style={{ color: "#9ca3af" }}>WR: {p.workRate}</span>
+                        {p.notes && <span className="text-xs truncate" style={{ color: "#d1d5db" }}> · {p.notes}</span>}
+                      </div>
                     </div>
                     {/* Delete */}
                     <button

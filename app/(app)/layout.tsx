@@ -59,6 +59,17 @@ const navItems = [
     ),
   },
   {
+    href: "/football",
+    label: "Football",
+    icon: (
+      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 2a15 15 0 014 10 15 15 0 01-4 10 15 15 0 01-4-10 15 15 0 014-10z" />
+        <path d="M2 12h20" />
+      </svg>
+    ),
+  },
+  {
     href: "/ai-flow",
     label: "AI",
     icon: (

@@ -186,3 +186,43 @@ model HouseholdTask {
   @@index([memberId, completedAt])
   @@index([choreType, completedAt])
 }
+
+// ─── Football Team Maker ──────────────────────────
+
+model FootballPlayer {
+  id        String   @id @default(cuid())
+  name      String
+  position  String   // "GK" | "DEF" | "MID" | "ATT"
+  skill     Int      // 1-10
+  workRate  String   @default("Med") // "Low" | "Med" | "High"
+  notes     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  gameSelections FootballGamePlayer[]
+}
+
+model FootballGame {
+  id           String   @id @default(cuid())
+  name         String?
+  instructions String?
+  teamAPlayers Json     // snapshot: [{ playerId, name, position, skill, role }]
+  teamBPlayers Json     // snapshot: [{ playerId, name, position, skill, role }]
+  balanceScore Float?
+  createdAt    DateTime @default(now())
+
+  selections FootballGamePlayer[]
+}
+
+model FootballGamePlayer {
+  id       String         @id @default(cuid())
+  gameId   String
+  playerId String
+  team     String         // "A" | "B"
+  role     String         // "outfield" | "gk" | "sub"
+  game     FootballGame   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  player   FootballPlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, playerId])
+}

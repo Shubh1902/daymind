@@ -1,12 +1,14 @@
 import { type Constraint } from "./football-instructions"
 import { toBalancerPosition } from "./football-positions"
+import { compositeBalanceScore as fifaComposite, type FifaStats } from "./football-rating"
 
 type Player = {
   id: string
   name: string
-  position: string // any valid position (GK, CB, CM, ST, etc.)
-  skill: number    // 1-10
-  workRate: string  // Low, Med, High
+  position: string
+  skill: number
+  workRate: string
+  pace?: number; shooting?: number; passing?: number; dribbling?: number; defending?: number; physical?: number
 }
 
 export type TeamAssignment = {
@@ -24,9 +26,16 @@ export type GeneratedTeams = {
   balanceScore: number
 }
 
-const WORK_RATE_MULT: Record<string, number> = { Low: 0.85, Med: 1.0, High: 1.15 }
-
 function compositeScore(p: Player): number {
+  // Use FIFA attributes if available, otherwise fall back to legacy skill
+  if (p.pace != null && p.shooting != null && p.passing != null && p.dribbling != null && p.defending != null && p.physical != null) {
+    return fifaComposite(
+      { pace: p.pace, shooting: p.shooting, passing: p.passing, dribbling: p.dribbling, defending: p.defending, physical: p.physical },
+      p.position
+    )
+  }
+  // Legacy fallback
+  const WORK_RATE_MULT: Record<string, number> = { Low: 0.85, Med: 1.0, High: 1.15 }
   return p.skill * (WORK_RATE_MULT[p.workRate] ?? 1.0)
 }
 

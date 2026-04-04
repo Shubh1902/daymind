@@ -1,9 +1,14 @@
 "use client"
 
 import { useState } from "react"
+import { getPositionColor, getPositionArea, POSITION_GROUPS } from "@/lib/football-positions"
+import { STAT_LABELS, computeOverall, ratingColor, type FifaStats } from "@/lib/football-rating"
+import FifaCard from "./FifaCard"
 
 type Player = {
-  id: string; name: string; position: string; positions?: string[]; skill: number; workRate: string; notes: string | null
+  id: string; name: string; position: string; positions?: string[]
+  pace: number; shooting: number; passing: number; dribbling: number; defending: number; physical: number
+  skill: number; workRate: string; notes: string | null
 }
 
 interface Props {
@@ -11,21 +16,17 @@ interface Props {
   onRefresh: () => void
 }
 
-import { getPositionColor, getPositionArea } from "@/lib/football-positions"
-
 const AREA_STYLE: Record<string, { color: string; bg: string; label: string }> = {
   Goal: { color: "#d97706", bg: "#fef3c7", label: "GK" },
   Defense: { color: "#2563eb", bg: "#dbeafe", label: "DEF" },
   Midfield: { color: "#16a34a", bg: "#dcfce7", label: "MID" },
   Attack: { color: "#dc2626", bg: "#fee2e2", label: "ATT" },
 }
-const POS_STYLE = AREA_STYLE
 
 export default function PlayerRoster({ players, onRefresh }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [editSkill, setEditSkill] = useState(5)
-  const [editPosition, setEditPosition] = useState("MID")
-  const [editWorkRate, setEditWorkRate] = useState("Med")
+  const [editStats, setEditStats] = useState<FifaStats>({ pace: 50, shooting: 50, passing: 50, dribbling: 50, defending: 50, physical: 50 })
+  const [editPosition, setEditPosition] = useState("CM")
   const [editNotes, setEditNotes] = useState("")
   const [saving, setSaving] = useState(false)
 
@@ -37,15 +38,19 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
   }
 
   function startEdit(p: Player) {
-    setEditingId(p.id); setEditSkill(p.skill); setEditPosition(p.position); setEditWorkRate(p.workRate); setEditNotes(p.notes ?? "")
+    setEditingId(p.id)
+    setEditStats({ pace: p.pace, shooting: p.shooting, passing: p.passing, dribbling: p.dribbling, defending: p.defending, physical: p.physical })
+    setEditPosition(p.position)
+    setEditNotes(p.notes ?? "")
   }
 
   async function saveEdit() {
     if (!editingId) return
     setSaving(true)
+    const overall = computeOverall(editStats, editPosition)
     await fetch(`/api/football/players/${editingId}`, {
       method: "PATCH", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ skill: editSkill, position: editPosition, workRate: editWorkRate, notes: editNotes.trim() || null }),
+      body: JSON.stringify({ ...editStats, position: editPosition, skill: overall, notes: editNotes.trim() || null }),
     })
     setEditingId(null); setSaving(false); onRefresh()
   }
@@ -66,7 +71,7 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {(["Goal", "Defense", "Midfield", "Attack"] as const).map((area) => {
         const group = grouped[area]
         if (group.length === 0) return null
@@ -79,12 +84,20 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
               </span>
               <span className="text-xs" style={{ color: "#9ca3af" }}>{group.length} players</span>
             </div>
-            <div className="space-y-1.5">
+
+            <div className="flex flex-wrap gap-2">
               {group.map((p) => {
                 if (editingId === p.id) {
                   return (
-                    <div key={p.id} className="rounded-xl p-3 space-y-2 animate-slide-up" style={{ background: "#fff", border: "2px solid #f97316" }}>
-                      <p className="text-sm font-bold" style={{ color: "#1f2937" }}>{p.name}</p>
+                    <div key={p.id} className="w-full rounded-xl p-3 space-y-2.5 animate-slide-up" style={{ background: "#fff", border: "2px solid #f97316" }}>
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-bold" style={{ color: "#1f2937" }}>{p.name}</p>
+                        <span className="text-lg font-black" style={{ color: ratingColor(computeOverall(editStats, editPosition)) }}>
+                          {computeOverall(editStats, editPosition)}
+                        </span>
+                      </div>
+
+                      {/* Position */}
                       <div className="flex flex-wrap gap-1">
                         {["GK", "CB", "LB", "RB", "CDM", "CM", "CAM", "LW", "RW", "ST", "CF"].map((ps) => {
                           const pc = getPositionColor(ps)
@@ -93,23 +106,36 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
                           )
                         })}
                       </div>
-                      <div className="flex gap-0.5">
-                        {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                          <button key={n} onClick={() => setEditSkill(n)} className="flex-1 h-6 rounded text-xs font-semibold" style={{ background: n <= editSkill ? "#f97316" : "#f3f4f6", color: n <= editSkill ? "#fff" : "#d1d5db" }}>{n}</button>
+
+                      {/* Stats sliders */}
+                      <div className="space-y-1.5">
+                        {STAT_LABELS.map(({ key, short, color }) => (
+                          <div key={key} className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold w-7 text-right" style={{ color }}>{short}</span>
+                            <input
+                              type="range" min={1} max={99} value={editStats[key]}
+                              onChange={(e) => setEditStats((s) => ({ ...s, [key]: Number(e.target.value) }))}
+                              className="flex-1 h-1.5 rounded-full appearance-none cursor-pointer"
+                              style={{ background: `linear-gradient(to right, ${color} ${editStats[key]}%, #e5e7eb ${editStats[key]}%)`, accentColor: color }}
+                            />
+                            <input
+                              type="number" min={1} max={99} value={editStats[key]}
+                              onChange={(e) => setEditStats((s) => ({ ...s, [key]: Math.max(1, Math.min(99, Number(e.target.value))) }))}
+                              className="w-10 text-[10px] text-center font-bold rounded py-0.5"
+                              style={{ background: "#f9fafb", border: "1px solid #e5e7eb", color: "#1f2937" }}
+                            />
+                          </div>
                         ))}
                       </div>
-                      <div className="flex gap-1">
-                        {["Low", "Med", "High"].map((wr) => (
-                          <button key={wr} onClick={() => setEditWorkRate(wr)} className="flex-1 py-1 rounded text-xs font-semibold" style={{ background: editWorkRate === wr ? "#fff7ed" : "#f9fafb", color: editWorkRate === wr ? "#9a3412" : "#9ca3af", border: editWorkRate === wr ? "1.5px solid #f97316" : "1px solid #e5e7eb" }}>{wr}</button>
-                        ))}
-                      </div>
+
+                      {/* Notes */}
                       <input
-                        type="text"
-                        value={editNotes}
-                        onChange={(e) => setEditNotes(e.target.value)}
+                        type="text" value={editNotes} onChange={(e) => setEditNotes(e.target.value)}
                         placeholder="Notes — e.g. left foot, good stamina"
                         className="input-dark w-full text-xs px-3 py-2 rounded-lg"
                       />
+
+                      {/* Actions */}
                       <div className="flex gap-2">
                         <button onClick={() => { deletePlayer(p.id); setEditingId(null) }} className="py-1.5 px-3 rounded-lg text-xs font-semibold" style={{ background: "#fef2f2", color: "#ef4444", border: "1px solid #fecaca" }}>Delete</button>
                         <button onClick={() => setEditingId(null)} className="flex-1 py-1.5 rounded-lg text-xs font-semibold" style={{ background: "#f3f4f6", color: "#374151" }}>Cancel</button>
@@ -120,46 +146,8 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
                 }
 
                 return (
-                  <div
-                    key={p.id}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl group cursor-pointer transition-all hover:shadow-sm"
-                    style={{ background: "#ffffff", border: "1px solid #f3f4f6" }}
-                    onClick={() => startEdit(p)}
-                  >
-                    {/* Skill badge */}
-                    <div
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
-                      style={{ background: style.bg, color: style.color }}
-                    >
-                      {p.skill}
-                    </div>
-                    {/* Name + meta */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate" style={{ color: "#1f2937" }}>{p.name}</p>
-                      <div className="flex items-center gap-1 mt-0.5">
-                        {(p.positions?.length ? p.positions : [p.position]).map((pos, i) => {
-                          const pc = getPositionColor(pos)
-                          return (
-                            <span key={pos} className="text-[10px] font-bold px-1 rounded" style={{ background: i === 0 ? pc.bg : "transparent", color: pc.color, border: i > 0 ? `1px solid ${pc.color}40` : "none" }}>
-                              {pos}
-                            </span>
-                          )
-                        })}
-                        <span className="text-xs" style={{ color: "#d1d5db" }}>·</span>
-                        <span className="text-xs" style={{ color: "#9ca3af" }}>WR: {p.workRate}</span>
-                        {p.notes && <span className="text-xs truncate" style={{ color: "#d1d5db" }}> · {p.notes}</span>}
-                      </div>
-                    </div>
-                    {/* Delete */}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); deletePlayer(p.id) }}
-                      className="p-1.5 rounded-lg opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-all shrink-0"
-                      style={{ color: "#ef4444", background: "#fef2f2" }}
-                    >
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+                  <div key={p.id} onClick={() => startEdit(p)} className="cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]">
+                    <FifaCard player={p} size="sm" />
                   </div>
                 )
               })}

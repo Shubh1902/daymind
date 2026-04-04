@@ -14,7 +14,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
-  const { name, position, positions, skill, workRate, notes } = body
+  const { name, position, positions, skill, workRate, notes, pace, shooting, passing, dribbling, defending, physical } = body
 
   if (!name?.trim()) {
     return Response.json({ error: "Name is required" }, { status: 400 })
@@ -35,6 +35,8 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "Skill must be 1-10" }, { status: 400 })
   }
 
+  const clamp = (v: unknown) => Math.max(1, Math.min(99, Number(v) || 50))
+
   const player = await prisma.footballPlayer.create({
     data: {
       name: name.trim(),
@@ -42,6 +44,12 @@ export async function POST(request: NextRequest) {
       positions: posArr,
       skill: skillNum,
       workRate: VALID_WORK_RATES.includes(workRate) ? workRate : "Med",
+      pace: clamp(pace),
+      shooting: clamp(shooting),
+      passing: clamp(passing),
+      dribbling: clamp(dribbling),
+      defending: clamp(defending),
+      physical: clamp(physical),
       notes: notes?.trim() || null,
     },
   })

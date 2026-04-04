@@ -17,6 +17,12 @@ export async function PATCH(
   if (body.positions !== undefined) data.positions = Array.isArray(body.positions) ? body.positions : []
   if (body.skill !== undefined) data.skill = Number(body.skill)
   if (body.workRate !== undefined) data.workRate = body.workRate
+  if (body.pace !== undefined) data.pace = Math.max(1, Math.min(99, Number(body.pace)))
+  if (body.shooting !== undefined) data.shooting = Math.max(1, Math.min(99, Number(body.shooting)))
+  if (body.passing !== undefined) data.passing = Math.max(1, Math.min(99, Number(body.passing)))
+  if (body.dribbling !== undefined) data.dribbling = Math.max(1, Math.min(99, Number(body.dribbling)))
+  if (body.defending !== undefined) data.defending = Math.max(1, Math.min(99, Number(body.defending)))
+  if (body.physical !== undefined) data.physical = Math.max(1, Math.min(99, Number(body.physical)))
   if (body.notes !== undefined) data.notes = body.notes?.trim() || null
   if (body.active !== undefined) data.active = body.active
 

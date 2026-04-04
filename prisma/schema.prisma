@@ -192,10 +192,18 @@ model HouseholdTask {
 model FootballPlayer {
   id        String   @id @default(cuid())
   name      String
-  position  String   // primary: "GK" | "DEF" | "MID" | "ATT"
-  positions String[] @default([]) // all positions player can play, e.g. ["DEF", "MID"]
-  skill     Int      // 1-10
-  workRate  String   @default("Med") // "Low" | "Med" | "High"
+  position  String   // primary position: "GK", "CB", "CM", "ST", etc.
+  positions String[] @default([]) // all positions player can play
+  // FIFA-style attributes (1-99)
+  pace      Int      @default(50)  // PAC — speed and acceleration
+  shooting  Int      @default(50)  // SHO — finishing and shot power
+  passing   Int      @default(50)  // PAS — short/long passing, vision
+  dribbling Int      @default(50)  // DRI — ball control, agility
+  defending Int      @default(50)  // DEF — tackling, interceptions
+  physical  Int      @default(50)  // PHY — stamina, strength, aggression
+  // Legacy fields (kept for backward compat, computed from new attrs)
+  skill     Int      @default(50)  // overall rating (computed)
+  workRate  String   @default("Med")
   notes     String?
   active    Boolean  @default(true)
   createdAt DateTime @default(now())

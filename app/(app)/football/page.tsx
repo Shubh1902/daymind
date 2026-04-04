@@ -12,6 +12,8 @@ export default async function FootballPage() {
 
   const serialized = players.map((p) => ({
     id: p.id, name: p.name, position: p.position, positions: p.positions,
+    pace: p.pace, shooting: p.shooting, passing: p.passing,
+    dribbling: p.dribbling, defending: p.defending, physical: p.physical,
     skill: p.skill, workRate: p.workRate, notes: p.notes,
   }))
 

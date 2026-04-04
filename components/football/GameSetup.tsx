@@ -3,7 +3,9 @@
 import { useState } from "react"
 
 type Player = {
-  id: string; name: string; position: string; positions?: string[]; skill: number; workRate: string; notes: string | null
+  id: string; name: string; position: string; positions?: string[]
+  pace: number; shooting: number; passing: number; dribbling: number; defending: number; physical: number
+  skill: number; workRate: string; notes: string | null
 }
 
 type TeamAssignment = {

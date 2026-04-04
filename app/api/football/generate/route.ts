@@ -26,7 +26,11 @@ export async function POST(request: NextRequest) {
 
   // Generate balanced teams
   const { teamA, teamB, balanceScore } = generateTeams(
-    players.map((p) => ({ id: p.id, name: p.name, position: p.position, skill: p.skill, workRate: p.workRate })),
+    players.map((p) => ({
+      id: p.id, name: p.name, position: p.position, skill: p.skill, workRate: p.workRate,
+      pace: p.pace, shooting: p.shooting, passing: p.passing,
+      dribbling: p.dribbling, defending: p.defending, physical: p.physical,
+    })),
     constraints
   )
 

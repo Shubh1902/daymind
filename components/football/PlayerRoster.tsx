@@ -26,6 +26,7 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
   const [editSkill, setEditSkill] = useState(5)
   const [editPosition, setEditPosition] = useState("MID")
   const [editWorkRate, setEditWorkRate] = useState("Med")
+  const [editNotes, setEditNotes] = useState("")
   const [saving, setSaving] = useState(false)
 
   const grouped = { Goal: [] as Player[], Defense: [] as Player[], Midfield: [] as Player[], Attack: [] as Player[] }
@@ -36,7 +37,7 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
   }
 
   function startEdit(p: Player) {
-    setEditingId(p.id); setEditSkill(p.skill); setEditPosition(p.position); setEditWorkRate(p.workRate)
+    setEditingId(p.id); setEditSkill(p.skill); setEditPosition(p.position); setEditWorkRate(p.workRate); setEditNotes(p.notes ?? "")
   }
 
   async function saveEdit() {
@@ -44,7 +45,7 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
     setSaving(true)
     await fetch(`/api/football/players/${editingId}`, {
       method: "PATCH", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ skill: editSkill, position: editPosition, workRate: editWorkRate }),
+      body: JSON.stringify({ skill: editSkill, position: editPosition, workRate: editWorkRate, notes: editNotes.trim() || null }),
     })
     setEditingId(null); setSaving(false); onRefresh()
   }
@@ -102,7 +103,15 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
                           <button key={wr} onClick={() => setEditWorkRate(wr)} className="flex-1 py-1 rounded text-xs font-semibold" style={{ background: editWorkRate === wr ? "#fff7ed" : "#f9fafb", color: editWorkRate === wr ? "#9a3412" : "#9ca3af", border: editWorkRate === wr ? "1.5px solid #f97316" : "1px solid #e5e7eb" }}>{wr}</button>
                         ))}
                       </div>
+                      <input
+                        type="text"
+                        value={editNotes}
+                        onChange={(e) => setEditNotes(e.target.value)}
+                        placeholder="Notes — e.g. left foot, good stamina"
+                        className="input-dark w-full text-xs px-3 py-2 rounded-lg"
+                      />
                       <div className="flex gap-2">
+                        <button onClick={() => { deletePlayer(p.id); setEditingId(null) }} className="py-1.5 px-3 rounded-lg text-xs font-semibold" style={{ background: "#fef2f2", color: "#ef4444", border: "1px solid #fecaca" }}>Delete</button>
                         <button onClick={() => setEditingId(null)} className="flex-1 py-1.5 rounded-lg text-xs font-semibold" style={{ background: "#f3f4f6", color: "#374151" }}>Cancel</button>
                         <button onClick={saveEdit} disabled={saving} className="flex-1 btn-primary text-white py-1.5 rounded-lg text-xs font-semibold disabled:opacity-40">Save</button>
                       </div>
@@ -144,7 +153,7 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
                     {/* Delete */}
                     <button
                       onClick={(e) => { e.stopPropagation(); deletePlayer(p.id) }}
-                      className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                      className="p-1.5 rounded-lg opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-all shrink-0"
                       style={{ color: "#ef4444", background: "#fef2f2" }}
                     >
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

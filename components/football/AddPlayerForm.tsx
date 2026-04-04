@@ -12,19 +12,16 @@ interface Props {
 export default function AddPlayerForm({ onAdded }: Props) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
-  const [positions, setPositions] = useState<string[]>(["CM"])
+  const [positions, setPositions] = useState<string[]>([])
   const [skill, setSkill] = useState(5)
   const [workRate, setWorkRate] = useState("Med")
   const [notes, setNotes] = useState("")
   const [saving, setSaving] = useState(false)
-  const [showPosPicker, setShowPosPicker] = useState(false)
+  const [showPosPicker, setShowPosPicker] = useState(true)
 
   function togglePosition(posId: string) {
     setPositions((prev) => {
-      if (prev.includes(posId)) {
-        const next = prev.filter((p) => p !== posId)
-        return next.length > 0 ? next : prev
-      }
+      if (prev.includes(posId)) return prev.filter((p) => p !== posId)
       return [...prev, posId]
     })
   }
@@ -39,7 +36,7 @@ export default function AddPlayerForm({ onAdded }: Props) {
         body: JSON.stringify({ name: name.trim(), position: positions[0], positions, skill, workRate, notes: notes.trim() || null }),
       })
       if (res.ok) {
-        setName(""); setPositions(["CM"]); setSkill(5); setWorkRate("Med"); setNotes("")
+        setName(""); setPositions([]); setSkill(5); setWorkRate("Med"); setNotes("")
         setOpen(false); setShowPosPicker(false)
         onAdded()
       }

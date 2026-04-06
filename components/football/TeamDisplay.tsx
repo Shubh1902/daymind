@@ -29,8 +29,8 @@ const AREA_COLORS: Record<string, { color: string; bg: string }> = {
 function TeamColumn({ team, label, accent }: { team: TeamAssignment[]; label: string; accent: string }) {
   const gk = team.find((p) => p.role === "gk")
   const outfield = team.filter((p) => p.role === "outfield")
-  const sub = team.find((p) => p.role === "sub")
-  const hasDedicatedGK = gk ? toBalancerPosition(gk.position) === "GK" : false
+  const subs = team.filter((p) => p.role === "sub")
+  const hasDedicatedGK = (gk as any)?.dedicatedGK ?? (gk ? toBalancerPosition(gk.position) === "GK" : false)
 
   // Group outfield by area (DEF/MID/ATT)
   const grouped: Record<string, TeamAssignment[]> = {}
@@ -59,8 +59,10 @@ function TeamColumn({ team, label, accent }: { team: TeamAssignment[]; label: st
             <span className="text-xs font-bold" style={{ color: "#d97706" }}>GK</span>
             <span className="text-xs font-medium flex-1 truncate" style={{ color: "#1f2937" }}>{gk.name}</span>
             <span className="text-xs font-bold" style={{ color: "#d97706" }}>{gk.skill}</span>
-            {hasDedicatedGK && (
+            {hasDedicatedGK ? (
               <span title="Dedicated GK — defence boosted" className="text-xs">🛡️</span>
+            ) : (
+              <span title="Rotation GK" className="text-[9px] px-1 rounded" style={{ background: "#fef3c7", color: "#92400e" }}>ROT</span>
             )}
           </div>
         )}
@@ -86,14 +88,14 @@ function TeamColumn({ team, label, accent }: { team: TeamAssignment[]; label: st
           )
         })}
 
-        {/* Sub */}
-        {sub && (
-          <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg mt-1" style={{ background: "#f3f4f6", border: "1px dashed #d1d5db" }}>
+        {/* Subs */}
+        {subs.map((sub) => (
+          <div key={sub.playerId} className="flex items-center gap-2 px-2 py-1.5 rounded-lg mt-1" style={{ background: "#f3f4f6", border: "1px dashed #d1d5db" }}>
             <span className="text-xs font-bold" style={{ color: "#9ca3af" }}>SUB</span>
             <span className="text-xs font-medium flex-1 truncate" style={{ color: "#6b7280" }}>{sub.name}</span>
             <span className="text-xs" style={{ color: "#9ca3af" }}>{sub.position} · {sub.skill}</span>
           </div>
-        )}
+        ))}
       </div>
     </div>
   )

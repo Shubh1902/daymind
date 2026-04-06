@@ -18,6 +18,7 @@ export type TeamAssignment = {
   skill: number
   workRate: string
   role: "outfield" | "gk" | "sub"
+  dedicatedGK?: boolean // true if player's actual position is GK
 }
 
 export type GeneratedTeams = {
@@ -27,14 +28,12 @@ export type GeneratedTeams = {
 }
 
 function compositeScore(p: Player): number {
-  // Use FIFA attributes if available, otherwise fall back to legacy skill
   if (p.pace != null && p.shooting != null && p.passing != null && p.dribbling != null && p.defending != null && p.physical != null) {
     return fifaComposite(
       { pace: p.pace, shooting: p.shooting, passing: p.passing, dribbling: p.dribbling, defending: p.defending, physical: p.physical },
       p.position
     )
   }
-  // Legacy fallback
   const WORK_RATE_MULT: Record<string, number> = { Low: 0.85, Med: 1.0, High: 1.15 }
   return p.skill * (WORK_RATE_MULT[p.workRate] ?? 1.0)
 }
@@ -49,37 +48,48 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 /**
- * Generate two balanced teams from selected players.
- * Handles GK assignment, constraint enforcement, position balance, and subs.
+ * Generate two balanced 8v8 teams.
+ *
+ * Rules:
+ * - Each team ALWAYS has a GK (dedicated or rotation from outfield)
+ * - 8v8: 1 GK + 7 outfield per team (8 total per team)
+ * - Extras beyond 16 are subs
+ * - If no dedicated GKs: lowest-rated outfield player on each team rotates as GK
+ * - If 1 dedicated GK: that team gets them, other team picks rotation GK
+ * - If 2+ dedicated GKs: one per team, extras play outfield
+ * - Team with dedicated GK has slight defence advantage (factored into balance)
  */
 export function generateTeams(players: Player[], constraints: Constraint[]): GeneratedTeams {
   if (players.length < 4) {
     throw new Error("Need at least 4 players to make teams")
   }
 
-  // Step 1: Separate GKs from outfield (map detailed positions to categories)
-  const gks = players.filter((p) => toBalancerPosition(p.position) === "GK")
-  const outfield = players.filter((p) => toBalancerPosition(p.position) !== "GK")
+  // Step 1: Identify GKs
+  const dedicatedGKs = players.filter((p) => toBalancerPosition(p.position) === "GK")
+  const outfieldPlayers = players.filter((p) => toBalancerPosition(p.position) !== "GK")
 
-  // Assign GKs
+  // Assign dedicated GKs
   let gkA: Player | null = null
   let gkB: Player | null = null
-  const extraGks: Player[] = []
+  let gkADedicated = false
+  let gkBDedicated = false
+  const extraGKsToOutfield: Player[] = []
 
-  if (gks.length >= 2) {
-    // Sort by skill desc, assign top 2
-    const sortedGks = [...gks].sort((a, b) => b.skill - a.skill)
-    gkA = sortedGks[0]
-    gkB = sortedGks[1]
-    extraGks.push(...sortedGks.slice(2))
-  } else if (gks.length === 1) {
-    gkA = gks[0] // Team A gets the dedicated GK
+  if (dedicatedGKs.length >= 2) {
+    const sortedGKs = [...dedicatedGKs].sort((a, b) => b.skill - a.skill)
+    gkA = sortedGKs[0]; gkADedicated = true
+    gkB = sortedGKs[1]; gkBDedicated = true
+    extraGKsToOutfield.push(...sortedGKs.slice(2))
+  } else if (dedicatedGKs.length === 1) {
+    gkA = dedicatedGKs[0]; gkADedicated = true
+    // gkB will be assigned from outfield later
   }
+  // If 0 dedicated GKs, both will be assigned from outfield later
 
-  // All outfield players (including extra GKs who play outfield)
-  const allOutfield = [...outfield, ...extraGks]
+  // All outfield-eligible players
+  const allOutfield = [...outfieldPlayers, ...extraGKsToOutfield]
 
-  // Step 2: Build constraint lookup
+  // Step 2: Constraints
   const forceTeam = new Map<string, "A" | "B">()
   const mustSeparate: [string, string][] = []
   const mustPair: [string, string][] = []
@@ -99,13 +109,16 @@ export function generateTeams(players: Player[], constraints: Constraint[]): Gen
     }
   }
 
-  // Step 3: Determine team sizes
-  const totalOutfield = allOutfield.length
-  const halfSize = Math.floor(totalOutfield / 2)
-  const teamASize = halfSize
-  const teamBSize = totalOutfield - halfSize
+  // Step 3: Calculate team sizes
+  // For 8v8: each team needs 7 outfield + 1 GK = 8
+  // Total outfield needed = 14, remaining are subs
+  // But we support flexible counts too
+  const totalPlaying = allOutfield.length + (gkA ? 0 : 0) + (gkB ? 0 : 0) // GKs are separate
+  const halfOutfield = Math.floor(allOutfield.length / 2)
+  const teamAOutfieldSize = halfOutfield
+  const teamBOutfieldSize = allOutfield.length - halfOutfield
 
-  // Step 4: Snake draft with constraints
+  // Step 4: Snake draft
   const sorted = shuffle(allOutfield).sort((a, b) => compositeScore(b) - compositeScore(a))
 
   const teamAIds = new Set<string>()
@@ -113,12 +126,12 @@ export function generateTeams(players: Player[], constraints: Constraint[]): Gen
   let scoreA = 0
   let scoreB = 0
 
-  // Apply forced assignments first
+  // Forced assignments
   for (const p of sorted) {
     const forced = forceTeam.get(p.id)
-    if (forced === "A" && teamAIds.size < teamASize) {
+    if (forced === "A" && teamAIds.size < teamAOutfieldSize) {
       teamAIds.add(p.id); scoreA += compositeScore(p)
-    } else if (forced === "B" && teamBIds.size < teamBSize) {
+    } else if (forced === "B" && teamBIds.size < teamBOutfieldSize) {
       teamBIds.add(p.id); scoreB += compositeScore(p)
     }
   }
@@ -126,42 +139,59 @@ export function generateTeams(players: Player[], constraints: Constraint[]): Gen
   // Draft remaining
   for (const p of sorted) {
     if (teamAIds.has(p.id) || teamBIds.has(p.id)) continue
-
-    // Check which team can accept
-    const canA = teamAIds.size < teamASize
-    const canB = teamBIds.size < teamBSize
-
+    const canA = teamAIds.size < teamAOutfieldSize
+    const canB = teamBIds.size < teamBOutfieldSize
     if (!canA && !canB) break
     if (!canA) { teamBIds.add(p.id); scoreB += compositeScore(p); continue }
     if (!canB) { teamAIds.add(p.id); scoreA += compositeScore(p); continue }
 
-    // Prefer weaker team
     let preferA = scoreA <= scoreB
-
-    // Check constraints
     const wouldViolate = (targetSet: Set<string>, otherSet: Set<string>): boolean => {
-      // Must separate: if partner is on same team
       for (const [a, b] of mustSeparate) {
         if ((p.id === a && targetSet.has(b)) || (p.id === b && targetSet.has(a))) return true
       }
-      // Must pair: if partner is on other team
       for (const [a, b] of mustPair) {
         if ((p.id === a && otherSet.has(b)) || (p.id === b && otherSet.has(a))) return true
       }
       return false
     }
-
     if (preferA && wouldViolate(teamAIds, teamBIds)) preferA = false
     if (!preferA && wouldViolate(teamBIds, teamAIds)) preferA = true
 
-    if (preferA) {
-      teamAIds.add(p.id); scoreA += compositeScore(p)
-    } else {
-      teamBIds.add(p.id); scoreB += compositeScore(p)
+    if (preferA) { teamAIds.add(p.id); scoreA += compositeScore(p) }
+    else { teamBIds.add(p.id); scoreB += compositeScore(p) }
+  }
+
+  // Step 5: Assign rotation GKs from outfield if needed
+  // Pick the lowest-rated outfield player from each team that needs a GK
+  function pickRotationGK(ids: Set<string>): Player | null {
+    const teamPlayers = allOutfield.filter((p) => ids.has(p.id))
+    if (teamPlayers.length === 0) return null
+    // Prefer defenders for rotation GK, then lowest overall
+    const defenders = teamPlayers.filter((p) => toBalancerPosition(p.position) === "DEF")
+    const pool = defenders.length > 0 ? defenders : teamPlayers
+    pool.sort((a, b) => compositeScore(a) - compositeScore(b))
+    return pool[0]
+  }
+
+  if (!gkB) {
+    const rotGK = pickRotationGK(teamBIds)
+    if (rotGK) {
+      gkB = rotGK
+      teamBIds.delete(rotGK.id)
+      gkBDedicated = false
+    }
+  }
+  if (!gkA) {
+    const rotGK = pickRotationGK(teamAIds)
+    if (rotGK) {
+      gkA = rotGK
+      teamAIds.delete(rotGK.id)
+      gkADedicated = false
     }
   }
 
-  // Step 5: Position balance — ensure each team has at least 1 DEF, 1 MID, 1 ATT
+  // Step 6: Position balance
   function positionCount(ids: Set<string>, pos: string): number {
     return allOutfield.filter((p) => ids.has(p.id) && toBalancerPosition(p.position) === pos).length
   }
@@ -170,22 +200,21 @@ export function generateTeams(players: Player[], constraints: Constraint[]): Gen
     const countA = positionCount(teamAIds, pos)
     const countB = positionCount(teamBIds, pos)
     if (countA === 0 && countB >= 2) {
-      // Swap: give A one of B's pos players for one of A's most-common position
-      const donor = allOutfield.find((p) => teamBIds.has(p.id) && p.position === pos)
+      const donor = allOutfield.find((p) => teamBIds.has(p.id) && toBalancerPosition(p.position) === pos)
       const mostCommonPos = ["DEF", "MID", "ATT"].reduce((best, p2) =>
         positionCount(teamAIds, p2) > positionCount(teamAIds, best) ? p2 : best
       )
-      const receiver = allOutfield.find((p) => teamAIds.has(p.id) && p.position === mostCommonPos && positionCount(teamAIds, mostCommonPos) > 1)
+      const receiver = allOutfield.find((p) => teamAIds.has(p.id) && toBalancerPosition(p.position) === mostCommonPos && positionCount(teamAIds, mostCommonPos) > 1)
       if (donor && receiver) {
         teamBIds.delete(donor.id); teamAIds.add(donor.id)
         teamAIds.delete(receiver.id); teamBIds.add(receiver.id)
       }
     } else if (countB === 0 && countA >= 2) {
-      const donor = allOutfield.find((p) => teamAIds.has(p.id) && p.position === pos)
+      const donor = allOutfield.find((p) => teamAIds.has(p.id) && toBalancerPosition(p.position) === pos)
       const mostCommonPos = ["DEF", "MID", "ATT"].reduce((best, p2) =>
         positionCount(teamBIds, p2) > positionCount(teamBIds, best) ? p2 : best
       )
-      const receiver = allOutfield.find((p) => teamBIds.has(p.id) && p.position === mostCommonPos && positionCount(teamBIds, mostCommonPos) > 1)
+      const receiver = allOutfield.find((p) => teamBIds.has(p.id) && toBalancerPosition(p.position) === mostCommonPos && positionCount(teamBIds, mostCommonPos) > 1)
       if (donor && receiver) {
         teamAIds.delete(donor.id); teamBIds.add(donor.id)
         teamBIds.delete(receiver.id); teamAIds.add(receiver.id)
@@ -193,43 +222,56 @@ export function generateTeams(players: Player[], constraints: Constraint[]): Gen
     }
   }
 
-  // Step 6: Assign subs (lowest composite in each team)
-  function buildTeam(ids: Set<string>, gk: Player | null): TeamAssignment[] {
+  // Step 7: Build final teams — 8v8 format
+  // For each team: GK + up to 7 outfield = 8, rest are subs
+  function buildTeam(ids: Set<string>, gk: Player | null, isDedicatedGK: boolean): TeamAssignment[] {
     const members = allOutfield
       .filter((p) => ids.has(p.id))
       .sort((a, b) => compositeScore(b) - compositeScore(a))
 
     const result: TeamAssignment[] = []
 
-    // Add GK
+    // GK is always slot 1
     if (gk) {
-      result.push({ playerId: gk.id, name: gk.name, position: gk.position, skill: gk.skill, workRate: gk.workRate, role: "gk" })
+      result.push({
+        playerId: gk.id, name: gk.name, position: gk.position,
+        skill: gk.skill, workRate: gk.workRate, role: "gk",
+        dedicatedGK: isDedicatedGK,
+      })
     }
 
-    // Add outfield, last one is sub
+    // Outfield: first 7 are starters, rest are subs (for 8v8)
+    const maxOutfield = 7
     members.forEach((p, i) => {
       result.push({
-        playerId: p.id, name: p.name, position: p.position, skill: p.skill, workRate: p.workRate,
-        role: i === members.length - 1 ? "sub" : "outfield",
+        playerId: p.id, name: p.name, position: p.position,
+        skill: p.skill, workRate: p.workRate,
+        role: i < maxOutfield ? "outfield" : "sub",
       })
     })
 
     return result
   }
 
-  const teamA = buildTeam(teamAIds, gkA)
-  const teamB = buildTeam(teamBIds, gkB)
+  const teamA = buildTeam(teamAIds, gkA, gkADedicated)
+  const teamB = buildTeam(teamBIds, gkB, gkBDedicated)
 
-  // Step 7: Balance score — use the same composite scoring
+  // Step 8: Balance score
+  // Team with dedicated GK gets a 3% defence boost for balance consideration
   const allPlayersMap = new Map(players.map((p) => [p.id, p]))
-  const totalA = teamA.reduce((s, a) => {
+  let totalA = teamA.reduce((s, a) => {
     const orig = allPlayersMap.get(a.playerId)
     return s + (orig ? compositeScore(orig) : a.skill)
   }, 0)
-  const totalB = teamB.reduce((s, a) => {
+  let totalB = teamB.reduce((s, a) => {
     const orig = allPlayersMap.get(a.playerId)
     return s + (orig ? compositeScore(orig) : a.skill)
   }, 0)
+
+  // Dedicated GK bonus for balance calculation
+  if (gkADedicated && !gkBDedicated) totalA *= 1.03
+  if (gkBDedicated && !gkADedicated) totalB *= 1.03
+
   const maxTotal = Math.max(totalA, totalB, 1)
   const balanceScore = Math.round((100 - Math.abs(totalA - totalB) / maxTotal * 100) * 10) / 10
 

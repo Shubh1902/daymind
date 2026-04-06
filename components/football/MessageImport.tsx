@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { parseMatchMessage, type ParsedImport, type ParsedPlayer } from "@/lib/football-import-parser"
 import { getPositionColor } from "@/lib/football-positions"
+import AddPlayerModal from "./AddPlayerModal"
 
 type Player = {
   id: string; name: string; position: string; positions?: string[]; skill: number; workRate: string; notes: string | null
@@ -19,9 +20,6 @@ export default function MessageImport({ players, onConfirm, onRefreshPlayers }: 
   const [text, setText] = useState("")
   const [parsed, setParsed] = useState<ParsedImport | null>(null)
   const [addingName, setAddingName] = useState<string | null>(null)
-  const [addPos, setAddPos] = useState("CM")
-  const [addSkill, setAddSkill] = useState(5)
-  const [addSaving, setAddSaving] = useState(false)
   const needsReparse = useRef(false)
 
   // Re-parse when players prop updates (after adding a new player)
@@ -40,22 +38,10 @@ export default function MessageImport({ players, onConfirm, onRefreshPlayers }: 
     setStep("review")
   }
 
-  async function saveNewPlayer() {
-    if (!addingName) return
-    setAddSaving(true)
-    try {
-      const res = await fetch("/api/football/players", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: addingName.trim(), position: addPos, positions: [addPos], skill: addSkill, workRate: "Med" }),
-      })
-      if (res.ok) {
-        needsReparse.current = true
-        await onRefreshPlayers() // This updates `players` prop → triggers useEffect → re-parses
-        setAddingName(null)
-      }
-    } catch { /* ignore */ }
-    setAddSaving(false)
+  async function handlePlayerAdded() {
+    needsReparse.current = true
+    await onRefreshPlayers()
+    setAddingName(null)
   }
 
   function handleConfirm() {
@@ -116,7 +102,7 @@ export default function MessageImport({ players, onConfirm, onRefreshPlayers }: 
         )}
         {isUnrecognized && (
           <button
-            onClick={() => { setAddingName(p.rawName); setAddPos("CM"); setAddSkill(5) }}
+            onClick={() => setAddingName(p.rawName)}
             className="text-[10px] font-bold px-2 py-1 rounded-lg shrink-0"
             style={{ background: "#fff7ed", color: "#f97316", border: "1px solid #fdba74" }}
           >
@@ -216,70 +202,13 @@ export default function MessageImport({ players, onConfirm, onRefreshPlayers }: 
         </div>
       )}
 
-      {/* Inline Add Player form */}
+      {/* Add Player Modal — full form with FIFA stats */}
       {addingName && (
-        <div className="rounded-xl p-4 space-y-3 animate-slide-up" style={{ background: "#fff", border: "2px solid #f97316", boxShadow: "0 4px 12px rgba(249,115,22,0.1)" }}>
-          <p className="text-sm font-bold" style={{ color: "#1f2937" }}>Add "{addingName}" to roster</p>
-
-          {/* Position */}
-          <div>
-            <p className="text-xs font-semibold mb-1.5" style={{ color: "#6b7280" }}>Position</p>
-            <div className="flex flex-wrap gap-1.5">
-              {["GK", "CB", "LB", "RB", "CDM", "CM", "CAM", "LW", "RW", "ST", "CF"].map((pos) => {
-                const pc = getPositionColor(pos)
-                return (
-                  <button
-                    key={pos}
-                    onClick={() => setAddPos(pos)}
-                    className="px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all"
-                    style={{
-                      background: addPos === pos ? pc.bg : "#f9fafb",
-                      color: addPos === pos ? pc.color : "#9ca3af",
-                      border: addPos === pos ? `2px solid ${pc.color}` : "1px solid #e5e7eb",
-                    }}
-                  >
-                    {pos}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Skill */}
-          <div>
-            <p className="text-xs font-semibold mb-1.5" style={{ color: "#6b7280" }}>Skill {addSkill}/10</p>
-            <div className="flex gap-1">
-              {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                <button
-                  key={n}
-                  onClick={() => setAddSkill(n)}
-                  className="flex-1 h-8 rounded-md text-xs font-semibold transition-all"
-                  style={{ background: n <= addSkill ? "#f97316" : "#f3f4f6", color: n <= addSkill ? "#fff" : "#d1d5db" }}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => setAddingName(null)}
-              className="flex-1 py-2.5 rounded-xl text-xs font-semibold"
-              style={{ background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db" }}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={saveNewPlayer}
-              disabled={addSaving}
-              className="flex-1 btn-primary text-white py-2.5 rounded-xl text-xs font-semibold disabled:opacity-40 flex items-center justify-center gap-1"
-            >
-              {addSaving ? <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> : "Add & Match"}
-            </button>
-          </div>
-        </div>
+        <AddPlayerModal
+          initialName={addingName}
+          onSaved={handlePlayerAdded}
+          onClose={() => setAddingName(null)}
+        />
       )}
 
       {/* Actions */}

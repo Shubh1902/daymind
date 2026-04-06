@@ -17,6 +17,24 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "Both teams need at least 1 player" }, { status: 400 })
   }
 
+  // Deduplicate: a player can only be on one team. If same ID in both, keep the first occurrence.
+  const seenIds = new Set<string>()
+  const selectionsA: { playerId: string; team: string; role: string }[] = []
+  const selectionsB: { playerId: string; team: string; role: string }[] = []
+
+  for (const p of teamA) {
+    if (!seenIds.has(p.playerId)) {
+      seenIds.add(p.playerId)
+      selectionsA.push({ playerId: p.playerId, team: "A", role: p.role ?? "outfield" })
+    }
+  }
+  for (const p of teamB) {
+    if (!seenIds.has(p.playerId)) {
+      seenIds.add(p.playerId)
+      selectionsB.push({ playerId: p.playerId, team: "B", role: p.role ?? "outfield" })
+    }
+  }
+
   const game = await prisma.footballGame.create({
     data: {
       name: name || "Manual Game",
@@ -24,14 +42,7 @@ export async function POST(request: NextRequest) {
       teamBPlayers: teamB,
       balanceScore: balanceScore ?? null,
       selections: {
-        create: [
-          ...teamA.map((p: { playerId: string; role?: string }) => ({
-            playerId: p.playerId, team: "A", role: p.role ?? "outfield",
-          })),
-          ...teamB.map((p: { playerId: string; role?: string }) => ({
-            playerId: p.playerId, team: "B", role: p.role ?? "outfield",
-          })),
-        ],
+        create: [...selectionsA, ...selectionsB],
       },
     },
   })

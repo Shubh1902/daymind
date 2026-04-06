@@ -31,8 +31,8 @@ export async function POST(request: NextRequest) {
 
   const primaryPos = posArr[0]
   const skillNum = Number(skill)
-  if (!skillNum || skillNum < 1 || skillNum > 10) {
-    return Response.json({ error: "Skill must be 1-10" }, { status: 400 })
+  if (!skillNum || skillNum < 1 || skillNum > 99) {
+    return Response.json({ error: "Skill must be 1-99" }, { status: 400 })
   }
 
   const clamp = (v: unknown) => Math.max(1, Math.min(99, Number(v) || 50))

@@ -20,7 +20,23 @@ interface Props {
 export default function InlineScoreRecorder({ gameId, teamA, teamB, existingGoals, existingScoreA, existingScoreB, onSaved }: Props) {
   const [scoreA, setScoreA] = useState(existingScoreA ?? 0)
   const [scoreB, setScoreB] = useState(existingScoreB ?? 0)
-  const [goals, setGoals] = useState<GoalEntry[]>([])
+
+  // Pre-populate from existing goals when editing
+  const [goals, setGoals] = useState<GoalEntry[]>(() => {
+    if (!existingGoals || existingGoals.length === 0) return []
+    const allPlayers = [...teamA, ...teamB]
+    return existingGoals.map((g) => {
+      const scorer = allPlayers.find((p) => p.name === g.player.name)
+      const assister = g.assistPlayer ? allPlayers.find((p) => p.name === g.assistPlayer?.name) : null
+      return {
+        playerId: scorer?.playerId ?? "",
+        playerName: g.player.name,
+        team: g.team,
+        assistPlayerId: assister?.playerId,
+        assistName: g.assistPlayer?.name,
+      }
+    })
+  })
   const [pickerTeam, setPickerTeam] = useState<"A" | "B" | null>(null)
   const [assistPicker, setAssistPicker] = useState<number | null>(null) // index of goal needing assist
   const [saving, setSaving] = useState(false)
@@ -74,7 +90,7 @@ export default function InlineScoreRecorder({ gameId, teamA, teamB, existingGoal
           <div className="flex items-center gap-1.5 mt-1">
             <button onClick={() => setScoreA((s) => Math.max(0, s - 1))} className="w-7 h-7 rounded-lg text-sm font-bold" style={{ background: "#fee2e2", color: "#dc2626" }}>-</button>
             <span className="text-2xl font-black w-8 text-center" style={{ color: "#1f2937" }}>{scoreA}</span>
-            <button onClick={() => { setScoreA((s) => s + 1); setPickerTeam("A") }} className="w-7 h-7 rounded-lg text-sm font-bold" style={{ background: "#dcfce7", color: "#16a34a" }}>+</button>
+            <button onClick={() => setPickerTeam("A")} className="w-7 h-7 rounded-lg text-sm font-bold" style={{ background: "#dcfce7", color: "#16a34a" }}>+</button>
           </div>
         </div>
         <span className="text-lg font-bold" style={{ color: "#d1d5db" }}>:</span>
@@ -83,7 +99,7 @@ export default function InlineScoreRecorder({ gameId, teamA, teamB, existingGoal
           <div className="flex items-center gap-1.5 mt-1">
             <button onClick={() => setScoreB((s) => Math.max(0, s - 1))} className="w-7 h-7 rounded-lg text-sm font-bold" style={{ background: "#fee2e2", color: "#dc2626" }}>-</button>
             <span className="text-2xl font-black w-8 text-center" style={{ color: "#1f2937" }}>{scoreB}</span>
-            <button onClick={() => { setScoreB((s) => s + 1); setPickerTeam("B") }} className="w-7 h-7 rounded-lg text-sm font-bold" style={{ background: "#dcfce7", color: "#16a34a" }}>+</button>
+            <button onClick={() => setPickerTeam("B")} className="w-7 h-7 rounded-lg text-sm font-bold" style={{ background: "#dcfce7", color: "#16a34a" }}>+</button>
           </div>
         </div>
       </div>

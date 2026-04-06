@@ -42,16 +42,21 @@ export default function GameDetail({ game: initialGame, allPlayers }: Props) {
     team: g.team, assistPlayerId: g.assistPlayerId, assistName: g.assistPlayer?.name,
   })))
 
+  // Editable teams
+  const [editTeamA, setEditTeamA] = useState(game.teamAPlayers ?? [])
+  const [editTeamB, setEditTeamB] = useState(game.teamBPlayers ?? [])
+
   // Picker state
   const [scorerPicker, setScorerPicker] = useState<"A" | "B" | null>(null)
   const [assistPicker, setAssistPicker] = useState<number | null>(null)
   const [viewMode, setViewMode] = useState<"list" | "pitch">("list")
   const [showJerseyEdit, setShowJerseyEdit] = useState(false)
+  const [replacingPlayer, setReplacingPlayer] = useState<{ team: "A" | "B"; index: number } | null>(null)
 
   const jA = getJerseyColor(jerseyA)
   const jB = getJerseyColor(jerseyB)
-  const teamA = game.teamAPlayers ?? []
-  const teamB = game.teamBPlayers ?? []
+  const teamA = editTeamA
+  const teamB = editTeamB
   const playersA = teamA.filter((p) => p.role !== "sub" && p.playerId)
   const playersB = teamB.filter((p) => p.role !== "sub" && p.playerId)
 
@@ -81,6 +86,33 @@ export default function GameDetail({ game: initialGame, allPlayers }: Props) {
     setAssistPicker(null)
   }
 
+  function removePlayer(team: "A" | "B", index: number) {
+    if (team === "A") setEditTeamA((prev) => prev.filter((_, i) => i !== index))
+    else setEditTeamB((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  function replacePlayer(team: "A" | "B", index: number, newPlayer: SimplePlayer) {
+    const replacement: TeamPlayer = {
+      name: newPlayer.name, position: newPlayer.position, skill: newPlayer.skill,
+      role: "outfield", playerId: newPlayer.id, workRate: "Med",
+    }
+    if (team === "A") setEditTeamA((prev) => prev.map((p, i) => i === index ? replacement : p))
+    else setEditTeamB((prev) => prev.map((p, i) => i === index ? replacement : p))
+    setReplacingPlayer(null)
+  }
+
+  function swapPlayerBetweenTeams(fromTeam: "A" | "B", index: number) {
+    const player = fromTeam === "A" ? editTeamA[index] : editTeamB[index]
+    if (!player) return
+    if (fromTeam === "A") {
+      setEditTeamA((prev) => prev.filter((_, i) => i !== index))
+      setEditTeamB((prev) => [...prev, player])
+    } else {
+      setEditTeamB((prev) => prev.filter((_, i) => i !== index))
+      setEditTeamA((prev) => [...prev, player])
+    }
+  }
+
   function removeAssist(goalIndex: number) {
     setGoals((prev) => prev.map((g, i) => i === goalIndex ? { ...g, assistPlayerId: undefined, assistName: undefined } : g))
   }
@@ -93,6 +125,8 @@ export default function GameDetail({ game: initialGame, allPlayers }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           scoreA, scoreB, jerseyA, jerseyB,
+          teamAPlayers: editTeamA,
+          teamBPlayers: editTeamB,
           goals: goals.filter((g) => g.playerId).map((g) => ({
             playerId: g.playerId, team: g.team,
             assistPlayerId: g.assistPlayerId || null,
@@ -109,6 +143,10 @@ export default function GameDetail({ game: initialGame, allPlayers }: Props) {
   const hasChanges = scoreA !== (game.scoreA ?? 0) || scoreB !== (game.scoreB ?? 0)
     || jerseyA !== (game.jerseyA ?? "orange") || jerseyB !== (game.jerseyB ?? "purple")
     || goals.length !== game.goals.length
+    || editTeamA.length !== (game.teamAPlayers ?? []).length
+    || editTeamB.length !== (game.teamBPlayers ?? []).length
+    || JSON.stringify(editTeamA.map((p) => p.playerId)) !== JSON.stringify((game.teamAPlayers ?? []).map((p: any) => p.playerId))
+    || JSON.stringify(editTeamB.map((p) => p.playerId)) !== JSON.stringify((game.teamBPlayers ?? []).map((p: any) => p.playerId))
 
   return (
     <div className="space-y-4">
@@ -328,43 +366,59 @@ export default function GameDetail({ game: initialGame, allPlayers }: Props) {
         />
       )}
 
-      {/* List view */}
+      {/* List view with edit controls */}
       {viewMode === "list" && (
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <p className="text-xs font-bold mb-1 flex items-center gap-1" style={{ color: jA.hex }}>
-              <span className="w-2.5 h-2.5 rounded-full" style={{ background: jA.hex }} /> Team A
-            </p>
-            <div className="space-y-0.5">
-              {teamA.map((p, i) => {
-                const pc = getPositionColor(p.position)
-                return (
-                  <div key={i} className="flex items-center gap-1.5 px-2 py-1 rounded text-xs" style={{ background: p.role === "sub" ? "#f3f4f6" : pc.bg }}>
-                    <span className="font-bold text-[10px]" style={{ color: pc.color }}>{p.role === "gk" ? "GK" : p.role === "sub" ? "SUB" : p.position}</span>
-                    <span className="font-medium flex-1 truncate" style={{ color: p.role === "sub" ? "#9ca3af" : "#1f2937" }}>{p.name}</span>
-                    <span className="font-bold text-[10px]" style={{ color: "#6b7280" }}>{p.skill}</span>
-                  </div>
-                )
-              })}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {([["A", teamA, jA, editTeamA, setEditTeamA] as const, ["B", teamB, jB, editTeamB, setEditTeamB] as const]).map(([team, players, jersey]) => (
+            <div key={team}>
+              <p className="text-xs font-bold mb-1.5 flex items-center gap-1" style={{ color: jersey.hex }}>
+                <span className="w-2.5 h-2.5 rounded-full" style={{ background: jersey.hex }} /> Team {team} ({players.length})
+              </p>
+              <div className="space-y-1">
+                {players.map((p, i) => {
+                  const pc = getPositionColor(p.position)
+                  const isReplacing = replacingPlayer?.team === team && replacingPlayer?.index === i
+                  return (
+                    <div key={i}>
+                      <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs group" style={{ background: p.role === "sub" ? "#f3f4f6" : pc.bg, border: "1px solid transparent" }}>
+                        <span className="font-bold text-[10px] w-6" style={{ color: pc.color }}>{p.role === "gk" ? "GK" : p.role === "sub" ? "SUB" : p.position}</span>
+                        <span className="font-medium flex-1 truncate" style={{ color: p.role === "sub" ? "#9ca3af" : "#1f2937" }}>{p.name}</span>
+                        <span className="font-bold text-[10px]" style={{ color: "#9ca3af" }}>{p.skill}</span>
+                        {/* Edit controls — visible on tap/hover */}
+                        <div className="flex gap-0.5 opacity-60 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => swapPlayerBetweenTeams(team, i)} title={`Move to Team ${team === "A" ? "B" : "A"}`} className="w-5 h-5 rounded flex items-center justify-center" style={{ background: "rgba(0,0,0,0.05)" }}>
+                            <span className="text-[9px]">↔</span>
+                          </button>
+                          <button onClick={() => setReplacingPlayer({ team, index: i })} title="Replace" className="w-5 h-5 rounded flex items-center justify-center" style={{ background: "rgba(0,0,0,0.05)" }}>
+                            <span className="text-[9px]">🔄</span>
+                          </button>
+                          <button onClick={() => removePlayer(team, i)} title="Remove" className="w-5 h-5 rounded flex items-center justify-center" style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}>
+                            <span className="text-[9px]">×</span>
+                          </button>
+                        </div>
+                      </div>
+                      {/* Replace picker */}
+                      {isReplacing && (
+                        <div className="ml-2 mt-1 p-2 rounded-lg animate-slide-up" style={{ background: "#f9fafb", border: "1px solid #e5e7eb" }}>
+                          <p className="text-[10px] font-bold mb-1" style={{ color: "#6b7280" }}>Replace {p.name} with:</p>
+                          <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto">
+                            {allPlayers
+                              .filter((ap) => !editTeamA.some((t) => t.playerId === ap.id) && !editTeamB.some((t) => t.playerId === ap.id))
+                              .map((ap) => (
+                                <button key={ap.id} onClick={() => replacePlayer(team, i, ap)} className="px-2 py-1 rounded text-[10px] font-medium" style={{ background: "#fff", border: "1px solid #e5e7eb" }}>
+                                  {ap.name} ({ap.skill})
+                                </button>
+                              ))}
+                            <button onClick={() => setReplacingPlayer(null)} className="px-2 py-1 rounded text-[10px]" style={{ color: "#9ca3af" }}>Cancel</button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
-          </div>
-          <div>
-            <p className="text-xs font-bold mb-1 flex items-center gap-1" style={{ color: jB.hex }}>
-              <span className="w-2.5 h-2.5 rounded-full" style={{ background: jB.hex }} /> Team B
-            </p>
-            <div className="space-y-0.5">
-              {teamB.map((p, i) => {
-                const pc = getPositionColor(p.position)
-                return (
-                  <div key={i} className="flex items-center gap-1.5 px-2 py-1 rounded text-xs" style={{ background: p.role === "sub" ? "#f3f4f6" : pc.bg }}>
-                    <span className="font-bold text-[10px]" style={{ color: pc.color }}>{p.role === "gk" ? "GK" : p.role === "sub" ? "SUB" : p.position}</span>
-                    <span className="font-medium flex-1 truncate" style={{ color: p.role === "sub" ? "#9ca3af" : "#1f2937" }}>{p.name}</span>
-                    <span className="font-bold text-[10px]" style={{ color: "#6b7280" }}>{p.skill}</span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
+          ))}
         </div>
       )}
 

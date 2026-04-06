@@ -5,12 +5,15 @@ import { useRouter } from "next/navigation"
 import FormationView from "./FormationView"
 import InlineScoreRecorder from "./InlineScoreRecorder"
 import { getPositionColor } from "@/lib/football-positions"
+import { getJerseyColor } from "@/lib/football-jersey"
+import JerseyPicker from "./JerseyPicker"
 
 type TeamPlayer = { name: string; position: string; skill: number; role: string; playerId?: string; workRate?: string }
 type Goal = { id: string; team: string; player: { name: string }; assistPlayer?: { name: string } | null }
 type Game = {
   id: string; name: string | null
   teamAPlayers: TeamPlayer[]; teamBPlayers: TeamPlayer[]
+  jerseyA: string | null; jerseyB: string | null
   scoreA: number | null; scoreB: number | null; completed: boolean
   balanceScore: number | null; createdAt: string; goals: Goal[]
 }
@@ -127,6 +130,8 @@ export default function GameHistoryList({ games: initialGames }: Props) {
         const teamA = game.teamAPlayers ?? []
         const teamB = game.teamBPlayers ?? []
         const hasResult = game.completed && game.scoreA != null && game.scoreB != null
+        const jA = getJerseyColor(game.jerseyA ?? "orange")
+        const jB = getJerseyColor(game.jerseyB ?? "purple")
         const isExpanded = expandedId === game.id
         const isSelected = selectedForDelete.has(game.id)
 
@@ -153,11 +158,17 @@ export default function GameHistoryList({ games: initialGames }: Props) {
                 </span>
               </div>
 
+              {/* Jersey dots */}
+              <div className="flex gap-1 shrink-0">
+                <span className="w-4 h-4 rounded-full" style={{ background: jA.hex, border: `1px solid ${jA.border}` }} />
+                <span className="w-4 h-4 rounded-full" style={{ background: jB.hex, border: `1px solid ${jB.border}` }} />
+              </div>
+
               {hasResult ? (
                 <span className="text-lg font-bold px-2 py-0.5 rounded-lg shrink-0" style={{ background: "#f9fafb", border: "1px solid #e5e7eb" }}>
-                  <span style={{ color: "#f97316" }}>{game.scoreA}</span>
+                  <span style={{ color: jA.hex }}>{game.scoreA}</span>
                   <span style={{ color: "#d1d5db" }}>-</span>
-                  <span style={{ color: "#8b5cf6" }}>{game.scoreB}</span>
+                  <span style={{ color: jB.hex }}>{game.scoreB}</span>
                 </span>
               ) : (
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full shrink-0" style={{ background: "#fef3c7", color: "#d97706" }}>
@@ -186,6 +197,8 @@ export default function GameHistoryList({ games: initialGames }: Props) {
                   <FormationView
                     teamA={teamA.map((p) => ({ ...p, playerId: p.playerId ?? p.name, workRate: p.workRate ?? "Med" }))}
                     teamB={teamB.map((p) => ({ ...p, playerId: p.playerId ?? p.name, workRate: p.workRate ?? "Med" }))}
+                    colorA={jA.hex}
+                    colorB={jB.hex}
                   />
                 )}
 
@@ -193,7 +206,10 @@ export default function GameHistoryList({ games: initialGames }: Props) {
                 {viewMode === "list" && (
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <p className="text-xs font-bold mb-1" style={{ color: "#f97316" }}>Team A</p>
+                      <p className="text-xs font-bold mb-1 flex items-center gap-1" style={{ color: jA.hex }}>
+                      <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: jA.hex, border: `1px solid ${jA.border}` }} />
+                      Team A
+                    </p>
                       <div className="space-y-0.5">
                         {teamA.map((p, i) => {
                           const pc = getPositionColor(p.position)
@@ -208,7 +224,10 @@ export default function GameHistoryList({ games: initialGames }: Props) {
                       </div>
                     </div>
                     <div>
-                      <p className="text-xs font-bold mb-1" style={{ color: "#8b5cf6" }}>Team B</p>
+                      <p className="text-xs font-bold mb-1 flex items-center gap-1" style={{ color: jB.hex }}>
+                      <span className="w-2.5 h-2.5 rounded-full inline-block" style={{ background: jB.hex, border: `1px solid ${jB.border}` }} />
+                      Team B
+                    </p>
                       <div className="space-y-0.5">
                         {teamB.map((p, i) => {
                           const pc = getPositionColor(p.position)

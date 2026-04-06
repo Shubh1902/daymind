@@ -224,6 +224,8 @@ model FootballGame {
   teamAPlayers Json     // snapshot: [{ playerId, name, position, skill, role }]
   teamBPlayers Json     // snapshot: [{ playerId, name, position, skill, role }]
   balanceScore Float?
+  jerseyA      String?  // jersey color id: "black", "white", etc.
+  jerseyB      String?
   scoreA       Int?     // final score team A
   scoreB       Int?     // final score team B
   completed    Boolean  @default(false) // true after recording result

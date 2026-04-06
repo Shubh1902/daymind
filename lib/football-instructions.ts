@@ -42,7 +42,7 @@ export function parseInstructions(text: string, rosterNames: string[]): Constrai
 
   for (const sentence of sentences) {
     // SEPARATE: "separate X and Y", "X and Y different teams", "split X and Y"
-    if (/separate|apart|different\s*team|split\s*up|split/.test(sentence)) {
+    if (/separate|apart|different\s*team|split\s*up|split|opposit/.test(sentence)) {
       const names = findTwoNames(sentence)
       if (names) constraints.push({ type: "separate", playerNames: names })
       continue

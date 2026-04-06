@@ -11,7 +11,7 @@ export async function GET() {
 
 /** Save a manually created game */
 export async function POST(request: NextRequest) {
-  const { teamA, teamB, balanceScore, name } = await request.json()
+  const { teamA, teamB, balanceScore, name, jerseyA, jerseyB } = await request.json()
 
   if (!Array.isArray(teamA) || !Array.isArray(teamB) || teamA.length < 1 || teamB.length < 1) {
     return Response.json({ error: "Both teams need at least 1 player" }, { status: 400 })
@@ -41,6 +41,8 @@ export async function POST(request: NextRequest) {
       teamAPlayers: teamA,
       teamBPlayers: teamB,
       balanceScore: balanceScore ?? null,
+      jerseyA: jerseyA || null,
+      jerseyB: jerseyB || null,
       selections: {
         create: [...selectionsA, ...selectionsB],
       },

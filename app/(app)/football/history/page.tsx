@@ -16,6 +16,8 @@ export default async function FootballHistoryPage() {
     name: g.name,
     teamAPlayers: g.teamAPlayers as any[],
     teamBPlayers: g.teamBPlayers as any[],
+    jerseyA: g.jerseyA,
+    jerseyB: g.jerseyB,
     scoreA: g.scoreA,
     scoreB: g.scoreB,
     completed: g.completed,

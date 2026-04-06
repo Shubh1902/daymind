@@ -65,7 +65,7 @@ export default function GameSetup({ players, initialSelected, jerseyA, jerseyB, 
       const res = await fetch("/api/football/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ playerIds: Array.from(selected), instructions }),
+        body: JSON.stringify({ playerIds: Array.from(selected), instructions, jerseyA, jerseyB }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? "Generation failed"); return }

@@ -26,9 +26,21 @@ const AREA_STYLE: Record<string, { color: string; bg: string; label: string }> =
 export default function PlayerRoster({ players, onRefresh }: Props) {
   const [modalPlayer, setModalPlayer] = useState<Player | null>(null)
   const [modalMode, setModalMode] = useState<"edit" | "duplicate">("edit")
+  const [search, setSearch] = useState("")
+
+  const filtered = search.trim()
+    ? players.filter((p) => {
+        const q = search.toLowerCase()
+        return p.name.toLowerCase().includes(q)
+          || p.position.toLowerCase().includes(q)
+          || p.positions?.some((pos) => pos.toLowerCase().includes(q))
+          || p.aliases?.some((a) => a.toLowerCase().includes(q))
+          || p.notes?.toLowerCase().includes(q)
+      })
+    : players
 
   const grouped = { Goal: [] as Player[], Defense: [] as Player[], Midfield: [] as Player[], Attack: [] as Player[] }
-  for (const p of players) {
+  for (const p of filtered) {
     const area = getPositionArea(p.position) as keyof typeof grouped
     if (grouped[area]) grouped[area].push(p)
     else grouped.Midfield.push(p)
@@ -45,6 +57,33 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
 
   return (
     <>
+      {/* Search */}
+      <div className="relative mb-3">
+        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "#9ca3af" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+        </svg>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={`Search ${players.length} players...`}
+          className="w-full pl-9 pr-8 py-2 rounded-xl text-sm"
+          style={{ background: "#f9fafb", border: "1px solid #e5e7eb", color: "#1f2937" }}
+        />
+        {search && (
+          <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: "#d1d5db" }}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {/* Results count when searching */}
+      {search.trim() && (
+        <p className="text-xs mb-2" style={{ color: "#9ca3af" }}>{filtered.length} of {players.length} players</p>
+      )}
+
       <div className="space-y-4">
         {(["Goal", "Defense", "Midfield", "Attack"] as const).map((area) => {
           const group = grouped[area]

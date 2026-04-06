@@ -71,9 +71,9 @@ export default function FootballDashboard({ games, totalGames, totalGoals }: Pro
               {timeAgo(latestGame.createdAt)}
             </span>
           </div>
-          <Link href="/football/history" className="text-[10px] font-medium" style={{ color: "#9ca3af" }}>
-            View all →
-          </Link>
+          <span className="text-[10px] font-medium" style={{ color: "#9ca3af" }}>
+            View details →
+          </span>
         </div>
 
         {/* Match info */}

@@ -185,7 +185,7 @@ export default function FootballApp({ initialPlayers }: { initialPlayers: Player
       {/* Analyze */}
       {view === "analyze" && (
         <div className="animate-fade-in">
-          <AnalyzeTeams players={players} />
+          <AnalyzeTeams players={players} onRefreshPlayers={fetchPlayers} />
         </div>
       )}
 

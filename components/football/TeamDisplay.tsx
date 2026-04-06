@@ -21,12 +21,15 @@ interface Props {
   balanceScore: number
   gameId: string
   allPlayers?: FullPlayer[]
+  jerseyA?: string
+  jerseyB?: string
   onRefresh?: () => void
   onRegenerate: () => void
   onBack: () => void
 }
 
 import { getPositionColor, toBalancerPosition } from "@/lib/football-positions"
+import { getJerseyColor } from "@/lib/football-jersey"
 
 const AREA_COLORS: Record<string, { color: string; bg: string }> = {
   GK: { color: "#d97706", bg: "#fef3c7" },
@@ -114,7 +117,9 @@ function TeamColumn({ team, label, accent, allPlayers, onPlayerClick }: { team: 
   )
 }
 
-export default function TeamDisplay({ teamA, teamB, balanceScore, gameId, allPlayers, onRefresh, onRegenerate, onBack }: Props) {
+export default function TeamDisplay({ teamA, teamB, balanceScore, gameId, allPlayers, jerseyA = "orange", jerseyB = "purple", onRefresh, onRegenerate, onBack }: Props) {
+  const jA = getJerseyColor(jerseyA)
+  const jB = getJerseyColor(jerseyB)
   const [showRecord, setShowRecord] = useState(false)
   const [resultSaved, setResultSaved] = useState(false)
   const [viewMode, setViewMode] = useState<"list" | "pitch">("list")
@@ -156,14 +161,14 @@ export default function TeamDisplay({ teamA, teamB, balanceScore, gameId, allPla
 
       {/* Formation view */}
       {viewMode === "pitch" && (
-        <FormationView teamA={teamA} teamB={teamB} />
+        <FormationView teamA={teamA} teamB={teamB} colorA={jA.hex} colorB={jB.hex} />
       )}
 
       {/* Teams side by side (list view) */}
       {viewMode === "list" && (
         <div className="flex gap-3">
-          <TeamColumn team={teamA} label="Team A" accent="#f97316" allPlayers={allPlayers} onPlayerClick={setEditingPlayer} />
-          <TeamColumn team={teamB} label="Team B" accent="#8b5cf6" allPlayers={allPlayers} onPlayerClick={setEditingPlayer} />
+          <TeamColumn team={teamA} label="Team A" accent={jA.hex} allPlayers={allPlayers} onPlayerClick={setEditingPlayer} />
+          <TeamColumn team={teamB} label="Team B" accent={jB.hex} allPlayers={allPlayers} onPlayerClick={setEditingPlayer} />
         </div>
       )}
 

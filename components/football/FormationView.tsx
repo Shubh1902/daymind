@@ -2,6 +2,15 @@
 
 import { toBalancerPosition } from "@/lib/football-positions"
 
+/** Check if a hex color is light (for text contrast) */
+function isLight(hex: string): boolean {
+  const c = hex.replace("#", "")
+  const r = parseInt(c.slice(0, 2), 16)
+  const g = parseInt(c.slice(2, 4), 16)
+  const b = parseInt(c.slice(4, 6), 16)
+  return (r * 299 + g * 587 + b * 114) / 1000 > 150
+}
+
 type TeamAssignment = {
   playerId: string; name: string; position: string; skill: number; workRate: string; role: string
 }
@@ -9,6 +18,8 @@ type TeamAssignment = {
 interface Props {
   teamA: TeamAssignment[]
   teamB: TeamAssignment[]
+  colorA?: string  // hex color for team A jerseys
+  colorB?: string  // hex color for team B jerseys
 }
 
 /**
@@ -150,7 +161,7 @@ function PlayerDot({ player, x, y, color, displayRole }: { player: TeamAssignmen
   )
 }
 
-export default function FormationView({ teamA, teamB }: Props) {
+export default function FormationView({ teamA, teamB, colorA = "#ea580c", colorB = "#7c3aed" }: Props) {
   const a = assignToFormation(teamA, "A")
   const b = assignToFormation(teamB, "B")
 
@@ -174,21 +185,21 @@ export default function FormationView({ teamA, teamB }: Props) {
         <div className="absolute left-[30%] right-[30%] bottom-0 h-[5%]" style={{ border: "1px solid rgba(255,255,255,0.2)", borderBottom: "none" }} />
 
         {/* Team labels with formation */}
-        <div className="absolute left-2 top-2 px-2 py-0.5 rounded text-[10px] font-bold z-20" style={{ background: "rgba(249,115,22,0.8)", color: "#fff" }}>
+        <div className="absolute left-2 top-2 px-2 py-0.5 rounded text-[10px] font-bold z-20" style={{ background: colorA, color: isLight(colorA) ? "#1f2937" : "#fff" }}>
           A ({a.formation})
         </div>
-        <div className="absolute right-2 bottom-2 px-2 py-0.5 rounded text-[10px] font-bold z-20" style={{ background: "rgba(139,92,246,0.8)", color: "#fff" }}>
+        <div className="absolute right-2 bottom-2 px-2 py-0.5 rounded text-[10px] font-bold z-20" style={{ background: colorB, color: isLight(colorB) ? "#1f2937" : "#fff" }}>
           B ({b.formation})
         </div>
 
         {/* Team A */}
         {a.positioned.map((p) => (
-          <PlayerDot key={p.player.playerId} player={p.player} x={p.x} y={p.y} color="#ea580c" displayRole={p.displayRole} />
+          <PlayerDot key={p.player.playerId} player={p.player} x={p.x} y={p.y} color={colorA} displayRole={p.displayRole} />
         ))}
 
         {/* Team B */}
         {b.positioned.map((p) => (
-          <PlayerDot key={p.player.playerId} player={p.player} x={p.x} y={p.y} color="#7c3aed" displayRole={p.displayRole} />
+          <PlayerDot key={p.player.playerId} player={p.player} x={p.x} y={p.y} color={colorB} displayRole={p.displayRole} />
         ))}
       </div>
 

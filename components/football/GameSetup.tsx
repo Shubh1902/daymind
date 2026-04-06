@@ -15,10 +15,14 @@ type TeamAssignment = {
 interface Props {
   players: Player[]
   initialSelected?: Set<string>
+  jerseyA?: string
+  jerseyB?: string
+  onJerseyChange?: (team: "A" | "B", color: string) => void
   onTeamsGenerated: (result: { teamA: TeamAssignment[]; teamB: TeamAssignment[]; balanceScore: number; gameId: string }) => void
 }
 
 import { getPositionArea, getPositionColor } from "@/lib/football-positions"
+import JerseyPicker from "./JerseyPicker"
 
 const AREA_COLORS: Record<string, { color: string; bg: string }> = {
   Goal: { color: "#d97706", bg: "#fef3c7" },
@@ -27,7 +31,7 @@ const AREA_COLORS: Record<string, { color: string; bg: string }> = {
   Attack: { color: "#dc2626", bg: "#fee2e2" },
 }
 
-export default function GameSetup({ players, initialSelected, onTeamsGenerated }: Props) {
+export default function GameSetup({ players, initialSelected, jerseyA, jerseyB, onJerseyChange, onTeamsGenerated }: Props) {
   const [selected, setSelected] = useState<Set<string>>(initialSelected ?? new Set())
   const [instructions, setInstructions] = useState("")
   const [generating, setGenerating] = useState(false)
@@ -149,6 +153,14 @@ export default function GameSetup({ players, initialSelected, onTeamsGenerated }
           className="input-dark w-full text-xs px-3.5 py-2.5 rounded-xl resize-none"
         />
       </div>
+
+      {/* Jersey colors */}
+      {onJerseyChange && (
+        <div className="grid grid-cols-2 gap-3">
+          <JerseyPicker label="Team A Jersey" selected={jerseyA ?? "black"} onChange={(c) => onJerseyChange("A", c)} />
+          <JerseyPicker label="Team B Jersey" selected={jerseyB ?? "white"} onChange={(c) => onJerseyChange("B", c)} />
+        </div>
+      )}
 
       {/* Error */}
       {error && <p className="text-xs text-center" style={{ color: "#dc2626" }}>{error}</p>}

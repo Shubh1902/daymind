@@ -5,6 +5,7 @@ import { parseTeamMessage, type ParsedTeamImport, type ParsedPlayer } from "@/li
 import { getPositionColor } from "@/lib/football-positions"
 import { compareTeams } from "@/lib/football-comparison"
 import AddPlayerModal from "./AddPlayerModal"
+import { detectJerseyColor, getJerseyColor } from "@/lib/football-jersey"
 import PlayerSearchDropdown from "./PlayerSearchDropdown"
 import FormationView from "./FormationView"
 
@@ -253,6 +254,12 @@ export default function AnalyzeTeams({ players, onRefreshPlayers }: Props) {
   }).length
   const totalCount = parsed.teamA.length + parsed.teamB.length
 
+  // Detect jersey colors from team names
+  const detectedA = detectJerseyColor(parsed.teamAName)
+  const detectedB = detectJerseyColor(parsed.teamBName)
+  const jA = getJerseyColor(detectedA || "orange")
+  const jB = getJerseyColor(detectedB || "purple")
+
   return (
     <div className="space-y-4">
       {parsed.matchInfo && (
@@ -275,11 +282,17 @@ export default function AnalyzeTeams({ players, onRefreshPlayers }: Props) {
       {/* Teams */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <p className="text-xs font-bold mb-1.5" style={{ color: "#f97316" }}>{parsed.teamAName} ({Math.round(scoreA)} pts)</p>
+          <p className="text-xs font-bold mb-1.5 flex items-center gap-1.5" style={{ color: jA.hex }}>
+            <span className="w-3 h-3 rounded-full inline-block" style={{ background: jA.hex, border: `1px solid ${jA.border}` }} />
+            {parsed.teamAName} ({Math.round(scoreA)} pts)
+          </p>
           <div className="space-y-1">{parsed.teamA.map((p, i) => <PlayerRow key={`A-${i}`} p={p} teamKey={`A-${i}`} />)}</div>
         </div>
         <div>
-          <p className="text-xs font-bold mb-1.5" style={{ color: "#8b5cf6" }}>{parsed.teamBName} ({Math.round(scoreB)} pts)</p>
+          <p className="text-xs font-bold mb-1.5 flex items-center gap-1.5" style={{ color: jB.hex }}>
+            <span className="w-3 h-3 rounded-full inline-block" style={{ background: jB.hex, border: `1px solid ${jB.border}` }} />
+            {parsed.teamBName} ({Math.round(scoreB)} pts)
+          </p>
           <div className="space-y-1">{parsed.teamB.map((p, i) => <PlayerRow key={`B-${i}`} p={p} teamKey={`B-${i}`} />)}</div>
         </div>
       </div>
@@ -339,7 +352,7 @@ export default function AnalyzeTeams({ players, onRefreshPlayers }: Props) {
               ⚽ Pitch View
             </summary>
             <div className="p-2">
-              <FormationView teamA={teams.teamA as any} teamB={teams.teamB as any} />
+              <FormationView teamA={teams.teamA as any} teamB={teams.teamB as any} colorA={jA.hex} colorB={jB.hex} />
             </div>
           </details>
         )

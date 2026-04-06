@@ -35,7 +35,9 @@ export default function FootballApp({ initialPlayers }: { initialPlayers: Player
   const [players, setPlayers] = useState<Player[]>(initialPlayers)
   const [view, setView] = useState<View>("roster")
   const [result, setResult] = useState<GeneratedResult | null>(null)
-  const [autoResult, setAutoResult] = useState<GeneratedResult | null>(null) // for comparison
+  const [autoResult, setAutoResult] = useState<GeneratedResult | null>(null)
+  const [jerseyA, setJerseyA] = useState("black")
+  const [jerseyB, setJerseyB] = useState("white")
   const [preSelected, setPreSelected] = useState<Set<string> | null>(null)
   const [comparingLoading, setComparingLoading] = useState(false)
 
@@ -158,6 +160,9 @@ export default function FootballApp({ initialPlayers }: { initialPlayers: Player
           <GameSetup
             players={players}
             initialSelected={preSelected ?? undefined}
+            jerseyA={jerseyA}
+            jerseyB={jerseyB}
+            onJerseyChange={(team, color) => team === "A" ? setJerseyA(color) : setJerseyB(color)}
             onTeamsGenerated={(res) => {
               setResult({ ...res, source: "auto" })
               setPreSelected(null)
@@ -198,6 +203,8 @@ export default function FootballApp({ initialPlayers }: { initialPlayers: Player
             balanceScore={result.balanceScore}
             gameId={result.gameId}
             allPlayers={players}
+            jerseyA={jerseyA}
+            jerseyB={jerseyB}
             onRefresh={fetchPlayers}
             onRegenerate={() => setView(result.source === "manual" ? "manual" : "setup")}
             onBack={() => setView(result.source === "manual" ? "manual" : "setup")}

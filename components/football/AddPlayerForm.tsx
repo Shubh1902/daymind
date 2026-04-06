@@ -151,27 +151,18 @@ export default function AddPlayerForm({ onAdded }: Props) {
             <div key={key}>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold w-8 text-right" style={{ color }}>{short}</span>
-              <input
-                type="range"
-                min={1}
-                max={99}
-                value={stats[key]}
-                onChange={(e) => setStat(key, Number(e.target.value))}
-                className="flex-1 h-2 rounded-full appearance-none cursor-pointer"
-                style={{
-                  background: `linear-gradient(to right, ${color} ${stats[key]}%, #e5e7eb ${stats[key]}%)`,
-                  accentColor: color,
-                }}
-              />
-              <input
-                type="number"
-                min={1}
-                max={99}
-                value={stats[key]}
-                onChange={(e) => setStat(key, Number(e.target.value))}
-                className="w-12 text-xs text-center font-bold rounded-lg py-1"
-                style={{ background: "#f9fafb", border: "1px solid #e5e7eb", color: "#1f2937" }}
-              />
+                <input
+                  type="range" min={1} max={99} value={stats[key]}
+                  onChange={(e) => setStat(key, Number(e.target.value))}
+                  className="flex-1 h-2 rounded-full appearance-none cursor-pointer"
+                  style={{ background: `linear-gradient(to right, ${color} ${stats[key]}%, #e5e7eb ${stats[key]}%)`, accentColor: color }}
+                />
+                <input
+                  type="number" min={1} max={99} value={stats[key]}
+                  onChange={(e) => setStat(key, Number(e.target.value))}
+                  className="w-12 text-xs text-center font-bold rounded-lg py-1"
+                  style={{ background: "#f9fafb", border: "1px solid #e5e7eb", color: "#1f2937" }}
+                />
               </div>
               {positions.includes("GK") && (
                 <p className="text-[10px] ml-10 -mt-1" style={{ color: "#92400e" }}>{gkHint}</p>

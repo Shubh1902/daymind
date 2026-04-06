@@ -6,6 +6,7 @@ import { getPositionColor } from "@/lib/football-positions"
 import { compareTeams } from "@/lib/football-comparison"
 import AddPlayerModal from "./AddPlayerModal"
 import PlayerSearchDropdown from "./PlayerSearchDropdown"
+import FormationView from "./FormationView"
 
 type Player = {
   id: string; name: string; position: string; skill: number; workRate: string; aliases?: string[]; [key: string]: unknown
@@ -31,6 +32,10 @@ export default function AnalyzeTeams({ players, onRefreshPlayers }: Props) {
   const [addingName, setAddingName] = useState<string | null>(null)
   const [autoResult, setAutoResult] = useState<{ teamA: TeamAssignment[]; teamB: TeamAssignment[]; balanceScore: number } | null>(null)
   const [loading, setLoading] = useState(false)
+  const [swaps, setSwaps] = useState<Map<string, string>>(new Map()) // playerIdA ↔ playerIdB mapping
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [swapSelectA, setSwapSelectA] = useState<string | null>(null)
   const needsReparse = useRef(false)
 
   useEffect(() => {
@@ -85,6 +90,64 @@ export default function AnalyzeTeams({ players, onRefreshPlayers }: Props) {
       }
     } catch { /* ignore */ }
     setLoading(false)
+  }
+
+  // Apply a swap: move playerA to team B and playerB to team A
+  function applySwap(playerAId: string, playerBId: string) {
+    if (!parsed) return
+    // Find which team each player is on and swap via overrides
+    const allParsedList = [...parsed.teamA, ...parsed.teamB]
+    let keyA: string | null = null, keyB: string | null = null
+
+    parsed.teamA.forEach((p, i) => {
+      const m = getEffectiveMatch(p, `A-${i}`)
+      if (m?.id === playerAId) keyA = `A-${i}`
+      if (m?.id === playerBId) keyB = `A-${i}`
+    })
+    parsed.teamB.forEach((p, i) => {
+      const m = getEffectiveMatch(p, `B-${i}`)
+      if (m?.id === playerAId) keyA = `B-${i}`
+      if (m?.id === playerBId) keyB = `B-${i}`
+    })
+
+    if (keyA && keyB) {
+      setOverrides((prev) => {
+        const n = new Map(prev)
+        n.set(keyA!, playerBId)
+        n.set(keyB!, playerAId)
+        return n
+      })
+      setAutoResult(null) // Clear auto comparison to recalculate
+    }
+  }
+
+  // Build team assignments for saving
+  function buildTeamAssignments() {
+    if (!parsed) return null
+    const teamA = parsed.teamA.map((p, i) => getEffectiveMatch(p, `A-${i}`)).filter(Boolean).map((m, i) => ({
+      playerId: m!.id, name: m!.name, position: m!.position, skill: m!.skill, workRate: (m as any)?.workRate ?? "Med",
+      role: i === 0 ? "gk" : "outfield" as string,
+    }))
+    const teamB = parsed.teamB.map((p, i) => getEffectiveMatch(p, `B-${i}`)).filter(Boolean).map((m, i) => ({
+      playerId: m!.id, name: m!.name, position: m!.position, skill: m!.skill, workRate: (m as any)?.workRate ?? "Med",
+      role: i === 0 ? "gk" : "outfield" as string,
+    }))
+    return { teamA, teamB }
+  }
+
+  async function handleAcceptTeams() {
+    const teams = buildTeamAssignments()
+    if (!teams) return
+    setSaving(true)
+    try {
+      const res = await fetch("/api/football/games", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teamA: teams.teamA, teamB: teams.teamB, balanceScore, name: parsed?.matchInfo ?? "Analyzed Game" }),
+      })
+      if (res.ok) setSaved(true)
+    } catch { /* ignore */ }
+    setSaving(false)
   }
 
   // Save alias when user overrides a match
@@ -246,6 +309,13 @@ export default function AnalyzeTeams({ players, onRefreshPlayers }: Props) {
                     <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-xl" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
                       <span className="flex-1 text-xs"><strong>{swap.playerA.name}</strong> ↔ <strong>{swap.playerB.name}</strong></span>
                       <span className="text-xs font-bold" style={{ color: "#16a34a" }}>+{swap.improvement}%</span>
+                      <button
+                        onClick={() => applySwap(swap.playerA.id, swap.playerB.id)}
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-lg"
+                        style={{ background: "#dcfce7", color: "#166534", border: "1px solid #86efac" }}
+                      >
+                        Apply
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -259,7 +329,38 @@ export default function AnalyzeTeams({ players, onRefreshPlayers }: Props) {
         </div>
       )}
 
-      <button onClick={() => { setStep("paste"); setParsed(null); setAutoResult(null); setOverrides(new Map()) }} className="w-full py-3 rounded-xl text-sm font-semibold" style={{ background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db" }}>
+      {/* Pitch view */}
+      {(() => {
+        const teams = buildTeamAssignments()
+        if (!teams || teams.teamA.length < 2 || teams.teamB.length < 2) return null
+        return (
+          <details className="rounded-xl overflow-hidden" style={{ border: "1px solid #e5e7eb" }}>
+            <summary className="px-3 py-2.5 cursor-pointer text-xs font-semibold flex items-center gap-2" style={{ background: "#f9fafb", color: "#6b7280" }}>
+              ⚽ Pitch View
+            </summary>
+            <div className="p-2">
+              <FormationView teamA={teams.teamA as any} teamB={teams.teamB as any} />
+            </div>
+          </details>
+        )
+      })()}
+
+      {/* Accept / Save */}
+      {!saved ? (
+        <button
+          onClick={handleAcceptTeams}
+          disabled={saving || matchedCount < 4}
+          className="w-full btn-primary text-white py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
+        >
+          {saving ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <>✅ Accept & Save Teams</>}
+        </button>
+      ) : (
+        <div className="text-center py-3 rounded-xl" style={{ background: "#ecfdf5", border: "1px solid #a7f3d0" }}>
+          <span className="text-sm font-bold" style={{ color: "#059669" }}>✅ Teams saved!</span>
+        </div>
+      )}
+
+      <button onClick={() => { setStep("paste"); setParsed(null); setAutoResult(null); setOverrides(new Map()); setSaved(false); setSwaps(new Map()) }} className="w-full py-3 rounded-xl text-sm font-semibold" style={{ background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db" }}>
         Analyze Another
       </button>
     </div>

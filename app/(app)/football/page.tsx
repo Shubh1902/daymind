@@ -15,7 +15,7 @@ export default async function FootballPage() {
     pace: p.pace, shooting: p.shooting, passing: p.passing,
     dribbling: p.dribbling, defending: p.defending, physical: p.physical,
     skill: p.skill, workRate: p.workRate, notes: p.notes,
-    waitlisted: p.waitlisted,
+    aliases: p.aliases, waitlisted: p.waitlisted,
   }))
 
   return (

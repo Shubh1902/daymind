@@ -1,4 +1,4 @@
-type Player = { id: string; name: string; position: string; [key: string]: unknown }
+type Player = { id: string; name: string; position: string; aliases?: string[]; [key: string]: unknown }
 
 export type ParsedPlayer = {
   rawName: string
@@ -43,11 +43,23 @@ export function fuzzyMatchPlayer(rawName: string, roster: Player[]): { player: P
 
   for (const p of roster) {
     const name = p.name.toLowerCase().trim()
+    const allNames = [name, ...(p.aliases ?? []).map((a) => a.toLowerCase().trim())]
 
-    // Exact match
-    if (raw === name) return { player: p, confidence: 1.0 }
+    // Exact match against name or any alias
+    for (const n of allNames) {
+      if (raw === n) return { player: p, confidence: 1.0 }
+    }
 
     // Prefix match (either direction): "shubh" matches "shubhanshu"
+    // Check all names and aliases
+    for (const n of allNames) {
+      if (n.startsWith(raw) || raw.startsWith(n)) {
+        const conf = Math.min(raw.length, n.length) / Math.max(raw.length, n.length)
+        if (Math.max(conf, 0.85) > bestConfidence) { bestMatch = p; bestConfidence = Math.max(conf, 0.85) }
+      }
+    }
+    if (bestMatch === p && bestConfidence >= 0.85) continue
+
     if (name.startsWith(raw) || raw.startsWith(name)) {
       const conf = Math.min(raw.length, name.length) / Math.max(raw.length, name.length)
       if (conf > bestConfidence) { bestMatch = p; bestConfidence = Math.max(conf, 0.8) }

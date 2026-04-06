@@ -6,7 +6,7 @@ import { STAT_LABELS, computeOverall, ratingColor, type FifaStats } from "@/lib/
 import FifaCard from "./FifaCard"
 
 type Player = {
-  id: string; name: string; position: string; positions?: string[]
+  id: string; name: string; position: string; positions?: string[]; aliases?: string[]
   pace: number; shooting: number; passing: number; dribbling: number; defending: number; physical: number
   skill: number; workRate: string; notes: string | null
 }
@@ -28,6 +28,7 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
   const [editStats, setEditStats] = useState<FifaStats>({ pace: 50, shooting: 50, passing: 50, dribbling: 50, defending: 50, physical: 50 })
   const [editPosition, setEditPosition] = useState("CM")
   const [editNotes, setEditNotes] = useState("")
+  const [editAliases, setEditAliases] = useState("")
   const [saving, setSaving] = useState(false)
 
   const grouped = { Goal: [] as Player[], Defense: [] as Player[], Midfield: [] as Player[], Attack: [] as Player[] }
@@ -42,6 +43,7 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
     setEditStats({ pace: p.pace, shooting: p.shooting, passing: p.passing, dribbling: p.dribbling, defending: p.defending, physical: p.physical })
     setEditPosition(p.position)
     setEditNotes(p.notes ?? "")
+    setEditAliases((p.aliases ?? []).join(", "))
   }
 
   async function saveEdit() {
@@ -50,7 +52,10 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
     const overall = computeOverall(editStats, editPosition)
     await fetch(`/api/football/players/${editingId}`, {
       method: "PATCH", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...editStats, position: editPosition, skill: overall, notes: editNotes.trim() || null }),
+      body: JSON.stringify({
+        ...editStats, position: editPosition, skill: overall, notes: editNotes.trim() || null,
+        aliases: editAliases.split(",").map((a) => a.trim()).filter(Boolean),
+      }),
     })
     setEditingId(null); setSaving(false); onRefresh()
   }
@@ -134,6 +139,15 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
                         placeholder="Notes — e.g. left foot, good stamina"
                         className="input-dark w-full text-xs px-3 py-2 rounded-lg"
                       />
+                      {/* Aliases */}
+                      <div>
+                        <p className="text-[10px] font-semibold mb-0.5" style={{ color: "#9ca3af" }}>Aliases (comma-separated)</p>
+                        <input
+                          type="text" value={editAliases} onChange={(e) => setEditAliases(e.target.value)}
+                          placeholder="e.g. Shubh, SB, Bahuguna"
+                          className="input-dark w-full text-xs px-3 py-2 rounded-lg"
+                        />
+                      </div>
 
                       {/* Actions */}
                       <div className="flex gap-2">

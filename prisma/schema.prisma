@@ -205,6 +205,7 @@ model FootballPlayer {
   skill     Int      @default(50)  // overall rating (computed)
   workRate  String   @default("Med")
   notes     String?
+  aliases          String[] @default([]) // alternate names: "Shubh", "SB" etc.
   active           Boolean  @default(true)
   waitlisted       Boolean  @default(false)
   waitlistPriority Int      @default(0)

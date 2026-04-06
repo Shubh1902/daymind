@@ -14,6 +14,7 @@ type TeamAssignment = {
 
 interface Props {
   players: Player[]
+  initialSelected?: Set<string>
   onTeamsGenerated: (result: { teamA: TeamAssignment[]; teamB: TeamAssignment[]; balanceScore: number; gameId: string }) => void
 }
 
@@ -26,8 +27,8 @@ const AREA_COLORS: Record<string, { color: string; bg: string }> = {
   Attack: { color: "#dc2626", bg: "#fee2e2" },
 }
 
-export default function GameSetup({ players, onTeamsGenerated }: Props) {
-  const [selected, setSelected] = useState<Set<string>>(new Set())
+export default function GameSetup({ players, initialSelected, onTeamsGenerated }: Props) {
+  const [selected, setSelected] = useState<Set<string>>(initialSelected ?? new Set())
   const [instructions, setInstructions] = useState("")
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState("")

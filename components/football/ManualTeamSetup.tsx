@@ -13,6 +13,7 @@ type TeamAssignment = {
 
 interface Props {
   players: Player[]
+  initialSelected?: Set<string>
   onTeamsCreated: (result: { teamA: TeamAssignment[]; teamB: TeamAssignment[]; balanceScore: number; gameId: string }) => void
 }
 

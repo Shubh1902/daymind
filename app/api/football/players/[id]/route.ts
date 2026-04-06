@@ -25,6 +25,8 @@ export async function PATCH(
   if (body.physical !== undefined) data.physical = Math.max(1, Math.min(99, Number(body.physical)))
   if (body.notes !== undefined) data.notes = body.notes?.trim() || null
   if (body.active !== undefined) data.active = body.active
+  if (body.waitlisted !== undefined) data.waitlisted = body.waitlisted
+  if (body.waitlistPriority !== undefined) data.waitlistPriority = Number(body.waitlistPriority)
 
   const updated = await prisma.footballPlayer.update({ where: { id }, data })
   return Response.json(updated)

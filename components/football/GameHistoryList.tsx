@@ -3,10 +3,11 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import FormationView from "./FormationView"
+import InlineScoreRecorder from "./InlineScoreRecorder"
 import { getPositionColor } from "@/lib/football-positions"
 
 type TeamPlayer = { name: string; position: string; skill: number; role: string; playerId?: string; workRate?: string }
-type Goal = { id: string; team: string; player: { name: string } }
+type Goal = { id: string; team: string; player: { name: string }; assistPlayer?: { name: string } | null }
 type Game = {
   id: string; name: string | null
   teamAPlayers: TeamPlayer[]; teamBPlayers: TeamPlayer[]
@@ -26,6 +27,7 @@ export default function GameHistoryList({ games: initialGames }: Props) {
   const [selectedForDelete, setSelectedForDelete] = useState<Set<string>>(new Set())
   const [bulkMode, setBulkMode] = useState(false)
   const [bulkDeleting, setBulkDeleting] = useState(false)
+  const [recordingId, setRecordingId] = useState<string | null>(null)
 
   async function undoResult(gameId: string) {
     if (!confirm("Undo this game result? Score and goals will be cleared.")) return
@@ -229,22 +231,42 @@ export default function GameHistoryList({ games: initialGames }: Props) {
                     {game.goals.map((goal, i) => (
                       <span key={i} className="text-xs flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ background: goal.team === "A" ? "#fff7ed" : "#f5f3ff", color: goal.team === "A" ? "#f97316" : "#8b5cf6" }}>
                         ⚽ {goal.player.name}
+                        {goal.assistPlayer && <span className="text-[9px] opacity-70">🅰️ {goal.assistPlayer.name}</span>}
                       </span>
                     ))}
                   </div>
                 )}
 
-                {/* Actions */}
-                <div className="flex gap-1.5">
-                  {hasResult && (
-                    <button onClick={() => undoResult(game.id)} disabled={undoing === game.id} className="text-[10px] font-semibold px-2 py-1 rounded-lg" style={{ background: "#fef3c7", color: "#92400e", border: "1px solid #fde68a" }}>
-                      {undoing === game.id ? "..." : "Undo Result"}
+                {/* Record / edit score */}
+                {recordingId === game.id ? (
+                  <InlineScoreRecorder
+                    gameId={game.id}
+                    teamA={teamA}
+                    teamB={teamB}
+                    existingGoals={game.goals}
+                    existingScoreA={game.scoreA}
+                    existingScoreB={game.scoreB}
+                    onSaved={() => { setRecordingId(null); router.refresh() }}
+                  />
+                ) : (
+                  <div className="flex gap-1.5 flex-wrap">
+                    <button
+                      onClick={() => setRecordingId(game.id)}
+                      className="text-[10px] font-semibold px-2 py-1 rounded-lg"
+                      style={{ background: "#f0fdf4", color: "#166534", border: "1px solid #bbf7d0" }}
+                    >
+                      {hasResult ? "Edit Score" : "Add Score"}
                     </button>
-                  )}
-                  <button onClick={() => deleteGame(game.id)} disabled={deleting === game.id} className="text-[10px] font-semibold px-2 py-1 rounded-lg" style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" }}>
-                    {deleting === game.id ? "..." : "Delete"}
-                  </button>
-                </div>
+                    {hasResult && (
+                      <button onClick={() => undoResult(game.id)} disabled={undoing === game.id} className="text-[10px] font-semibold px-2 py-1 rounded-lg" style={{ background: "#fef3c7", color: "#92400e", border: "1px solid #fde68a" }}>
+                        {undoing === game.id ? "..." : "Undo Result"}
+                      </button>
+                    )}
+                    <button onClick={() => deleteGame(game.id)} disabled={deleting === game.id} className="text-[10px] font-semibold px-2 py-1 rounded-lg" style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" }}>
+                      {deleting === game.id ? "..." : "Delete"}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>

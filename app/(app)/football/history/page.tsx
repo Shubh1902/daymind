@@ -8,7 +8,7 @@ export default async function FootballHistoryPage() {
   const games = await prisma.footballGame.findMany({
     orderBy: { createdAt: "desc" },
     take: 20,
-    include: { goals: { include: { player: true } } },
+    include: { goals: { include: { player: true, assistPlayer: true } } },
   })
 
   const serialized = games.map((g) => ({
@@ -22,7 +22,7 @@ export default async function FootballHistoryPage() {
     balanceScore: g.balanceScore,
     createdAt: g.createdAt.toISOString(),
     goals: g.goals.map((gl) => ({
-      id: gl.id, team: gl.team, player: { name: gl.player.name },
+      id: gl.id, team: gl.team, player: { name: gl.player.name }, assistPlayer: gl.assistPlayer ? { name: gl.assistPlayer.name } : null,
     })),
   }))
 

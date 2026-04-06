@@ -8,7 +8,7 @@ export async function GET(
   const { id } = await params
   const game = await prisma.footballGame.findUnique({
     where: { id },
-    include: { selections: { include: { player: true } }, goals: { include: { player: true } } },
+    include: { selections: { include: { player: true } }, goals: { include: { player: true, assistPlayer: true } } },
   })
   if (!game) return Response.json({ error: "Not found" }, { status: 404 })
   return Response.json(game)
@@ -45,8 +45,9 @@ export async function PATCH(
     await prisma.footballGoal.deleteMany({ where: { gameId: id } })
     if (goals.length > 0) {
       await prisma.footballGoal.createMany({
-        data: goals.map((g: { playerId: string; team: string; minute?: number }) => ({
+        data: goals.map((g: { playerId: string; team: string; minute?: number; assistPlayerId?: string }) => ({
           gameId: id,
+          assistPlayerId: g.assistPlayerId ?? null,
           playerId: g.playerId,
           team: g.team,
           minute: g.minute ?? null,

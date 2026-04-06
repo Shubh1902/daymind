@@ -213,7 +213,8 @@ model FootballPlayer {
   updatedAt        DateTime @updatedAt
 
   gameSelections FootballGamePlayer[]
-  goals          FootballGoal[]
+  goals          FootballGoal[]   @relation("GoalScorer")
+  assists        FootballGoal[]   @relation("GoalAssist")
 }
 
 model FootballGame {
@@ -233,13 +234,15 @@ model FootballGame {
 }
 
 model FootballGoal {
-  id       String         @id @default(cuid())
-  gameId   String
-  playerId String
-  team     String         // "A" | "B"
-  minute   Int?           // optional: minute of the goal
-  game     FootballGame   @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  player   FootballPlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  id             String          @id @default(cuid())
+  gameId         String
+  playerId       String
+  assistPlayerId String?
+  team           String          // "A" | "B"
+  minute         Int?
+  game           FootballGame    @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  player         FootballPlayer  @relation("GoalScorer", fields: [playerId], references: [id], onDelete: Cascade)
+  assistPlayer   FootballPlayer? @relation("GoalAssist", fields: [assistPlayerId], references: [id], onDelete: SetNull)
 }
 
 model FootballGamePlayer {

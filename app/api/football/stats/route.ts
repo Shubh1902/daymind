@@ -5,6 +5,7 @@ export async function GET() {
     where: { active: true },
     include: {
       goals: true,
+      assists: true,
       gameSelections: {
         include: { game: true },
       },
@@ -16,6 +17,7 @@ export async function GET() {
     const gamesPlayed = p.gameSelections.filter((gs) => gs.role !== "sub").length
     const gamesSub = p.gameSelections.filter((gs) => gs.role === "sub").length
     const totalGoals = p.goals.length
+    const totalAssists = p.assists.length
 
     // Win/loss/draw record
     let wins = 0, losses = 0, draws = 0
@@ -39,6 +41,7 @@ export async function GET() {
       gamesPlayed,
       gamesSub,
       totalGoals,
+      totalAssists,
       wins,
       losses,
       draws,

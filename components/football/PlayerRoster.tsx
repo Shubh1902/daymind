@@ -27,6 +27,7 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
   const [modalPlayer, setModalPlayer] = useState<Player | null>(null)
   const [modalMode, setModalMode] = useState<"edit" | "duplicate">("edit")
   const [search, setSearch] = useState("")
+  const [sortBy, setSortBy] = useState<"position" | "rating">("position")
 
   const filtered = search.trim()
     ? players.filter((p) => {
@@ -39,8 +40,14 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
       })
     : players
 
+  // Sort filtered players
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === "rating") return b.skill - a.skill
+    return 0 // default: keep DB order (by position)
+  })
+
   const grouped = { Goal: [] as Player[], Defense: [] as Player[], Midfield: [] as Player[], Attack: [] as Player[] }
-  for (const p of filtered) {
+  for (const p of sorted) {
     const area = getPositionArea(p.position) as keyof typeof grouped
     if (grouped[area]) grouped[area].push(p)
     else grouped.Midfield.push(p)
@@ -57,7 +64,20 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
 
   return (
     <>
-      {/* Search */}
+      {/* Search + Sort */}
+      <div className="flex gap-2 mb-3">
+        <button
+          onClick={() => setSortBy(sortBy === "position" ? "rating" : "position")}
+          className="shrink-0 px-3 py-2 rounded-xl text-xs font-semibold"
+          style={{
+            background: sortBy === "rating" ? "#fff7ed" : "#f9fafb",
+            color: sortBy === "rating" ? "#9a3412" : "#9ca3af",
+            border: sortBy === "rating" ? "1.5px solid #f97316" : "1px solid #e5e7eb",
+          }}
+        >
+          {sortBy === "rating" ? "⬇ OVR" : "⬇ Pos"}
+        </button>
+      </div>
       <div className="relative mb-3">
         <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "#9ca3af" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />

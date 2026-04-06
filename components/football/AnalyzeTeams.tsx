@@ -5,6 +5,7 @@ import { parseTeamMessage, type ParsedTeamImport, type ParsedPlayer } from "@/li
 import { getPositionColor } from "@/lib/football-positions"
 import { compareTeams } from "@/lib/football-comparison"
 import AddPlayerModal from "./AddPlayerModal"
+import PlayerSearchDropdown from "./PlayerSearchDropdown"
 
 type Player = {
   id: string; name: string; position: string; skill: number; workRate: string; aliases?: string[]; [key: string]: unknown
@@ -135,37 +136,17 @@ export default function AnalyzeTeams({ players, onRefreshPlayers }: Props) {
         </div>
 
         {showingPicker && (
-          <div className="px-2 py-1.5 space-y-0.5 animate-slide-up" style={{ background: "#f9fafb", borderTop: "1px solid #e5e7eb" }}>
-            <div className="max-h-32 overflow-y-auto space-y-0.5">
-              {players.map((pl) => {
-                const pc = getPositionColor(pl.position)
-                return (
-                  <button
-                    key={pl.id}
-                    onClick={() => {
-                      setOverrides((prev) => { const n = new Map(prev); n.set(teamKey, pl.id); return n })
-                      setShowPickerKey(null)
-                      addAliasToPlayer(pl.id, p.rawName)
-                    }}
-                    className="w-full flex items-center gap-1.5 px-2 py-1 rounded text-left"
-                    style={{ background: match?.id === pl.id ? "#dbeafe" : "#fff", border: "1px solid #f3f4f6" }}
-                  >
-                    <span className="text-[9px] font-bold px-1 rounded" style={{ background: pc.bg, color: pc.color }}>{pl.position}</span>
-                    <span className="text-[10px] font-medium flex-1 truncate" style={{ color: "#1f2937" }}>{pl.name}</span>
-                    <span className="text-[10px] font-bold" style={{ color: "#6b7280" }}>{pl.skill}</span>
-                  </button>
-                )
-              })}
-            </div>
-            <button
-              onClick={() => { setAddingName(p.rawName); setShowPickerKey(null) }}
-              className="w-full flex items-center gap-1.5 px-2 py-1 rounded text-left"
-              style={{ background: "#fff7ed", border: "1px solid #fdba74" }}
-            >
-              <span className="text-[10px] font-bold" style={{ color: "#f97316" }}>+</span>
-              <span className="text-[10px] font-medium" style={{ color: "#9a3412" }}>Add "{p.rawName}" as new player</span>
-            </button>
-          </div>
+          <PlayerSearchDropdown
+            players={players}
+            selectedId={match?.id}
+            rawName={p.rawName}
+            onSelect={(pl) => {
+              setOverrides((prev) => { const n = new Map(prev); n.set(teamKey, pl.id); return n })
+              setShowPickerKey(null)
+              addAliasToPlayer(pl.id, p.rawName)
+            }}
+            onAddNew={() => { setAddingName(p.rawName); setShowPickerKey(null) }}
+          />
         )}
       </div>
     )

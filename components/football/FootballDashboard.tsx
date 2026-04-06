@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { getJerseyColor } from "@/lib/football-jersey"
 import { getPositionColor } from "@/lib/football-positions"
 import Link from "next/link"
@@ -38,6 +39,9 @@ function isFutureGame(game: Game): boolean {
 }
 
 export default function FootballDashboard({ games, totalGames, totalGoals }: Props) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
   if (games.length === 0) return null
 
   const latestGame = games[0]
@@ -68,7 +72,7 @@ export default function FootballDashboard({ games, totalGames, totalGoals }: Pro
               {isFutureGame(latestGame) ? "🔜 Upcoming" : "⚽ Last Game"}
             </span>
             <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: isFutureGame(latestGame) ? "#dbeafe" : "#f3f4f6", color: isFutureGame(latestGame) ? "#2563eb" : "#9ca3af" }}>
-              {timeAgo(latestGame.createdAt)}
+              {mounted ? timeAgo(latestGame.createdAt) : ""}
             </span>
           </div>
           <span className="text-[10px] font-medium" style={{ color: "#9ca3af" }}>
@@ -81,11 +85,13 @@ export default function FootballDashboard({ games, totalGames, totalGoals }: Pro
           {latestGame.name && (
             <p className="text-sm font-bold mb-2" style={{ color: "#1f2937" }}>{latestGame.name}</p>
           )}
-          <p className="text-[10px] mb-2" style={{ color: "#9ca3af" }}>
-            {new Date(latestGame.createdAt).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
-            {" · "}
-            {new Date(latestGame.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
-          </p>
+          {mounted && (
+            <p className="text-[10px] mb-2" style={{ color: "#9ca3af" }}>
+              {new Date(latestGame.createdAt).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+              {" · "}
+              {new Date(latestGame.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+            </p>
+          )}
 
           {/* Score */}
           {latestGame.completed && latestGame.scoreA != null ? (
@@ -199,7 +205,7 @@ export default function FootballDashboard({ games, totalGames, totalGoals }: Pro
                 <span className="flex-1 text-[10px] truncate" style={{ color: "#9ca3af" }}>
                   {game.name ?? new Date(game.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                 </span>
-                <span className="text-[10px]" style={{ color: "#d1d5db" }}>{timeAgo(game.createdAt)}</span>
+                <span className="text-[10px]" style={{ color: "#d1d5db" }}>{mounted ? timeAgo(game.createdAt) : ""}</span>
               </Link>
             )
           })}

@@ -140,11 +140,17 @@ export default function AddPlayerForm({ onAdded }: Props) {
 
       {/* FIFA Stats — slider rows */}
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#6b7280" }}>Attributes</p>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#6b7280" }}>Attributes</p>
+          {positions.includes("GK") && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: "#fef3c7", color: "#92400e" }}>GK hints shown</span>
+          )}
+        </div>
         <div className="space-y-2.5">
-          {STAT_LABELS.map(({ key, short, color }) => (
-            <div key={key} className="flex items-center gap-2">
-              <span className="text-xs font-bold w-8 text-right" style={{ color }}>{short}</span>
+          {STAT_LABELS.map(({ key, short, color, gkHint }) => (
+            <div key={key}>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold w-8 text-right" style={{ color }}>{short}</span>
               <input
                 type="range"
                 min={1}
@@ -166,6 +172,10 @@ export default function AddPlayerForm({ onAdded }: Props) {
                 className="w-12 text-xs text-center font-bold rounded-lg py-1"
                 style={{ background: "#f9fafb", border: "1px solid #e5e7eb", color: "#1f2937" }}
               />
+              </div>
+              {positions.includes("GK") && (
+                <p className="text-[10px] ml-10 -mt-1" style={{ color: "#92400e" }}>{gkHint}</p>
+              )}
             </div>
           ))}
         </div>

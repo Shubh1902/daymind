@@ -9,13 +9,13 @@ export type FifaStats = {
   physical: number
 }
 
-export const STAT_LABELS: { key: keyof FifaStats; label: string; short: string; color: string }[] = [
-  { key: "pace", label: "Pace", short: "PAC", color: "#22c55e" },
-  { key: "shooting", label: "Shooting", short: "SHO", color: "#ef4444" },
-  { key: "passing", label: "Passing", short: "PAS", color: "#3b82f6" },
-  { key: "dribbling", label: "Dribbling", short: "DRI", color: "#f59e0b" },
-  { key: "defending", label: "Defending", short: "DEF", color: "#6366f1" },
-  { key: "physical", label: "Physical", short: "PHY", color: "#ec4899" },
+export const STAT_LABELS: { key: keyof FifaStats; label: string; short: string; color: string; gkHint: string }[] = [
+  { key: "pace", label: "Pace", short: "PAC", color: "#22c55e", gkHint: "Reflexes & speed off the line" },
+  { key: "shooting", label: "Shooting", short: "SHO", color: "#ef4444", gkHint: "Kicking & distribution" },
+  { key: "passing", label: "Passing", short: "PAS", color: "#3b82f6", gkHint: "Throws & short passing" },
+  { key: "dribbling", label: "Dribbling", short: "DRI", color: "#f59e0b", gkHint: "Handling & ball control" },
+  { key: "defending", label: "Defending", short: "DEF", color: "#6366f1", gkHint: "Shot stopping & positioning" },
+  { key: "physical", label: "Physical", short: "PHY", color: "#ec4899", gkHint: "Reach, presence & aggression" },
 ]
 
 /**

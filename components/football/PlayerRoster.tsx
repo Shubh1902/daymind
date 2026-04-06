@@ -1,9 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { getPositionColor, getPositionArea, POSITION_GROUPS, ALL_POSITIONS } from "@/lib/football-positions"
-import { STAT_LABELS, computeOverall, ratingColor, type FifaStats } from "@/lib/football-rating"
-import FifaCard from "./FifaCard"
+import { getPositionColor, getPositionArea } from "@/lib/football-positions"
+import { ratingColor } from "@/lib/football-rating"
+import PlayerDetailModal from "./PlayerDetailModal"
 
 type Player = {
   id: string; name: string; position: string; positions?: string[]; aliases?: string[]
@@ -24,46 +24,14 @@ const AREA_STYLE: Record<string, { color: string; bg: string; label: string }> =
 }
 
 export default function PlayerRoster({ players, onRefresh }: Props) {
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editStats, setEditStats] = useState<FifaStats>({ pace: 50, shooting: 50, passing: 50, dribbling: 50, defending: 50, physical: 50 })
-  const [editPosition, setEditPosition] = useState("CM")
-  const [editNotes, setEditNotes] = useState("")
-  const [editAliases, setEditAliases] = useState("")
-  const [saving, setSaving] = useState(false)
+  const [modalPlayer, setModalPlayer] = useState<Player | null>(null)
+  const [modalMode, setModalMode] = useState<"edit" | "duplicate">("edit")
 
   const grouped = { Goal: [] as Player[], Defense: [] as Player[], Midfield: [] as Player[], Attack: [] as Player[] }
   for (const p of players) {
     const area = getPositionArea(p.position) as keyof typeof grouped
     if (grouped[area]) grouped[area].push(p)
     else grouped.Midfield.push(p)
-  }
-
-  function startEdit(p: Player) {
-    setEditingId(p.id)
-    setEditStats({ pace: p.pace, shooting: p.shooting, passing: p.passing, dribbling: p.dribbling, defending: p.defending, physical: p.physical })
-    setEditPosition(p.position)
-    setEditNotes(p.notes ?? "")
-    setEditAliases((p.aliases ?? []).join(", "))
-  }
-
-  async function saveEdit() {
-    if (!editingId) return
-    setSaving(true)
-    const overall = computeOverall(editStats, editPosition)
-    await fetch(`/api/football/players/${editingId}`, {
-      method: "PATCH", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...editStats, position: editPosition, skill: overall, notes: editNotes.trim() || null,
-        aliases: editAliases.split(",").map((a) => a.trim()).filter(Boolean),
-      }),
-    })
-    setEditingId(null); setSaving(false); onRefresh()
-  }
-
-  async function deletePlayer(id: string) {
-    if (!confirm("Remove this player from the roster?")) return
-    await fetch(`/api/football/players/${id}`, { method: "DELETE" })
-    onRefresh()
   }
 
   if (players.length === 0) {
@@ -76,99 +44,80 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
   }
 
   return (
-    <div className="space-y-5">
-      {(["Goal", "Defense", "Midfield", "Attack"] as const).map((area) => {
-        const group = grouped[area]
-        if (group.length === 0) return null
-        const style = AREA_STYLE[area]
-        return (
-          <div key={area}>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: style.bg, color: style.color }}>
-                {style.label}
-              </span>
-              <span className="text-xs" style={{ color: "#9ca3af" }}>{group.length} players</span>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {group.map((p) => {
-                if (editingId === p.id) {
+    <>
+      <div className="space-y-4">
+        {(["Goal", "Defense", "Midfield", "Attack"] as const).map((area) => {
+          const group = grouped[area]
+          if (group.length === 0) return null
+          const style = AREA_STYLE[area]
+          return (
+            <div key={area}>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs font-bold px-2 py-0.5 rounded" style={{ background: style.bg, color: style.color }}>{style.label}</span>
+                <span className="text-xs" style={{ color: "#9ca3af" }}>{group.length} players</span>
+              </div>
+              <div className="space-y-1.5">
+                {group.map((p) => {
+                  const pc = getPositionColor(p.position)
                   return (
-                    <div key={p.id} className="w-full rounded-xl p-3 space-y-2.5 animate-slide-up" style={{ background: "#fff", border: "2px solid #f97316" }}>
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-bold" style={{ color: "#1f2937" }}>{p.name}</p>
-                        <span className="text-lg font-black" style={{ color: ratingColor(computeOverall(editStats, editPosition)) }}>
-                          {computeOverall(editStats, editPosition)}
-                        </span>
+                    <div
+                      key={p.id}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl cursor-pointer transition-all hover:shadow-sm active:scale-[0.99]"
+                      style={{ background: "#ffffff", border: "1px solid #f3f4f6" }}
+                      onClick={() => { setModalPlayer(p); setModalMode("edit") }}
+                    >
+                      {/* OVR badge */}
+                      <div className="w-9 h-9 rounded-lg flex flex-col items-center justify-center shrink-0" style={{ background: `${ratingColor(p.skill)}12`, border: `1.5px solid ${ratingColor(p.skill)}` }}>
+                        <span className="text-sm font-black leading-none" style={{ color: ratingColor(p.skill) }}>{p.skill}</span>
                       </div>
 
-                      {/* Position */}
-                      <div className="flex flex-wrap gap-1">
-                        {ALL_POSITIONS.map((ps) => {
-                          const pc = getPositionColor(ps)
-                          return (
-                            <button key={ps} onClick={() => setEditPosition(ps)} className="px-1.5 py-1 rounded text-[10px] font-bold" style={{ background: editPosition === ps ? pc.bg : "#f9fafb", color: editPosition === ps ? pc.color : "#d1d5db", border: editPosition === ps ? `1.5px solid ${pc.color}` : "1px solid #e5e7eb" }}>{ps}</button>
-                          )
-                        })}
+                      {/* Name + positions */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate" style={{ color: "#1f2937" }}>{p.name}</p>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          {(p.positions?.length ? p.positions : [p.position]).map((pos, i) => (
+                            <span key={pos} className="text-[10px] font-bold px-1 rounded" style={{ background: i === 0 ? getPositionColor(pos).bg : "transparent", color: getPositionColor(pos).color, border: i > 0 ? `1px solid ${getPositionColor(pos).color}40` : "none" }}>
+                              {pos}
+                            </span>
+                          ))}
+                          {p.aliases && p.aliases.length > 0 && (
+                            <span className="text-[9px] truncate max-w-[80px]" style={{ color: "#d1d5db" }}>
+                              aka {p.aliases.join(", ")}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
-                      {/* Stats sliders */}
-                      <div className="space-y-1.5">
-                        {STAT_LABELS.map(({ key, short, color }) => (
-                          <div key={key} className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold w-7 text-right" style={{ color }}>{short}</span>
-                            <input
-                              type="range" min={1} max={99} value={editStats[key]}
-                              onChange={(e) => setEditStats((s) => ({ ...s, [key]: Number(e.target.value) }))}
-                              className="flex-1 h-1.5 rounded-full appearance-none cursor-pointer"
-                              style={{ background: `linear-gradient(to right, ${color} ${editStats[key]}%, #e5e7eb ${editStats[key]}%)`, accentColor: color }}
-                            />
-                            <input
-                              type="number" min={1} max={99} value={editStats[key]}
-                              onChange={(e) => setEditStats((s) => ({ ...s, [key]: Math.max(1, Math.min(99, Number(e.target.value))) }))}
-                              className="w-10 text-[10px] text-center font-bold rounded py-0.5"
-                              style={{ background: "#f9fafb", border: "1px solid #e5e7eb", color: "#1f2937" }}
-                            />
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Notes */}
-                      <input
-                        type="text" value={editNotes} onChange={(e) => setEditNotes(e.target.value)}
-                        placeholder="Notes — e.g. left foot, good stamina"
-                        className="input-dark w-full text-xs px-3 py-2 rounded-lg"
-                      />
-                      {/* Aliases */}
-                      <div>
-                        <p className="text-[10px] font-semibold mb-0.5" style={{ color: "#9ca3af" }}>Aliases (comma-separated)</p>
-                        <input
-                          type="text" value={editAliases} onChange={(e) => setEditAliases(e.target.value)}
-                          placeholder="e.g. Shubh, SB, Bahuguna"
-                          className="input-dark w-full text-xs px-3 py-2 rounded-lg"
-                        />
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex gap-2">
-                        <button onClick={() => { deletePlayer(p.id); setEditingId(null) }} className="py-1.5 px-3 rounded-lg text-xs font-semibold" style={{ background: "#fef2f2", color: "#ef4444", border: "1px solid #fecaca" }}>Delete</button>
-                        <button onClick={() => setEditingId(null)} className="flex-1 py-1.5 rounded-lg text-xs font-semibold" style={{ background: "#f3f4f6", color: "#374151" }}>Cancel</button>
-                        <button onClick={saveEdit} disabled={saving} className="flex-1 btn-primary text-white py-1.5 rounded-lg text-xs font-semibold disabled:opacity-40">Save</button>
-                      </div>
+                      {/* Duplicate button */}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setModalPlayer(p); setModalMode("duplicate") }}
+                        className="p-1.5 rounded-lg opacity-60 md:opacity-0 md:group-hover:opacity-100 transition-all shrink-0"
+                        style={{ color: "#6b7280", background: "#f3f4f6" }}
+                        title="Duplicate player"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
+                        </svg>
+                      </button>
                     </div>
                   )
-                }
-
-                return (
-                  <div key={p.id} onClick={() => startEdit(p)} className="cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]">
-                    <FifaCard player={p} size="sm" />
-                  </div>
-                )
-              })}
+                })}
+              </div>
             </div>
-          </div>
-        )
-      })}
-    </div>
+          )
+        })}
+      </div>
+
+      {/* Modal for edit/duplicate */}
+      {modalPlayer && (
+        <PlayerDetailModal
+          player={modalPlayer}
+          mode={modalMode}
+          onSaved={() => { setModalPlayer(null); onRefresh() }}
+          onClose={() => setModalPlayer(null)}
+          onDelete={() => { setModalPlayer(null); onRefresh() }}
+        />
+      )}
+    </>
   )
 }

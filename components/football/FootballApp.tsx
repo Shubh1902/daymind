@@ -197,6 +197,8 @@ export default function FootballApp({ initialPlayers }: { initialPlayers: Player
             teamB={result.teamB}
             balanceScore={result.balanceScore}
             gameId={result.gameId}
+            allPlayers={players}
+            onRefresh={fetchPlayers}
             onRegenerate={() => setView(result.source === "manual" ? "manual" : "setup")}
             onBack={() => setView(result.source === "manual" ? "manual" : "setup")}
           />

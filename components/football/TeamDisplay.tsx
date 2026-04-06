@@ -3,9 +3,16 @@
 import { useState } from "react"
 import RecordResult from "./RecordResult"
 import FormationView from "./FormationView"
+import PlayerDetailModal from "./PlayerDetailModal"
 
 type TeamAssignment = {
   playerId: string; name: string; position: string; skill: number; workRate: string; role: string
+}
+
+type FullPlayer = {
+  id: string; name: string; position: string; positions?: string[]; aliases?: string[]
+  pace: number; shooting: number; passing: number; dribbling: number; defending: number; physical: number
+  skill: number; workRate: string; notes: string | null
 }
 
 interface Props {
@@ -13,6 +20,8 @@ interface Props {
   teamB: TeamAssignment[]
   balanceScore: number
   gameId: string
+  allPlayers?: FullPlayer[]
+  onRefresh?: () => void
   onRegenerate: () => void
   onBack: () => void
 }
@@ -26,7 +35,7 @@ const AREA_COLORS: Record<string, { color: string; bg: string }> = {
   ATT: { color: "#dc2626", bg: "#fee2e2" },
 }
 
-function TeamColumn({ team, label, accent }: { team: TeamAssignment[]; label: string; accent: string }) {
+function TeamColumn({ team, label, accent, allPlayers, onPlayerClick }: { team: TeamAssignment[]; label: string; accent: string; allPlayers?: FullPlayer[]; onPlayerClick?: (p: FullPlayer) => void }) {
   const gk = team.find((p) => p.role === "gk")
   const outfield = team.filter((p) => p.role === "outfield")
   const subs = team.filter((p) => p.role === "sub")
@@ -79,7 +88,11 @@ function TeamColumn({ team, label, accent }: { team: TeamAssignment[]; label: st
                 return (
                   <div key={p.playerId} className="flex items-center gap-2 px-2 py-1.5 rounded-lg mb-1" style={{ background: `${style.bg}`, border: `1px solid ${style.color}20` }}>
                     <span className="text-[10px] font-bold w-8 text-center" style={{ color: pc.color }}>{p.position}</span>
-                    <span className="text-xs font-medium flex-1 truncate" style={{ color: "#1f2937" }}>{p.name}</span>
+                    <button
+                      onClick={() => { const full = allPlayers?.find((fp) => fp.id === p.playerId); if (full && onPlayerClick) onPlayerClick(full) }}
+                      className="text-xs font-medium flex-1 truncate text-left hover:underline decoration-dotted underline-offset-2"
+                      style={{ color: "#1f2937" }}
+                    >{p.name}</button>
                     <span className="text-xs font-bold" style={{ color: style.color }}>{p.skill}</span>
                   </div>
                 )
@@ -101,10 +114,11 @@ function TeamColumn({ team, label, accent }: { team: TeamAssignment[]; label: st
   )
 }
 
-export default function TeamDisplay({ teamA, teamB, balanceScore, gameId, onRegenerate, onBack }: Props) {
+export default function TeamDisplay({ teamA, teamB, balanceScore, gameId, allPlayers, onRefresh, onRegenerate, onBack }: Props) {
   const [showRecord, setShowRecord] = useState(false)
   const [resultSaved, setResultSaved] = useState(false)
   const [viewMode, setViewMode] = useState<"list" | "pitch">("list")
+  const [editingPlayer, setEditingPlayer] = useState<FullPlayer | null>(null)
 
   return (
     <div className="space-y-4 animate-scale-in">
@@ -148,8 +162,8 @@ export default function TeamDisplay({ teamA, teamB, balanceScore, gameId, onRege
       {/* Teams side by side (list view) */}
       {viewMode === "list" && (
         <div className="flex gap-3">
-          <TeamColumn team={teamA} label="Team A" accent="#f97316" />
-          <TeamColumn team={teamB} label="Team B" accent="#8b5cf6" />
+          <TeamColumn team={teamA} label="Team A" accent="#f97316" allPlayers={allPlayers} onPlayerClick={setEditingPlayer} />
+          <TeamColumn team={teamB} label="Team B" accent="#8b5cf6" allPlayers={allPlayers} onPlayerClick={setEditingPlayer} />
         </div>
       )}
 
@@ -193,6 +207,17 @@ export default function TeamDisplay({ teamA, teamB, balanceScore, gameId, onRege
         <div className="text-center py-3 rounded-xl" style={{ background: "#ecfdf5", border: "1px solid #a7f3d0" }}>
           <span className="text-sm font-semibold" style={{ color: "#059669" }}>✅ Result saved!</span>
         </div>
+      )}
+
+      {/* Player edit modal */}
+      {editingPlayer && (
+        <PlayerDetailModal
+          player={editingPlayer}
+          mode="edit"
+          onSaved={() => { setEditingPlayer(null); onRefresh?.() }}
+          onClose={() => setEditingPlayer(null)}
+          onDelete={() => { setEditingPlayer(null); onRefresh?.() }}
+        />
       )}
     </div>
   )

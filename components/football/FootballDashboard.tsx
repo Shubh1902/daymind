@@ -59,8 +59,8 @@ export default function FootballDashboard({ games, totalGames, totalGoals }: Pro
 
   return (
     <div className="space-y-4">
-      {/* Latest game hero card */}
-      <div className="rounded-2xl overflow-hidden" style={{ background: "#ffffff", border: "1px solid #e5e7eb", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
+      {/* Latest game hero card — clickable */}
+      <Link href={`/football/games/${latestGame.id}`} className="block rounded-2xl overflow-hidden transition-all hover:shadow-md" style={{ background: "#ffffff", border: "1px solid #e5e7eb", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
         {/* Header */}
         <div className="px-4 py-2.5 flex items-center justify-between" style={{ background: "#f9fafb", borderBottom: "1px solid #f3f4f6" }}>
           <div className="flex items-center gap-2">
@@ -145,7 +145,7 @@ export default function FootballDashboard({ games, totalGames, totalGoals }: Pro
             </div>
           </div>
         </div>
-      </div>
+      </Link>
 
       {/* Quick stats row */}
       {(topScorers.length > 0 || pastGames.length > 1) && (
@@ -186,7 +186,7 @@ export default function FootballDashboard({ games, totalGames, totalGoals }: Pro
             const gA = getJerseyColor(game.jerseyA ?? "orange")
             const gB = getJerseyColor(game.jerseyB ?? "purple")
             return (
-              <div key={game.id} className="flex items-center gap-2.5 px-3 py-2" style={{ borderTop: "1px solid #f3f4f6" }}>
+              <Link key={game.id} href={`/football/games/${game.id}`} className="flex items-center gap-2.5 px-3 py-2 transition-all hover:bg-gray-50" style={{ borderTop: "1px solid #f3f4f6" }}>
                 <div className="flex items-center gap-1">
                   <span className="w-3 h-3 rounded-full" style={{ background: gA.hex }} />
                   <span className="text-sm font-bold" style={{ color: gA.hex }}>{game.scoreA ?? "-"}</span>
@@ -200,7 +200,7 @@ export default function FootballDashboard({ games, totalGames, totalGoals }: Pro
                   {game.name ?? new Date(game.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                 </span>
                 <span className="text-[10px]" style={{ color: "#d1d5db" }}>{timeAgo(game.createdAt)}</span>
-              </div>
+              </Link>
             )
           })}
           <Link href="/football/history" className="block text-center py-2 text-[10px] font-medium" style={{ color: "#f97316", borderTop: "1px solid #f3f4f6" }}>

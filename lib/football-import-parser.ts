@@ -168,3 +168,97 @@ export function parseMatchMessage(text: string, roster: Player[]): ParsedImport 
 
   return { matchInfo, confirmed, goalkeepers, waitlisted, unrecognized }
 }
+
+// ─── Pre-made team parser ──────────────────────────
+
+export type ParsedTeamImport = {
+  matchInfo: string | null
+  teamAName: string
+  teamBName: string
+  teamA: ParsedPlayer[]
+  teamB: ParsedPlayer[]
+  unrecognized: ParsedPlayer[]
+}
+
+/** Parse a message with pre-made teams (Team Black / Team White etc.) */
+export function parseTeamMessage(text: string, roster: Player[]): ParsedTeamImport {
+  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean)
+  if (lines.length === 0) {
+    return { matchInfo: null, teamAName: "Team A", teamBName: "Team B", teamA: [], teamB: [], unrecognized: [] }
+  }
+
+  let matchInfo: string | null = null
+  let currentTeam: "A" | "B" | null = null
+  let teamAName = "Team A"
+  let teamBName = "Team B"
+
+  const teamA: ParsedPlayer[] = []
+  const teamB: ParsedPlayer[] = []
+  const usedPlayerIds = new Set<string>()
+
+  // Detect team headers: "Team Black", "Team White", "Team A:", "Team 1", etc.
+  const teamHeaderRegex = /^team\s+(.+?)[\s:]*$/i
+
+  for (const line of lines) {
+    const lower = line.toLowerCase()
+
+    // Check for team header
+    const headerMatch = line.match(teamHeaderRegex)
+    if (headerMatch) {
+      const teamLabel = headerMatch[1].replace(/[⚫️⚪️🔴🔵🟢🟡⬛⬜]/gu, "").trim()
+      if (currentTeam === null) {
+        currentTeam = "A"
+        teamAName = `Team ${teamLabel || "A"}`
+      } else if (currentTeam === "A") {
+        currentTeam = "B"
+        teamBName = `Team ${teamLabel || "B"}`
+      }
+      continue
+    }
+
+    // Also detect colon-based headers like "Black:" or "White:"
+    if (/^(black|white|red|blue|green|yellow|a|b|1|2|one|two)\s*:$/i.test(lower)) {
+      if (currentTeam === null) { currentTeam = "A"; teamAName = `Team ${line.replace(":", "").trim()}` }
+      else if (currentTeam === "A") { currentTeam = "B"; teamBName = `Team ${line.replace(":", "").trim()}` }
+      continue
+    }
+
+    // Match info line (date/time)
+    if (!currentTeam && /match|game|monday|tuesday|wednesday|thursday|friday|saturday|sunday|\d+\s*(am|pm)/i.test(line)) {
+      if (!matchInfo) matchInfo = line
+      continue
+    }
+
+    // Skip non-team lines before first team header
+    if (!currentTeam) continue
+
+    // Extract player name
+    const nameMatch = line.match(/^\d+[.)⁠\s]*[-–—]?\s*(.+)/) || line.match(/^[-–—•]\s*(.+)/)
+    let rawName = nameMatch ? nameMatch[1].trim() : null
+    if (!rawName) {
+      if (/^[\s\d.)\-–—]*$/.test(line) || line.length <= 1) continue
+      rawName = line
+    }
+    rawName = rawName.replace(/\(.*?\)/g, "").trim()
+    if (!rawName || rawName.length < 2) continue
+
+    const match = fuzzyMatchPlayer(rawName, roster.filter((p) => !usedPlayerIds.has(p.id)))
+
+    const parsed: ParsedPlayer = {
+      rawName,
+      matchedPlayer: match?.player ?? null,
+      confidence: match?.confidence ?? 0,
+      section: "confirmed",
+    }
+
+    if (match?.player) usedPlayerIds.add(match.player.id)
+
+    if (currentTeam === "A") teamA.push(parsed)
+    else teamB.push(parsed)
+  }
+
+  const allParsed = [...teamA, ...teamB]
+  const unrecognized = allParsed.filter((p) => !p.matchedPlayer || p.confidence < 0.5)
+
+  return { matchInfo, teamAName, teamBName, teamA, teamB, unrecognized }
+}

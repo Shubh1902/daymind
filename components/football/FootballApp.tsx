@@ -9,6 +9,7 @@ import ManualTeamSetup from "./ManualTeamSetup"
 import TeamDisplay from "./TeamDisplay"
 import TeamComparison from "./TeamComparison"
 import WaitlistBanner from "./WaitlistBanner"
+import AnalyzeTeams from "./AnalyzeTeams"
 
 type Player = {
   id: string; name: string; position: string; positions?: string[]
@@ -28,7 +29,7 @@ type GeneratedResult = {
   source: "auto" | "manual"
 }
 
-type View = "roster" | "import" | "setup" | "manual" | "result" | "compare"
+type View = "roster" | "import" | "setup" | "manual" | "analyze" | "result" | "compare"
 
 export default function FootballApp({ initialPlayers }: { initialPlayers: Player[] }) {
   const [players, setPlayers] = useState<Player[]>(initialPlayers)
@@ -88,6 +89,7 @@ export default function FootballApp({ initialPlayers }: { initialPlayers: Player
     { id: "import", label: "Import", icon: "📋" },
     { id: "setup", label: "Auto", icon: "🤖" },
     { id: "manual", label: "Manual", icon: "✋" },
+    { id: "analyze", label: "Analyze", icon: "🔍" },
   ]
 
   if (result) {
@@ -177,6 +179,13 @@ export default function FootballApp({ initialPlayers }: { initialPlayers: Player
               setView("result")
             }}
           />
+        </div>
+      )}
+
+      {/* Analyze */}
+      {view === "analyze" && (
+        <div className="animate-fade-in">
+          <AnalyzeTeams players={players} />
         </div>
       )}
 

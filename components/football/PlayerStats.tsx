@@ -5,7 +5,7 @@ import { getPositionColor } from "@/lib/football-positions"
 
 type PlayerStat = {
   id: string; name: string; position: string; positions: string[]; skill: number
-  gamesPlayed: number; gamesSub: number; totalGoals: number
+  gamesPlayed: number; gamesSub: number; totalGoals: number; totalAssists: number
   wins: number; losses: number; draws: number; winRate: number; goalsPerGame: number
 }
 
@@ -13,7 +13,7 @@ interface Props {
   stats: PlayerStat[]
 }
 
-type SortKey = "totalGoals" | "gamesPlayed" | "winRate" | "skill" | "goalsPerGame" | "name"
+type SortKey = "totalGoals" | "totalAssists" | "gamesPlayed" | "winRate" | "skill" | "goalsPerGame" | "name"
 
 export default function PlayerStats({ stats: initialStats }: Props) {
   const [sortBy, setSortBy] = useState<SortKey>("totalGoals")
@@ -71,6 +71,7 @@ export default function PlayerStats({ stats: initialStats }: Props) {
       <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
         {([
           { key: "totalGoals", label: "Goals" },
+          { key: "totalAssists", label: "Assists" },
           { key: "gamesPlayed", label: "Games" },
           { key: "winRate", label: "Win %" },
           { key: "skill", label: "OVR" },
@@ -167,6 +168,7 @@ export default function PlayerStats({ stats: initialStats }: Props) {
               <div className="shrink-0 text-right">
                 <p className="text-sm font-bold" style={{ color: "#1f2937" }}>
                   {sortBy === "totalGoals" ? s.totalGoals :
+                   sortBy === "totalAssists" ? s.totalAssists :
                    sortBy === "gamesPlayed" ? s.gamesPlayed :
                    sortBy === "winRate" ? `${s.winRate}%` :
                    sortBy === "skill" ? s.skill :
@@ -175,6 +177,7 @@ export default function PlayerStats({ stats: initialStats }: Props) {
                 </p>
                 <p className="text-[10px]" style={{ color: "#9ca3af" }}>
                   {sortBy === "totalGoals" ? "goals" :
+                   sortBy === "totalAssists" ? "assists" :
                    sortBy === "gamesPlayed" ? "games" :
                    sortBy === "winRate" ? "win rate" :
                    sortBy === "skill" ? "overall" :
@@ -183,14 +186,19 @@ export default function PlayerStats({ stats: initialStats }: Props) {
                 </p>
               </div>
 
-              {/* Games + Goals mini */}
-              <div className="shrink-0 flex gap-1.5">
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: "#f3f4f6", color: "#6b7280" }}>
+              {/* Games + Goals + Assists mini */}
+              <div className="shrink-0 flex gap-1">
+                <span className="text-[10px] font-bold px-1 py-0.5 rounded" style={{ background: "#f3f4f6", color: "#6b7280" }}>
                   {s.gamesPlayed}G
                 </span>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: "#fef3c7", color: "#d97706" }}>
+                <span className="text-[10px] font-bold px-1 py-0.5 rounded" style={{ background: "#fef3c7", color: "#d97706" }}>
                   {s.totalGoals}⚽
                 </span>
+                {s.totalAssists > 0 && (
+                  <span className="text-[10px] font-bold px-1 py-0.5 rounded" style={{ background: "#dcfce7", color: "#16a34a" }}>
+                    {s.totalAssists}🅰️
+                  </span>
+                )}
               </div>
             </div>
           )

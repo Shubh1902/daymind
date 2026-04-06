@@ -12,6 +12,7 @@ async function fetchStats() {
     where: { active: true },
     include: {
       goals: true,
+      assists: true,
       gameSelections: { include: { game: true } },
     },
     orderBy: { name: "asc" },
@@ -21,6 +22,7 @@ async function fetchStats() {
     const gamesPlayed = p.gameSelections.filter((gs) => gs.role !== "sub").length
     const gamesSub = p.gameSelections.filter((gs) => gs.role === "sub").length
     const totalGoals = p.goals.length
+    const totalAssists = p.assists.length
 
     let wins = 0, losses = 0, draws = 0
     for (const gs of p.gameSelections) {
@@ -36,7 +38,7 @@ async function fetchStats() {
     return {
       id: p.id, name: p.name, position: p.position,
       positions: p.positions, skill: p.skill,
-      gamesPlayed, gamesSub, totalGoals,
+      gamesPlayed, gamesSub, totalGoals, totalAssists,
       wins, losses, draws,
       winRate: (wins + losses + draws) > 0 ? Math.round(wins / (wins + losses + draws) * 100) : 0,
       goalsPerGame: gamesPlayed > 0 ? Math.round(totalGoals / gamesPlayed * 100) / 100 : 0,

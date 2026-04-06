@@ -149,10 +149,19 @@ export default function GameHistoryList({ games: initialGames }: Props) {
               )}
 
               <div className="flex-1 min-w-0">
-                <span className="text-sm font-bold truncate block" style={{ color: "#1f2937" }}>
-                  {game.name ?? new Date(game.createdAt).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
-                </span>
-                <span className="text-[10px]" style={{ color: "#d1d5db" }}>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-bold truncate" style={{ color: "#1f2937" }}>
+                    {game.name ?? new Date(game.createdAt).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                  </span>
+                  {!hasResult && (
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: "#dbeafe", color: "#2563eb" }}>
+                      {new Date(game.createdAt) > new Date() ? "UPCOMING" : "PENDING"}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[10px]" style={{ color: "#9ca3af" }}>
+                  {new Date(game.createdAt).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}
+                  {" · "}
                   {new Date(game.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
                   {" · "}{teamA.length}v{teamB.length}
                 </span>

@@ -208,49 +208,49 @@ export default function GameDetail({ game: initialGame, allPlayers }: Props) {
         {(goals.length > 0 || scoreA + scoreB > 0) && (
           <div className="px-4 py-3">
             {/* Column headers */}
-            <div className="flex items-center mb-2">
-              <span className="flex-1 text-[10px] font-bold text-right pr-3" style={{ color: jA.hex }}>Team A</span>
-              <div className="w-px h-3" style={{ background: "#e5e7eb" }} />
-              <span className="flex-1 text-[10px] font-bold text-left pl-3" style={{ color: jB.hex }}>Team B</span>
+            <div className="flex items-center mb-2 pb-2" style={{ borderBottom: "1px solid #f3f4f6" }}>
+              <span className="text-[10px] font-bold text-right" style={{ width: "calc(50% - 12px)", color: jA.hex }}>Team A</span>
+              <div className="w-6 shrink-0" />
+              <span className="text-[10px] font-bold text-left" style={{ width: "calc(50% - 12px)", color: jB.hex }}>Team B</span>
             </div>
 
             {/* Goals displayed like a match timeline */}
-            <div className="space-y-0">
+            <div>
               {goals.map((g, i) => (
-                <div key={i} className="flex items-center group" style={{ minHeight: "32px" }}>
-                  {/* Team A goal (right-aligned) */}
-                  <div className="flex-1 flex items-center justify-end gap-1.5 pr-3">
+                <div key={i} className="flex items-center group" style={{ minHeight: "36px" }}>
+                  {/* Team A side (right-aligned) */}
+                  <div className="flex items-center justify-end gap-1.5" style={{ width: "calc(50% - 12px)" }}>
                     {g.team === "A" && (
                       <>
-                        <button onClick={() => removeGoal(i)} className="text-xs opacity-0 group-hover:opacity-60 transition-opacity" style={{ color: "#ef4444" }}>&times;</button>
+                        <button onClick={() => removeGoal(i)} className="text-[10px] opacity-40 sm:opacity-0 sm:group-hover:opacity-60 transition-opacity shrink-0" style={{ color: "#ef4444" }}>×</button>
                         {g.assistName ? (
-                          <button onClick={() => removeAssist(i)} className="text-[10px]" style={{ color: "#9ca3af" }}>
-                            ({g.assistName})
-                          </button>
+                          <button onClick={() => removeAssist(i)} className="text-[10px] truncate" style={{ color: "#9ca3af" }}>({g.assistName})</button>
                         ) : g.playerId ? (
-                          <button onClick={() => setAssistPicker(i)} className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "#d1d5db" }}>+A</button>
+                          <button onClick={() => setAssistPicker(i)} className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" style={{ color: "#d1d5db" }}>+A</button>
                         ) : null}
-                        <span className="text-xs font-bold" style={{ color: "#1f2937" }}>{g.playerName || "Unknown"}</span>
-                        <span className="text-xs">⚽</span>
+                        <span className="text-xs font-bold truncate" style={{ color: "#1f2937" }}>{g.playerName || "?"}</span>
+                        <span className="text-xs shrink-0">⚽</span>
                       </>
                     )}
                   </div>
-                  {/* Center line */}
-                  <div className="w-2 h-2 rounded-full shrink-0" style={{ background: g.team === "A" ? jA.hex : jB.hex, border: "2px solid #ffffff", boxShadow: "0 0 0 1px #e5e7eb" }} />
-                  {/* Team B goal (left-aligned) */}
-                  <div className="flex-1 flex items-center gap-1.5 pl-3">
+
+                  {/* Center dot */}
+                  <div className="w-6 flex justify-center shrink-0">
+                    <div className="w-2 h-2 rounded-full" style={{ background: g.team === "A" ? jA.hex : jB.hex, boxShadow: "0 0 0 2px #fff, 0 0 0 3px #e5e7eb" }} />
+                  </div>
+
+                  {/* Team B side (left-aligned) */}
+                  <div className="flex items-center gap-1.5" style={{ width: "calc(50% - 12px)" }}>
                     {g.team === "B" && (
                       <>
-                        <span className="text-xs">⚽</span>
-                        <span className="text-xs font-bold" style={{ color: "#1f2937" }}>{g.playerName || "Unknown"}</span>
+                        <span className="text-xs shrink-0">⚽</span>
+                        <span className="text-xs font-bold truncate" style={{ color: "#1f2937" }}>{g.playerName || "?"}</span>
                         {g.assistName ? (
-                          <button onClick={() => removeAssist(i)} className="text-[10px]" style={{ color: "#9ca3af" }}>
-                            ({g.assistName})
-                          </button>
+                          <button onClick={() => removeAssist(i)} className="text-[10px] truncate" style={{ color: "#9ca3af" }}>({g.assistName})</button>
                         ) : g.playerId ? (
-                          <button onClick={() => setAssistPicker(i)} className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "#d1d5db" }}>+A</button>
+                          <button onClick={() => setAssistPicker(i)} className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity shrink-0" style={{ color: "#d1d5db" }}>+A</button>
                         ) : null}
-                        <button onClick={() => removeGoal(i)} className="text-xs opacity-0 group-hover:opacity-60 transition-opacity" style={{ color: "#ef4444" }}>&times;</button>
+                        <button onClick={() => removeGoal(i)} className="text-[10px] opacity-40 sm:opacity-0 sm:group-hover:opacity-60 transition-opacity shrink-0 ml-auto" style={{ color: "#ef4444" }}>×</button>
                       </>
                     )}
                   </div>
@@ -264,9 +264,6 @@ export default function GameDetail({ game: initialGame, allPlayers }: Props) {
                 {scoreA + scoreB - goals.length} goal{scoreA + scoreB - goals.length > 1 ? "s" : ""} without scorer recorded
               </p>
             )}
-
-            {/* Vertical line connecting goals */}
-            <div className="absolute left-1/2 top-0 bottom-0 w-px" style={{ background: "#e5e7eb" }} />
           </div>
         )}
 

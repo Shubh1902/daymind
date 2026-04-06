@@ -5,7 +5,7 @@ import { parseInstructions } from "@/lib/football-instructions"
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
-  const { playerIds, instructions, name, jerseyA, jerseyB } = body
+  const { playerIds, instructions, name, jerseyA, jerseyB, matchDate } = body
 
   if (!Array.isArray(playerIds) || playerIds.length < 4) {
     return Response.json({ error: "Select at least 4 players" }, { status: 400 })
@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
       teamAPlayers: teamA,
       teamBPlayers: teamB,
       balanceScore,
+      matchDate: matchDate ? new Date(matchDate) : null,
       jerseyA: jerseyA || null,
       jerseyB: jerseyB || null,
       selections: {

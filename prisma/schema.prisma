@@ -223,6 +223,7 @@ model FootballGame {
   instructions String?
   teamAPlayers Json     // snapshot: [{ playerId, name, position, skill, role }]
   teamBPlayers Json     // snapshot: [{ playerId, name, position, skill, role }]
+  matchDate    DateTime? // when the match is/was played
   balanceScore Float?
   jerseyA      String?  // jersey color id: "black", "white", etc.
   jerseyB      String?

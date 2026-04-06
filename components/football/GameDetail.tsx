@@ -134,34 +134,121 @@ export default function GameDetail({ game: initialGame, allPlayers }: Props) {
         )}
       </div>
 
-      {/* Score editor */}
-      <div className="rounded-2xl p-4" style={{ background: "#ffffff", border: "1px solid #e5e7eb", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
-        <div className="flex items-center justify-center gap-6 py-2">
-          <div className="text-center">
-            <div className="w-10 h-10 rounded-full mx-auto mb-2" style={{ background: jA.hex, border: `2px solid ${jA.border}` }} />
-            <div className="flex items-center gap-2">
-              <button onClick={() => setScoreA((s) => Math.max(0, s - 1))} className="w-8 h-8 rounded-lg text-sm font-bold" style={{ background: "#fee2e2", color: "#dc2626" }}>-</button>
-              <span className="text-3xl font-black w-10 text-center" style={{ color: jA.hex }}>{scoreA}</span>
-              <button onClick={() => setScorerPicker("A")} className="w-8 h-8 rounded-lg text-sm font-bold" style={{ background: "#dcfce7", color: "#16a34a" }}>+</button>
+      {/* Match card — professional style */}
+      <div className="rounded-2xl overflow-hidden" style={{ background: "#ffffff", border: "1px solid #e5e7eb", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
+        {/* Scoreboard header */}
+        <div className="px-4 py-5" style={{ background: "linear-gradient(135deg, #1f2937, #374151)" }}>
+          <div className="flex items-center justify-center gap-5">
+            {/* Team A */}
+            <div className="flex-1 text-right flex flex-col items-end gap-1">
+              <div className="w-12 h-12 rounded-full" style={{ background: jA.hex, border: `3px solid ${jA.hex === "#f9fafb" ? "#d1d5db" : "rgba(255,255,255,0.3)"}` }} />
+              <p className="text-xs font-bold text-white opacity-80">Team A</p>
             </div>
-            <p className="text-[10px] mt-1" style={{ color: "#9ca3af" }}>Team A</p>
+            {/* Score */}
+            <div className="flex items-center gap-3">
+              <button onClick={() => setScoreA((s) => Math.max(0, s - 1))} className="w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center" style={{ background: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.5)" }}>-</button>
+              <span className="text-4xl font-black text-white tracking-tight">{scoreA}</span>
+              <span className="text-lg font-bold" style={{ color: "rgba(255,255,255,0.3)" }}>-</span>
+              <span className="text-4xl font-black text-white tracking-tight">{scoreB}</span>
+              <button onClick={() => setScoreB((s) => Math.max(0, s - 1))} className="w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center" style={{ background: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.5)" }}>-</button>
+            </div>
+            {/* Team B */}
+            <div className="flex-1 text-left flex flex-col items-start gap-1">
+              <div className="w-12 h-12 rounded-full" style={{ background: jB.hex, border: `3px solid ${jB.hex === "#f9fafb" ? "#d1d5db" : "rgba(255,255,255,0.3)"}` }} />
+              <p className="text-xs font-bold text-white opacity-80">Team B</p>
+            </div>
           </div>
-          <span className="text-2xl font-bold" style={{ color: "#d1d5db" }}>:</span>
-          <div className="text-center">
-            <div className="w-10 h-10 rounded-full mx-auto mb-2" style={{ background: jB.hex, border: `2px solid ${jB.border}` }} />
-            <div className="flex items-center gap-2">
-              <button onClick={() => setScoreB((s) => Math.max(0, s - 1))} className="w-8 h-8 rounded-lg text-sm font-bold" style={{ background: "#fee2e2", color: "#dc2626" }}>-</button>
-              <span className="text-3xl font-black w-10 text-center" style={{ color: jB.hex }}>{scoreB}</span>
-              <button onClick={() => setScorerPicker("B")} className="w-8 h-8 rounded-lg text-sm font-bold" style={{ background: "#dcfce7", color: "#16a34a" }}>+</button>
-            </div>
-            <p className="text-[10px] mt-1" style={{ color: "#9ca3af" }}>Team B</p>
+          {/* FT badge */}
+          <div className="text-center mt-2">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded" style={{ background: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.6)" }}>
+              {game.completed ? "FT" : "IN PROGRESS"}
+            </span>
           </div>
         </div>
 
-        {/* Scorer note */}
-        <p className="text-[10px] text-center mt-1" style={{ color: "#d1d5db" }}>
-          Tap + to add goal with scorer, or use - to adjust score without scorer
-        </p>
+        {/* Goal timeline — professional match style */}
+        {(goals.length > 0 || scoreA + scoreB > 0) && (
+          <div className="px-4 py-3">
+            {/* Column headers */}
+            <div className="flex items-center mb-2">
+              <span className="flex-1 text-[10px] font-bold text-right pr-3" style={{ color: jA.hex }}>Team A</span>
+              <div className="w-px h-3" style={{ background: "#e5e7eb" }} />
+              <span className="flex-1 text-[10px] font-bold text-left pl-3" style={{ color: jB.hex }}>Team B</span>
+            </div>
+
+            {/* Goals displayed like a match timeline */}
+            <div className="space-y-0">
+              {goals.map((g, i) => (
+                <div key={i} className="flex items-center group" style={{ minHeight: "32px" }}>
+                  {/* Team A goal (right-aligned) */}
+                  <div className="flex-1 flex items-center justify-end gap-1.5 pr-3">
+                    {g.team === "A" && (
+                      <>
+                        <button onClick={() => removeGoal(i)} className="text-xs opacity-0 group-hover:opacity-60 transition-opacity" style={{ color: "#ef4444" }}>&times;</button>
+                        {g.assistName ? (
+                          <button onClick={() => removeAssist(i)} className="text-[10px]" style={{ color: "#9ca3af" }}>
+                            ({g.assistName})
+                          </button>
+                        ) : g.playerId ? (
+                          <button onClick={() => setAssistPicker(i)} className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "#d1d5db" }}>+A</button>
+                        ) : null}
+                        <span className="text-xs font-bold" style={{ color: "#1f2937" }}>{g.playerName || "Unknown"}</span>
+                        <span className="text-xs">⚽</span>
+                      </>
+                    )}
+                  </div>
+                  {/* Center line */}
+                  <div className="w-2 h-2 rounded-full shrink-0" style={{ background: g.team === "A" ? jA.hex : jB.hex, border: "2px solid #ffffff", boxShadow: "0 0 0 1px #e5e7eb" }} />
+                  {/* Team B goal (left-aligned) */}
+                  <div className="flex-1 flex items-center gap-1.5 pl-3">
+                    {g.team === "B" && (
+                      <>
+                        <span className="text-xs">⚽</span>
+                        <span className="text-xs font-bold" style={{ color: "#1f2937" }}>{g.playerName || "Unknown"}</span>
+                        {g.assistName ? (
+                          <button onClick={() => removeAssist(i)} className="text-[10px]" style={{ color: "#9ca3af" }}>
+                            ({g.assistName})
+                          </button>
+                        ) : g.playerId ? (
+                          <button onClick={() => setAssistPicker(i)} className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "#d1d5db" }}>+A</button>
+                        ) : null}
+                        <button onClick={() => removeGoal(i)} className="text-xs opacity-0 group-hover:opacity-60 transition-opacity" style={{ color: "#ef4444" }}>&times;</button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Unattributed goals note */}
+            {scoreA + scoreB > goals.length && (
+              <p className="text-[10px] text-center mt-2 py-1 rounded" style={{ background: "#fef3c7", color: "#92400e" }}>
+                {scoreA + scoreB - goals.length} goal{scoreA + scoreB - goals.length > 1 ? "s" : ""} without scorer recorded
+              </p>
+            )}
+
+            {/* Vertical line connecting goals */}
+            <div className="absolute left-1/2 top-0 bottom-0 w-px" style={{ background: "#e5e7eb" }} />
+          </div>
+        )}
+
+        {/* Add goal buttons */}
+        <div className="flex border-t" style={{ borderColor: "#f3f4f6" }}>
+          <button
+            onClick={() => setScorerPicker("A")}
+            className="flex-1 py-2.5 text-xs font-semibold flex items-center justify-center gap-1 transition-all hover:bg-gray-50"
+            style={{ color: jA.hex, borderRight: "1px solid #f3f4f6" }}
+          >
+            ⚽ Add Goal (A)
+          </button>
+          <button
+            onClick={() => setScorerPicker("B")}
+            className="flex-1 py-2.5 text-xs font-semibold flex items-center justify-center gap-1 transition-all hover:bg-gray-50"
+            style={{ color: jB.hex }}
+          >
+            ⚽ Add Goal (B)
+          </button>
+        </div>
       </div>
 
       {/* Goal scorer picker */}
@@ -206,33 +293,7 @@ export default function GameDetail({ game: initialGame, allPlayers }: Props) {
         </div>
       )}
 
-      {/* Goals list */}
-      {(goals.length > 0 || scoreA + scoreB > goals.length) && (
-        <div className="rounded-xl p-3" style={{ background: "#ffffff", border: "1px solid #e5e7eb" }}>
-          <p className="text-xs font-bold mb-2" style={{ color: "#1f2937" }}>
-            Goals ({goals.length} recorded{scoreA + scoreB > goals.length ? `, ${scoreA + scoreB - goals.length} unattributed` : ""})
-          </p>
-          <div className="space-y-1.5">
-            {goals.map((g, i) => (
-              <div key={i} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg" style={{ background: g.team === "A" ? jA.bg : jB.bg, border: `1px solid ${g.team === "A" ? jA.border : jB.border}` }}>
-                <span className="text-sm">⚽</span>
-                <span className="text-xs font-medium" style={{ color: "#1f2937" }}>{g.playerName || "Unknown"}</span>
-                {g.assistName ? (
-                  <button onClick={() => removeAssist(i)} className="text-[10px] flex items-center gap-0.5 px-1 rounded" style={{ background: "#dcfce7", color: "#16a34a" }}>
-                    🅰️ {g.assistName} ×
-                  </button>
-                ) : g.playerId ? (
-                  <button onClick={() => setAssistPicker(i)} className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: "#f3f4f6", color: "#9ca3af" }}>
-                    + assist
-                  </button>
-                ) : null}
-                <span className="text-[10px] font-bold ml-auto px-1 rounded" style={{ color: g.team === "A" ? jA.hex : jB.hex }}>{g.team}</span>
-                <button onClick={() => removeGoal(i)} className="text-xs" style={{ color: "#d1d5db" }}>&times;</button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* (Goals are now inside the match card above) */}
 
       {/* Jersey colors */}
       <button onClick={() => setShowJerseyEdit(!showJerseyEdit)} className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl" style={{ background: "#ffffff", border: "1px solid #e5e7eb" }}>

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import RecordResult from "./RecordResult"
+import FormationView from "./FormationView"
 
 type TeamAssignment = {
   playerId: string; name: string; position: string; skill: number; workRate: string; role: string
@@ -101,6 +102,7 @@ function TeamColumn({ team, label, accent }: { team: TeamAssignment[]; label: st
 export default function TeamDisplay({ teamA, teamB, balanceScore, gameId, onRegenerate, onBack }: Props) {
   const [showRecord, setShowRecord] = useState(false)
   const [resultSaved, setResultSaved] = useState(false)
+  const [viewMode, setViewMode] = useState<"list" | "pitch">("list")
 
   return (
     <div className="space-y-4 animate-scale-in">
@@ -118,11 +120,36 @@ export default function TeamDisplay({ teamA, teamB, balanceScore, gameId, onRege
         </span>
       </div>
 
-      {/* Teams side by side */}
-      <div className="flex gap-3">
-        <TeamColumn team={teamA} label="Team A" accent="#f97316" />
-        <TeamColumn team={teamB} label="Team B" accent="#8b5cf6" />
+      {/* View toggle */}
+      <div className="flex gap-2 justify-center">
+        <button
+          onClick={() => setViewMode("list")}
+          className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+          style={{ background: viewMode === "list" ? "#fff7ed" : "#f9fafb", color: viewMode === "list" ? "#9a3412" : "#9ca3af", border: viewMode === "list" ? "1.5px solid #f97316" : "1px solid #e5e7eb" }}
+        >
+          📋 List
+        </button>
+        <button
+          onClick={() => setViewMode("pitch")}
+          className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+          style={{ background: viewMode === "pitch" ? "#dcfce7" : "#f9fafb", color: viewMode === "pitch" ? "#166534" : "#9ca3af", border: viewMode === "pitch" ? "1.5px solid #22c55e" : "1px solid #e5e7eb" }}
+        >
+          ⚽ Pitch
+        </button>
       </div>
+
+      {/* Formation view */}
+      {viewMode === "pitch" && (
+        <FormationView teamA={teamA} teamB={teamB} />
+      )}
+
+      {/* Teams side by side (list view) */}
+      {viewMode === "list" && (
+        <div className="flex gap-3">
+          <TeamColumn team={teamA} label="Team A" accent="#f97316" />
+          <TeamColumn team={teamB} label="Team B" accent="#8b5cf6" />
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex gap-2">

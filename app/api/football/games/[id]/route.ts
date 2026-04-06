@@ -25,10 +25,18 @@ export async function PATCH(
   const game = await prisma.footballGame.findUnique({ where: { id } })
   if (!game) return Response.json({ error: "Not found" }, { status: 404 })
 
-  // Update score and mark completed
-  const data: Record<string, unknown> = { completed: true }
-  if (scoreA !== undefined) data.scoreA = Number(scoreA)
-  if (scoreB !== undefined) data.scoreB = Number(scoreB)
+  // Update score — if scores provided, mark completed; if both null, undo result
+  const data: Record<string, unknown> = {}
+  if (scoreA === null && scoreB === null) {
+    // Undo: clear result
+    data.scoreA = null
+    data.scoreB = null
+    data.completed = false
+  } else {
+    data.completed = true
+    if (scoreA !== undefined) data.scoreA = Number(scoreA)
+    if (scoreB !== undefined) data.scoreB = Number(scoreB)
+  }
 
   await prisma.footballGame.update({ where: { id }, data })
 

@@ -27,16 +27,25 @@ export default async function FootballPage() {
             {players.length} players in roster
           </p>
         </div>
-        <Link
-          href="/football/history"
-          className="text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all"
-          style={{ background: "#f9fafb", color: "#6b7280", border: "1px solid #e5e7eb" }}
-        >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          History
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href="/football/stats"
+            className="text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all"
+            style={{ background: "#fef3c7", color: "#92400e", border: "1px solid #fde68a" }}
+          >
+            📊 Stats
+          </Link>
+          <Link
+            href="/football/history"
+            className="text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all"
+            style={{ background: "#f9fafb", color: "#6b7280", border: "1px solid #e5e7eb" }}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            History
+          </Link>
+        </div>
       </div>
 
       <div className="animate-slide-up delay-100">

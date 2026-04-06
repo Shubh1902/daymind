@@ -307,8 +307,8 @@ export default function GameDetail({ game: initialGame, allPlayers }: Props) {
         </div>
       )}
 
-      {/* Save button — sticky at bottom */}
-      <div className="sticky bottom-20 z-30">
+      {/* Save button */}
+      <div>
         <button
           onClick={handleSave}
           disabled={saving}

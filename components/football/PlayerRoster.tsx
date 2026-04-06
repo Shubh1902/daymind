@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { getPositionColor, getPositionArea, POSITION_GROUPS } from "@/lib/football-positions"
+import { getPositionColor, getPositionArea, POSITION_GROUPS, ALL_POSITIONS } from "@/lib/football-positions"
 import { STAT_LABELS, computeOverall, ratingColor, type FifaStats } from "@/lib/football-rating"
 import FifaCard from "./FifaCard"
 
@@ -99,7 +99,7 @@ export default function PlayerRoster({ players, onRefresh }: Props) {
 
                       {/* Position */}
                       <div className="flex flex-wrap gap-1">
-                        {["GK", "CB", "LB", "RB", "CDM", "CM", "CAM", "LW", "RW", "ST", "CF"].map((ps) => {
+                        {ALL_POSITIONS.map((ps) => {
                           const pc = getPositionColor(ps)
                           return (
                             <button key={ps} onClick={() => setEditPosition(ps)} className="px-1.5 py-1 rounded text-[10px] font-bold" style={{ background: editPosition === ps ? pc.bg : "#f9fafb", color: editPosition === ps ? pc.color : "#d1d5db", border: editPosition === ps ? `1.5px solid ${pc.color}` : "1px solid #e5e7eb" }}>{ps}</button>

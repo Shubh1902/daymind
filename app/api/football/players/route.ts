@@ -20,6 +20,14 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "Name is required" }, { status: 400 })
   }
 
+  // Check for duplicate name
+  const existing = await prisma.footballPlayer.findFirst({
+    where: { name: { equals: name.trim(), mode: "insensitive" }, active: true },
+  })
+  if (existing) {
+    return Response.json({ error: `Player "${existing.name}" already exists` }, { status: 409 })
+  }
+
   // Support both single position and positions array
   const posArr: string[] = Array.isArray(positions) && positions.length > 0
     ? positions.filter((p: string) => VALID_POSITIONS.includes(p))

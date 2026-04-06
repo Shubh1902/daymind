@@ -52,8 +52,13 @@ export default function RecordResult({ gameId, teamA, teamB, onSaved }: Props) {
     setSaving(false)
   }
 
-  const allTeamA = teamA.filter((p) => p.role !== "sub")
-  const allTeamB = teamB.filter((p) => p.role !== "sub")
+  const allTeamA = teamA.filter((p) => p.role === "outfield")
+  const allTeamB = teamB.filter((p) => p.role === "outfield")
+  // GKs can score too (rare but possible) — add them separately at the end
+  const gkA = teamA.find((p) => p.role === "gk")
+  const gkB = teamB.find((p) => p.role === "gk")
+  const scorersA = gkA ? [...allTeamA, gkA] : allTeamA
+  const scorersB = gkB ? [...allTeamB, gkB] : allTeamB
 
   return (
     <div className="space-y-4 animate-slide-up">
@@ -85,7 +90,7 @@ export default function RecordResult({ gameId, teamA, teamB, onSaved }: Props) {
         <div className="rounded-xl p-3 animate-slide-up" style={{ background: "#ffffff", border: `2px solid ${showPicker === "A" ? "#f97316" : "#8b5cf6"}` }}>
           <p className="text-xs font-bold mb-2" style={{ color: "#6b7280" }}>Who scored? (Team {showPicker})</p>
           <div className="flex flex-wrap gap-1.5">
-            {(showPicker === "A" ? allTeamA : allTeamB).map((p) => {
+            {(showPicker === "A" ? scorersA : scorersB).map((p) => {
               const pc = getPositionColor(p.position)
               return (
                 <button

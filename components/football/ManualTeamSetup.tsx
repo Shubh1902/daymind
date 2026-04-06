@@ -17,13 +17,17 @@ interface Props {
   onTeamsCreated: (result: { teamA: TeamAssignment[]; teamB: TeamAssignment[]; balanceScore: number; gameId: string }) => void
 }
 
-export default function ManualTeamSetup({ players, onTeamsCreated }: Props) {
+export default function ManualTeamSetup({ players, initialSelected, onTeamsCreated }: Props) {
+  // If initialSelected is provided, all those players start in the unassigned pool (not on a team yet)
+  // The user will manually assign them to A or B
   const [teamA, setTeamA] = useState<Set<string>>(new Set())
   const [teamB, setTeamB] = useState<Set<string>>(new Set())
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
 
-  const unassigned = players.filter((p) => !teamA.has(p.id) && !teamB.has(p.id))
+  // If initialSelected provided, only show those players; otherwise show all
+  const availablePlayers = initialSelected?.size ? players.filter((p) => initialSelected.has(p.id)) : players
+  const unassigned = availablePlayers.filter((p) => !teamA.has(p.id) && !teamB.has(p.id))
 
   function assign(playerId: string, team: "A" | "B") {
     // Remove from other team first
@@ -52,8 +56,8 @@ export default function ManualTeamSetup({ players, onTeamsCreated }: Props) {
 
   // Compute balance
   const WR: Record<string, number> = { Low: 0.85, Med: 1.0, High: 1.15 }
-  const scoreA = players.filter((p) => teamA.has(p.id)).reduce((s, p) => s + p.skill * (WR[p.workRate] ?? 1), 0)
-  const scoreB = players.filter((p) => teamB.has(p.id)).reduce((s, p) => s + p.skill * (WR[p.workRate] ?? 1), 0)
+  const scoreA = availablePlayers.filter((p) => teamA.has(p.id)).reduce((s, p) => s + p.skill * (WR[p.workRate] ?? 1), 0)
+  const scoreB = availablePlayers.filter((p) => teamB.has(p.id)).reduce((s, p) => s + p.skill * (WR[p.workRate] ?? 1), 0)
   const maxScore = Math.max(scoreA, scoreB, 1)
   const balanceScore = Math.round((100 - Math.abs(scoreA - scoreB) / maxScore * 100) * 10) / 10
 

@@ -54,7 +54,7 @@ export default function AddPlayerModal({ initialName, onSaved, onClose }: Props)
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-[60] flex items-end justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex items-end justify-center" role="dialog" aria-modal="true" aria-label="Add player" onClick={onClose}>
       <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)" }} />
       <div
         className="relative w-full max-w-lg rounded-t-2xl max-h-[92vh] overflow-y-auto animate-slide-up"

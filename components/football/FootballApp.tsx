@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import AddPlayerForm from "./AddPlayerForm"
 import PlayerRoster from "./PlayerRoster"
 import GameSetup from "./GameSetup"
+import ManualTeamSetup from "./ManualTeamSetup"
 import TeamDisplay from "./TeamDisplay"
 
 type Player = {
@@ -23,7 +24,7 @@ type GeneratedResult = {
   gameId: string
 }
 
-type View = "roster" | "setup" | "result"
+type View = "roster" | "setup" | "manual" | "result"
 
 export default function FootballApp({ initialPlayers }: { initialPlayers: Player[] }) {
   const [players, setPlayers] = useState<Player[]>(initialPlayers)
@@ -59,7 +60,18 @@ export default function FootballApp({ initialPlayers }: { initialPlayers: Player
             boxShadow: view === "setup" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
           }}
         >
-          <span>⚽</span> Make Teams
+          <span>🤖</span> Auto
+        </button>
+        <button
+          onClick={() => { setView("manual"); setResult(null) }}
+          className="flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-1.5"
+          style={{
+            background: view === "manual" ? "#ffffff" : "transparent",
+            color: view === "manual" ? "#1f2937" : "#9ca3af",
+            boxShadow: view === "manual" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+          }}
+        >
+          <span>✋</span> Manual
         </button>
         {result && (
           <button
@@ -98,6 +110,19 @@ export default function FootballApp({ initialPlayers }: { initialPlayers: Player
           <GameSetup
             players={players}
             onTeamsGenerated={(res) => {
+              setResult(res)
+              setView("result")
+            }}
+          />
+        </div>
+      )}
+
+      {/* Manual view */}
+      {view === "manual" && (
+        <div className="animate-fade-in">
+          <ManualTeamSetup
+            players={players}
+            onTeamsCreated={(res) => {
               setResult(res)
               setView("result")
             }}

@@ -61,7 +61,7 @@ export default function GameDetail({ game: initialGame, allPlayers }: Props) {
   const playersB = teamB.filter((p) => p.role !== "sub" && p.playerId)
 
   function addGoal(playerId: string | null, playerName: string, team: string) {
-    setGoals((prev) => [...prev, { playerId: playerId ?? "", playerName, team, assistPlayerId: undefined, assistName: undefined }])
+    setGoals((prev) => [...prev, { playerId: playerId ?? "", playerName, team, assistPlayerId: null, assistName: undefined }])
     if (team === "A") setScoreA((s) => s + 1)
     else setScoreB((s) => s + 1)
     setScorerPicker(null)
@@ -114,7 +114,7 @@ export default function GameDetail({ game: initialGame, allPlayers }: Props) {
   }
 
   function removeAssist(goalIndex: number) {
-    setGoals((prev) => prev.map((g, i) => i === goalIndex ? { ...g, assistPlayerId: undefined, assistName: undefined } : g))
+    setGoals((prev) => prev.map((g, i) => i === goalIndex ? { ...g, assistPlayerId: null, assistName: undefined } : g))
   }
 
   async function handleSave() {

@@ -61,7 +61,7 @@ export default function MessageImport({ players, onConfirm, onRefreshPlayers }: 
     })
   }
 
-  function getEffectiveMatch(allParsed: ParsedPlayer[], index: number): Player | null {
+  function getEffectiveMatch(allParsed: ParsedPlayer[], index: number): Player | null | any {
     const override = overrides.get(index)
     if (override === null) return null // explicitly set to "none"
     if (override) return players.find((p) => p.id === override) ?? null

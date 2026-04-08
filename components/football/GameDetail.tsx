@@ -182,13 +182,21 @@ export default function GameDetail({ game: initialGame, allPlayers }: Props) {
               <div className="w-12 h-12 rounded-full" style={{ background: jA.hex, border: `3px solid ${jA.hex === "#f9fafb" ? "#d1d5db" : "rgba(255,255,255,0.3)"}` }} />
               <p className="text-xs font-bold text-white opacity-80">Team A</p>
             </div>
-            {/* Score */}
-            <div className="flex items-center gap-3">
-              <button onClick={() => setScoreA((s) => Math.max(0, s - 1))} className="w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center" style={{ background: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.5)" }}>-</button>
-              <span className="text-4xl font-black text-white tracking-tight">{scoreA}</span>
+            {/* Score — directly editable */}
+            <div className="flex items-center gap-2">
+              <input
+                type="number" min={0} max={99} value={scoreA}
+                onChange={(e) => setScoreA(Math.max(0, Number(e.target.value) || 0))}
+                className="w-14 h-14 text-center text-3xl font-black rounded-xl bg-transparent text-white appearance-none"
+                style={{ border: "2px solid rgba(255,255,255,0.2)", outline: "none" }}
+              />
               <span className="text-lg font-bold" style={{ color: "rgba(255,255,255,0.3)" }}>-</span>
-              <span className="text-4xl font-black text-white tracking-tight">{scoreB}</span>
-              <button onClick={() => setScoreB((s) => Math.max(0, s - 1))} className="w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center" style={{ background: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.5)" }}>-</button>
+              <input
+                type="number" min={0} max={99} value={scoreB}
+                onChange={(e) => setScoreB(Math.max(0, Number(e.target.value) || 0))}
+                className="w-14 h-14 text-center text-3xl font-black rounded-xl bg-transparent text-white appearance-none"
+                style={{ border: "2px solid rgba(255,255,255,0.2)", outline: "none" }}
+              />
             </div>
             {/* Team B */}
             <div className="flex-1 text-left flex flex-col items-start gap-1">

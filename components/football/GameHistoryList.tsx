@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import FormationView from "./FormationView"
 import InlineScoreRecorder from "./InlineScoreRecorder"
@@ -31,6 +31,8 @@ export default function GameHistoryList({ games: initialGames }: Props) {
   const [bulkMode, setBulkMode] = useState(false)
   const [bulkDeleting, setBulkDeleting] = useState(false)
   const [recordingId, setRecordingId] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
 
   async function undoResult(gameId: string) {
     if (!confirm("Undo this game result? Score and goals will be cleared.")) return
@@ -151,18 +153,18 @@ export default function GameHistoryList({ games: initialGames }: Props) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm font-bold truncate" style={{ color: "#1f2937" }}>
-                    {game.name ?? new Date(game.createdAt).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                    {game.name ?? (mounted ? new Date(game.createdAt).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }) : "")}
                   </span>
-                  {!hasResult && (
+                  {!hasResult && mounted && (
                     <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: "#dbeafe", color: "#2563eb" }}>
                       {new Date(game.createdAt) > new Date() ? "UPCOMING" : "PENDING"}
                     </span>
                   )}
                 </div>
                 <span className="text-[10px]" style={{ color: "#9ca3af" }}>
-                  {new Date(game.createdAt).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" })}
-                  {" · "}
-                  {new Date(game.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                  {mounted ? new Date(game.createdAt).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" }) : ""}
+                  {mounted ? " · " : ""}
+                  {mounted ? new Date(game.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : ""}
                   {" · "}{teamA.length}v{teamB.length}
                 </span>
               </div>

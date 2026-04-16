@@ -1,32 +1,15 @@
 export const dynamic = "force-dynamic"
 
-import { prisma } from "@/lib/prisma"
-import { generateDayPlan } from "@/app/actions/ai"
-import type { PlanItem } from "@/app/actions/ai"
-import DashboardContent from "@/components/DashboardContent"
-import ChatInput from "@/components/ChatInput"
-import MobileVoicePanel from "@/components/MobileVoicePanel"
-import BriefingCard from "@/components/BriefingCard"
-import ContextQuestions from "@/components/ContextQuestions"
-import RescheduleNudge from "@/components/RescheduleNudge"
+import { Suspense } from "react"
+import DashboardAISection from "./DashboardAISection"
+import { Shimmer, ListSkeleton } from "@/components/LoadingSkeleton"
 
-const USER_ID = "user_me"
-
-export default async function DashboardPage() {
-  const [aiSession, allTasks] = await Promise.all([
-    generateDayPlan(USER_ID),
-    prisma.task.findMany({
-      where: { userId: USER_ID },
-      orderBy: [{ completed: "asc" }, { deadline: "asc" }],
-    }),
-  ])
-
-  const openTasks = allTasks.filter((t) => !t.completed)
+export default function DashboardPage() {
   const greeting = getGreeting()
 
   return (
     <div className="pb-40 animate-fade-in">
-      {/* Header */}
+      {/* Header — renders instantly */}
       <div className="mb-6 animate-slide-up">
         <h1 className="text-3xl font-bold text-gradient">{greeting}</h1>
         <p className="text-sm mt-1" style={{ color: "rgba(249, 115, 22, 0.5)" }}>
@@ -38,44 +21,28 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {/* AI Briefing */}
-      {aiSession.briefing && (
-        <BriefingCard briefing={aiSession.briefing} />
-      )}
-
-      {/* Context questions from Claude */}
-      {aiSession.questions.length > 0 && (
-        <div className="animate-slide-up delay-150">
-          <ContextQuestions questions={aiSession.questions} userId={USER_ID} />
-        </div>
-      )}
-
-      {/* Proactive reschedule nudge */}
-      <RescheduleNudge plan={aiSession.plan as PlanItem[]} tasks={allTasks} />
-
-      {/* Schedule / Focus toggle + content */}
-      <div className="animate-slide-up delay-200">
-        <DashboardContent
-          openTasks={openTasks}
-          allTasks={allTasks}
-          plan={aiSession.plan as PlanItem[]}
-        />
-      </div>
-
-      {/* Chat input — desktop (fixed at bottom) */}
-      <ChatInput
-        tasks={openTasks}
-        currentPlan={aiSession.plan as PlanItem[]}
-        sessionId={aiSession.id}
-      />
-
-      {/* Mobile voice-first panel */}
-      <MobileVoicePanel
-        tasks={openTasks}
-        currentPlan={aiSession.plan as PlanItem[]}
-        sessionId={aiSession.id}
-      />
+      {/* AI + tasks stream in behind skeleton */}
+      <Suspense fallback={<DashboardSkeleton />}>
+        <DashboardAISection />
+      </Suspense>
     </div>
+  )
+}
+
+function DashboardSkeleton() {
+  return (
+    <>
+      {/* Briefing card skeleton */}
+      <div className="rounded-2xl p-5 mb-5" style={{ background: "#ffffff", border: "1px solid #f3f4f6" }}>
+        <Shimmer className="h-5 w-40 mb-3" />
+        <Shimmer className="h-3 w-full mb-2" />
+        <Shimmer className="h-3 w-4/5 mb-2" />
+        <Shimmer className="h-3 w-3/5" />
+      </div>
+      {/* Schedule skeleton */}
+      <Shimmer className="h-5 w-36 mb-3" />
+      <ListSkeleton count={5} />
+    </>
   )
 }
 

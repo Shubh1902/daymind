@@ -115,6 +115,9 @@ export default function MessageImport({ players, onConfirm, onRefreshPlayers }: 
   if (step === "paste") {
     return (
       <div className="space-y-4">
+        <div className="rounded-xl px-4 py-3 text-sm" style={{ background: "#f0f9ff", border: "1px solid #bae6fd", color: "#0369a1" }}>
+          📋 Copy your WhatsApp/Telegram match message and paste it below — player names will be matched automatically.
+        </div>
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#6b7280" }}>
             Paste your match message
@@ -123,15 +126,18 @@ export default function MessageImport({ players, onConfirm, onRefreshPlayers }: 
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder={"Match on Monday 8PM to 10PM\n\n1. Sajan\n2. Jayanth\n3. Shreyes\n...\n\nGK:\n1. Girish\n2. Soum\n\nWL:\n3. Elan\n4. Sanchit"}
-            rows={12}
+            rows={10}
             className="input-dark w-full text-sm px-4 py-3 rounded-xl resize-none"
-            autoFocus
           />
         </div>
+        {!text.trim() && (
+          <p className="text-xs text-center" style={{ color: "#9ca3af" }}>↑ Paste text above, then tap Parse</p>
+        )}
         <button
           onClick={handleParse}
           disabled={!text.trim()}
-          className="w-full btn-primary text-white py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
+          className="w-full btn-primary text-white py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-40 active:scale-[0.98]"
+          style={{ touchAction: "manipulation" }}
         >
           <span>📋</span> Parse Message
         </button>

@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useState, useEffect, useRef } from "react"
 
 const navItems = [
   {
@@ -82,9 +83,31 @@ const navItems = [
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const [navigating, setNavigating] = useState(false)
+  const prevPath = useRef(pathname)
+
+  // Clear loading when navigation completes
+  useEffect(() => {
+    if (prevPath.current !== pathname) {
+      prevPath.current = pathname
+      setNavigating(false)
+    }
+  }, [pathname])
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "var(--background)" }}>
+      {/* Top loading bar */}
+      {navigating && (
+        <div
+          className="fixed top-0 left-0 right-0 z-50 h-0.5"
+          style={{ background: "rgba(249, 115, 22, 0.3)" }}
+        >
+          <div
+            className="h-full animate-loading-bar"
+            style={{ background: "linear-gradient(90deg, #ea580c, #f97316)" }}
+          />
+        </div>
+      )}
       {/* Sidebar — desktop */}
       <aside
         className="hidden md:flex flex-col w-60 shrink-0 p-5 gap-2"
@@ -120,6 +143,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => !isActive && setNavigating(true)}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200"
                 style={{
                   background: isActive ? "rgba(249, 115, 22, 0.08)" : "transparent",
@@ -161,6 +185,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => !isActive && setNavigating(true)}
               className="flex-1 flex flex-col items-center gap-1 py-3 text-xs font-medium transition-all duration-200"
               style={{
                 color: isActive ? "#ea580c" : "rgba(249, 115, 22, 0.4)",

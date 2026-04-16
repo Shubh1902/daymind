@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef } from "react"
 import AddPlayerForm from "./AddPlayerForm"
 import PlayerRoster from "./PlayerRoster"
 import MessageImport from "./MessageImport"
@@ -26,6 +26,7 @@ type GeneratedResult = {
   teamB: TeamAssignment[]
   balanceScore: number
   gameId: string
+  matchDate?: string | null
   source: "auto" | "manual"
 }
 
@@ -40,15 +41,23 @@ export default function FootballApp({ initialPlayers }: { initialPlayers: Player
   const [jerseyB, setJerseyB] = useState("white")
   const [preSelected, setPreSelected] = useState<Set<string> | null>(null)
   const [comparingLoading, setComparingLoading] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+  const contentRef = useRef<HTMLDivElement>(null)
 
   const waitlistedPlayers = players.filter((p) => p.waitlisted)
 
   const fetchPlayers = useCallback(async () => {
-    const res = await fetch("/api/football/players")
-    if (res.ok) setPlayers(await res.json())
+    setRefreshing(true)
+    try {
+      const res = await fetch("/api/football/players")
+      if (res.ok) setPlayers(await res.json())
+    } finally {
+      setRefreshing(false)
+    }
   }, [])
 
   async function clearWaitlist() {
+    setRefreshing(true)
     const waitlisted = players.filter((p) => p.waitlisted)
     await Promise.all(
       waitlisted.map((p) =>
@@ -103,27 +112,46 @@ export default function FootballApp({ initialPlayers }: { initialPlayers: Player
       {/* Waitlist banner */}
       <WaitlistBanner players={waitlistedPlayers} onClear={clearWaitlist} />
 
+      {/* Refresh indicator */}
+      {refreshing && (
+        <div className="flex items-center justify-center gap-2 py-2 rounded-xl animate-fade-in" style={{ background: "rgba(249, 115, 22, 0.06)", border: "1px solid rgba(249, 115, 22, 0.15)" }}>
+          <span className="w-3.5 h-3.5 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs font-medium" style={{ color: "#ea580c" }}>Updating roster…</span>
+        </div>
+      )}
+
       {/* View tabs */}
       <div className="flex gap-1 p-1 rounded-xl overflow-x-auto scrollbar-hide" style={{ background: "#f3f4f6" }}>
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => {
-              if (tab.id === "setup" || tab.id === "manual") setResult(null)
-              setView(tab.id)
-            }}
-            className="flex-1 shrink-0 py-2 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1"
-            style={{
-              background: view === tab.id ? "#ffffff" : "transparent",
-              color: view === tab.id ? "#1f2937" : "#9ca3af",
-              boxShadow: view === tab.id ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
-              minWidth: "60px",
-            }}
-          >
-            <span>{tab.icon}</span> {tab.label}
-          </button>
-        ))}
+        {tabs.map((tab) => {
+          const isActive = view === tab.id
+          return (
+            <button
+              key={tab.id}
+              onClick={() => {
+                if (tab.id === "setup" || tab.id === "manual") setResult(null)
+                setView(tab.id)
+                // Scroll content into view on mobile after state update
+                setTimeout(() => {
+                  contentRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+                }, 50)
+              }}
+              className="flex-1 shrink-0 py-2.5 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1 active:scale-95"
+              style={{
+                background: isActive ? "#ffffff" : "transparent",
+                color: isActive ? "#1f2937" : "#9ca3af",
+                boxShadow: isActive ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                minWidth: "60px",
+                touchAction: "manipulation",
+              }}
+            >
+              <span>{tab.icon}</span> {tab.label}
+            </button>
+          )
+        })}
       </div>
+
+      {/* Content anchor for scroll-into-view */}
+      <div ref={contentRef} />
 
       {/* Roster */}
       {view === "roster" && (
@@ -202,6 +230,7 @@ export default function FootballApp({ initialPlayers }: { initialPlayers: Player
             teamB={result.teamB}
             balanceScore={result.balanceScore}
             gameId={result.gameId}
+            matchDate={result.matchDate}
             allPlayers={players}
             jerseyA={jerseyA}
             jerseyB={jerseyB}

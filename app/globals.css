@@ -165,9 +165,16 @@ body {
   50%       { transform: translateY(-4px); }
 }
 
+@keyframes loadingBar {
+  0%   { width: 0%; opacity: 1; }
+  70%  { width: 85%; opacity: 1; }
+  100% { width: 100%; opacity: 0; }
+}
+
 /* ─── Animation utilities ───────────────────────── */
 
 .animate-fade-in    { animation: fadeIn 0.4s ease both; }
+.animate-loading-bar { animation: loadingBar 2s ease-out forwards; }
 .animate-slide-up   { animation: slideUp 0.4s ease both; }
 .animate-scale-in   { animation: scaleIn 0.3s ease both; }
 .animate-glow       { animation: glow-pulse 2s ease-in-out infinite; }

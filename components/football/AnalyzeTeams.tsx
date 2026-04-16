@@ -33,10 +33,13 @@ export default function AnalyzeTeams({ players, onRefreshPlayers }: Props) {
   const [addingName, setAddingName] = useState<string | null>(null)
   const [autoResult, setAutoResult] = useState<{ teamA: TeamAssignment[]; teamB: TeamAssignment[]; balanceScore: number } | null>(null)
   const [loading, setLoading] = useState(false)
+  const [compareError, setCompareError] = useState("")
   const [swaps, setSwaps] = useState<Map<string, string>>(new Map()) // playerIdA ↔ playerIdB mapping
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState("")
   const [saved, setSaved] = useState(false)
   const [swapSelectA, setSwapSelectA] = useState<string | null>(null)
+  const [parsing, setParsing] = useState(false)
   const needsReparse = useRef(false)
 
   useEffect(() => {
@@ -49,9 +52,14 @@ export default function AnalyzeTeams({ players, onRefreshPlayers }: Props) {
 
   function handleParse() {
     if (!text.trim()) return
-    setParsed(parseTeamMessage(text, players))
-    setOverrides(new Map())
-    setStep("result")
+    setParsing(true)
+    // Small timeout so the spinner actually renders before the sync parse blocks the thread
+    setTimeout(() => {
+      setParsed(parseTeamMessage(text, players))
+      setOverrides(new Map())
+      setStep("result")
+      setParsing(false)
+    }, 30)
   }
 
   async function handlePlayerAdded() {
@@ -70,6 +78,7 @@ export default function AnalyzeTeams({ players, onRefreshPlayers }: Props) {
   async function handleAutoCompare() {
     if (!parsed) return
     setLoading(true)
+    setCompareError("")
     const allIds = [...parsed.teamA, ...parsed.teamB]
       .map((p, i) => {
         const team = i < parsed.teamA.length ? "A" : "B"
@@ -78,6 +87,12 @@ export default function AnalyzeTeams({ players, onRefreshPlayers }: Props) {
         return getEffectiveMatch(i < parsed.teamA.length ? parsed.teamA[idx] : parsed.teamB[idx], key)?.id
       })
       .filter(Boolean) as string[]
+
+    if (allIds.length < 4) {
+      setCompareError(`Need at least 4 matched players to compare — only ${allIds.length} matched. Fix unrecognised players above first.`)
+      setLoading(false)
+      return
+    }
 
     try {
       const res = await fetch("/api/football/generate", {
@@ -88,8 +103,13 @@ export default function AnalyzeTeams({ players, onRefreshPlayers }: Props) {
       if (res.ok) {
         const data = await res.json()
         setAutoResult({ teamA: data.teamA, teamB: data.teamB, balanceScore: data.balanceScore })
+      } else {
+        const err = await res.json().catch(() => ({}))
+        setCompareError(err.error ?? "Auto-compare failed. Try again.")
       }
-    } catch { /* ignore */ }
+    } catch {
+      setCompareError("Network error. Check your connection and try again.")
+    }
     setLoading(false)
   }
 
@@ -136,18 +156,26 @@ export default function AnalyzeTeams({ players, onRefreshPlayers }: Props) {
     return { teamA, teamB }
   }
 
-  async function handleAcceptTeams() {
+  async function handleAcceptTeams(): Promise<void> {
     const teams = buildTeamAssignments()
     if (!teams) return
     setSaving(true)
+    setSaveError("")
     try {
       const res = await fetch("/api/football/games", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ teamA: teams.teamA, teamB: teams.teamB, balanceScore, name: parsed?.matchInfo ?? "Analyzed Game" }),
       })
-      if (res.ok) setSaved(true)
-    } catch { /* ignore */ }
+      if (res.ok) {
+        setSaved(true)
+      } else {
+        const err = await res.json().catch(() => ({}))
+        setSaveError(err.error ?? "Failed to save. Try again.")
+      }
+    } catch {
+      setSaveError("Network error. Check your connection and try again.")
+    }
     setSaving(false)
   }
 
@@ -226,8 +254,18 @@ export default function AnalyzeTeams({ players, onRefreshPlayers }: Props) {
           placeholder={"Team Black ⚫️:\n1. Soum\n2. Shreyes\n...\n\nTeam White ⚪️:\n1. Girish\n2. Elan\n..."}
           rows={12} className="input-dark w-full text-sm px-4 py-3 rounded-xl resize-none" autoFocus
         />
-        <button onClick={handleParse} disabled={!text.trim()} className="w-full btn-primary text-white py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-40">
-          <span>🔍</span> Analyze Balance
+        {!text.trim() && (
+          <p className="text-xs text-center" style={{ color: "#9ca3af" }}>↑ Paste a team sheet above to get started</p>
+        )}
+        <button
+          onClick={handleParse}
+          disabled={!text.trim() || parsing}
+          className="w-full btn-primary text-white py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
+        >
+          {parsing
+            ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Analysing…</>
+            : <><span>🔍</span> Analyze Balance</>
+          }
         </button>
       </div>
     )
@@ -301,9 +339,17 @@ export default function AnalyzeTeams({ players, onRefreshPlayers }: Props) {
       {addingName && <AddPlayerModal initialName={addingName} onSaved={handlePlayerAdded} onClose={() => setAddingName(null)} />}
 
       {/* Auto compare */}
+      {compareError && (
+        <div className="px-3 py-2.5 rounded-xl text-xs font-medium" style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" }}>
+          ⚠️ {compareError}
+        </div>
+      )}
       {!autoResult ? (
         <button onClick={handleAutoCompare} disabled={loading} className="w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2" style={{ background: "#f0f9ff", color: "#0369a1", border: "1px solid #bae6fd" }}>
-          {loading ? <span className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" /> : <>🤖 Compare with auto-balanced teams</>}
+          {loading
+            ? <><span className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" /> Generating…</>
+            : <>🤖 Compare with auto-balanced teams</>
+          }
         </button>
       ) : (
         <div className="space-y-3">
@@ -359,13 +405,24 @@ export default function AnalyzeTeams({ players, onRefreshPlayers }: Props) {
       })()}
 
       {/* Accept / Save */}
+      {saveError && (
+        <div className="px-3 py-2.5 rounded-xl text-xs font-medium" style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" }}>
+          ⚠️ {saveError}
+        </div>
+      )}
+      {matchedCount < 4 && (
+        <p className="text-xs text-center" style={{ color: "#9ca3af" }}>Match at least 4 players above to save</p>
+      )}
       {!saved ? (
         <button
           onClick={handleAcceptTeams}
           disabled={saving || matchedCount < 4}
           className="w-full btn-primary text-white py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-40"
         >
-          {saving ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <>✅ Accept & Save Teams</>}
+          {saving
+            ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Saving…</>
+            : <>✅ Accept & Save Teams</>
+          }
         </button>
       ) : (
         <div className="text-center py-3 rounded-xl" style={{ background: "#ecfdf5", border: "1px solid #a7f3d0" }}>

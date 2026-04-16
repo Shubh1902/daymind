@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { CHORE_CATEGORIES, getChoreEmoji, getChoreLabel, getChoreDefaults } from "@/lib/household-chores"
 
@@ -40,6 +40,8 @@ export default function RecentActivity({ tasks: initialTasks, members }: Props) 
   const [editMemberId, setEditMemberId] = useState("")
   const [editDescription, setEditDescription] = useState("")
   const [saving, setSaving] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
 
   function startEdit(task: TaskItem) {
     setEditingId(task.id)
@@ -220,7 +222,7 @@ export default function RecentActivity({ tasks: initialTasks, members }: Props) 
                   <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: "#f3f4f6", color: "#374151" }}>
                     {task.durationMinutes}m
                   </span>
-                  <p className="text-xs mt-0.5" style={{ color: "#d1d5db" }}>{timeAgo(task.completedAt)}</p>
+                  <p className="text-xs mt-0.5" style={{ color: "#d1d5db" }}>{mounted ? timeAgo(task.completedAt) : ""}</p>
                 </div>
                 <button
                   onClick={(e) => { e.stopPropagation(); deleteTask(task.id) }}

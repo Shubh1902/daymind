@@ -18,7 +18,7 @@ interface Props {
   jerseyA?: string
   jerseyB?: string
   onJerseyChange?: (team: "A" | "B", color: string) => void
-  onTeamsGenerated: (result: { teamA: TeamAssignment[]; teamB: TeamAssignment[]; balanceScore: number; gameId: string }) => void
+  onTeamsGenerated: (result: { teamA: TeamAssignment[]; teamB: TeamAssignment[]; balanceScore: number; gameId: string; matchDate?: string | null }) => void
 }
 
 import { getPositionArea, getPositionColor } from "@/lib/football-positions"
@@ -34,6 +34,7 @@ const AREA_COLORS: Record<string, { color: string; bg: string }> = {
 export default function GameSetup({ players, initialSelected, jerseyA, jerseyB, onJerseyChange, onTeamsGenerated }: Props) {
   const [selected, setSelected] = useState<Set<string>>(initialSelected ?? new Set())
   const [instructions, setInstructions] = useState("")
+  const [matchDate, setMatchDate] = useState("")
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState("")
 
@@ -65,11 +66,11 @@ export default function GameSetup({ players, initialSelected, jerseyA, jerseyB, 
       const res = await fetch("/api/football/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ playerIds: Array.from(selected), instructions, jerseyA, jerseyB }),
+        body: JSON.stringify({ playerIds: Array.from(selected), instructions, jerseyA, jerseyB, matchDate: matchDate || null }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error ?? "Generation failed"); return }
-      onTeamsGenerated({ teamA: data.teamA, teamB: data.teamB, balanceScore: data.balanceScore, gameId: data.id })
+      onTeamsGenerated({ teamA: data.teamA, teamB: data.teamB, balanceScore: data.balanceScore, gameId: data.id, matchDate: data.matchDate })
     } catch {
       setError("Something went wrong")
     } finally {
@@ -87,14 +88,23 @@ export default function GameSetup({ players, initialSelected, jerseyA, jerseyB, 
 
   return (
     <div className="space-y-4">
+      {/* Instruction banner shown until user starts selecting */}
+      {selected.size === 0 && (
+        <div className="rounded-xl px-4 py-3 text-sm" style={{ background: "#fff7ed", border: "1px solid #fed7aa", color: "#9a3412" }}>
+          ⚽ Tap players below to select who's playing today, then tap Generate Teams.
+        </div>
+      )}
+
       {/* Selection counter */}
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-bold" style={{ color: "#1f2937" }}>
-            {selected.size} selected
-            <span className="text-xs font-normal ml-2" style={{ color: "#9ca3af" }}>
-              ({gkCount} GK + {outfieldCount} outfield)
-            </span>
+            {selected.size === 0 ? "No players selected" : `${selected.size} selected`}
+            {selected.size > 0 && (
+              <span className="text-xs font-normal ml-2" style={{ color: "#9ca3af" }}>
+                ({gkCount} GK + {outfieldCount} outfield)
+              </span>
+            )}
           </p>
         </div>
         <div className="flex gap-2">
@@ -122,11 +132,13 @@ export default function GameSetup({ players, initialSelected, jerseyA, jerseyB, 
                   <button
                     key={p.id}
                     onClick={() => toggle(p.id)}
-                    className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-left transition-all"
+                    className="flex items-center gap-2 px-2.5 py-2.5 rounded-lg text-left transition-all active:scale-95"
                     style={{
                       background: isSelected ? style.bg : "#f9fafb",
                       border: isSelected ? `2px solid ${style.color}` : "1px solid #e5e7eb",
                       opacity: isSelected ? 1 : 0.7,
+                      touchAction: "manipulation",
+                      minHeight: "44px",
                     }}
                   >
                     <span className="text-xs font-bold" style={{ color: style.color }}>{p.skill}</span>
@@ -139,6 +151,21 @@ export default function GameSetup({ players, initialSelected, jerseyA, jerseyB, 
           </div>
         )
       })}
+
+      {/* Match date & time */}
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "#6b7280" }}>
+          Match Date & Time
+        </p>
+        <input
+          type="datetime-local"
+          value={matchDate}
+          onChange={(e) => setMatchDate(e.target.value)}
+          className="w-full px-3.5 py-2.5 rounded-xl text-sm"
+          style={{ background: "#f9fafb", border: "1px solid #e5e7eb", color: matchDate ? "#1f2937" : "#9ca3af" }}
+          suppressHydrationWarning
+        />
+      </div>
 
       {/* Instructions */}
       <div>
@@ -170,6 +197,7 @@ export default function GameSetup({ players, initialSelected, jerseyA, jerseyB, 
         onClick={handleGenerate}
         disabled={selected.size < 4 || generating}
         className="w-full btn-primary text-white py-3.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-40 active:scale-[0.98]"
+        style={{ touchAction: "manipulation" }}
       >
         {generating ? (
           <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

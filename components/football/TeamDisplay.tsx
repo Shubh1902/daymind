@@ -20,6 +20,7 @@ interface Props {
   teamB: TeamAssignment[]
   balanceScore: number
   gameId: string
+  matchDate?: string | null
   allPlayers?: FullPlayer[]
   jerseyA?: string
   jerseyB?: string
@@ -117,7 +118,7 @@ function TeamColumn({ team, label, accent, allPlayers, onPlayerClick }: { team: 
   )
 }
 
-export default function TeamDisplay({ teamA, teamB, balanceScore, gameId, allPlayers, jerseyA = "orange", jerseyB = "purple", onRefresh, onRegenerate, onBack }: Props) {
+export default function TeamDisplay({ teamA, teamB, balanceScore, gameId, matchDate, allPlayers, jerseyA = "orange", jerseyB = "purple", onRefresh, onRegenerate, onBack }: Props) {
   const jA = getJerseyColor(jerseyA)
   const jB = getJerseyColor(jerseyB)
   const [showRecord, setShowRecord] = useState(false)
@@ -127,8 +128,8 @@ export default function TeamDisplay({ teamA, teamB, balanceScore, gameId, allPla
 
   return (
     <div className="space-y-4 animate-scale-in">
-      {/* Balance Score */}
-      <div className="text-center">
+      {/* Balance Score + Match Date */}
+      <div className="text-center space-y-1.5">
         <span
           className="inline-block text-sm font-bold px-4 py-1.5 rounded-full"
           style={{
@@ -139,6 +140,13 @@ export default function TeamDisplay({ teamA, teamB, balanceScore, gameId, allPla
         >
           {balanceScore}% balanced
         </span>
+        {matchDate && (
+          <p className="text-xs" style={{ color: "#6b7280" }}>
+            📅 {new Date(matchDate).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+            {" · "}
+            {new Date(matchDate).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+          </p>
+        )}
       </div>
 
       {/* View toggle */}

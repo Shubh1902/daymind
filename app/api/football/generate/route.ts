@@ -60,5 +60,6 @@ export async function POST(request: NextRequest) {
     teamB,
     balanceScore,
     name: game.name,
+    matchDate: game.matchDate?.toISOString() ?? null,
   }, { status: 201 })
 }

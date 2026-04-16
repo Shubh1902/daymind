@@ -127,8 +127,8 @@ export default function PlayerDetailModal({ player, initialName, mode = player ?
             </h2>
             <div className="flex items-center gap-2">
               {!isNew && (
-                <button onClick={handleDelete} disabled={deleting} className="text-[10px] font-bold px-2 py-1 rounded-lg" style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" }}>
-                  {deleting ? "..." : "Delete"}
+                <button onClick={handleDelete} disabled={deleting} className="text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1" style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" }}>
+                  {deleting ? <span className="w-3 h-3 border-2 border-red-400 border-t-transparent rounded-full animate-spin" /> : "Delete"}
                 </button>
               )}
               <button onClick={onClose} className="p-2 rounded-lg" style={{ color: "#6b7280", background: "#f3f4f6" }}>

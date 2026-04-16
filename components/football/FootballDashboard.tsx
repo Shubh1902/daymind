@@ -203,7 +203,7 @@ export default function FootballDashboard({ games, totalGames, totalGoals }: Pro
                   <span className="w-3 h-3 rounded-full" style={{ background: gB.hex }} />
                 </div>
                 <span className="flex-1 text-[10px] truncate" style={{ color: "#9ca3af" }}>
-                  {game.name ?? new Date(game.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  {game.name ?? (mounted ? new Date(game.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "")}
                 </span>
                 <span className="text-[10px]" style={{ color: "#d1d5db" }}>{mounted ? timeAgo(game.createdAt) : ""}</span>
               </Link>
